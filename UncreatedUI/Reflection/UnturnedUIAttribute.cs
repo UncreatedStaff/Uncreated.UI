@@ -14,13 +14,13 @@ public sealed class UnturnedUIAttribute : Attribute
     /// Should scan the UI for elements.
     /// </summary>
     /// <remarks>Default: <see langword="true"/></remarks>
-    public bool HasElements { get; set; } = true;
+    public bool? HasElements { get; set; } = true;
 
     /// <summary>
     /// Should send the UI reliably.
     /// </summary>
     /// <remarks>Default: <see langword="true"/></remarks>
-    public bool Reliable { get; set; } = true;
+    public bool? Reliable { get; set; } = true;
     public UnturnedUIAttribute(string displayName)
     {
         DisplayName = displayName;

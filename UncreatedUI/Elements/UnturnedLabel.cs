@@ -1,8 +1,12 @@
 ﻿using SDG.NetTransport;
 using SDG.Unturned;
 using System.Globalization;
+using Uncreated.Networking;
 
 namespace Uncreated.Framework.UI;
+/// <summary>
+/// Represents a text component in a Unity UI.
+/// </summary>
 public class UnturnedLabel : UnturnedUIElement
 {
     public UnturnedLabel(string name) : base(name)
@@ -13,19 +17,13 @@ public class UnturnedLabel : UnturnedUIElement
     {
         AssertOwnerSet();
         EffectManager.sendUIEffectText(_owner!.Key, connection, _owner.IsReliable, _name, text);
+        if (Owner.DebugLogging)
+        {
+            Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Set label text, text: {text}.");
+        }
     }
     public override object Clone()
     {
         return new UnturnedLabel(this);
-    }
-    public new static UnturnedLabel[] GetPattern(string name, int length, int start = 1)
-    {
-        UnturnedLabel[] elems = new UnturnedLabel[length];
-        for (int i = 0; i < length; ++i)
-        {
-            elems[i] = new UnturnedLabel(Util.QuickFormat(name, (i + start).ToString(CultureInfo.InvariantCulture)));
-        }
-
-        return elems;
     }
 }

@@ -1,8 +1,11 @@
 ﻿using SDG.NetTransport;
 using SDG.Unturned;
-using System.Globalization;
+using Uncreated.Networking;
 
 namespace Uncreated.Framework.UI;
+/// <summary>
+/// Represents a web image in a Unity UI.
+/// </summary>
 public class UnturnedImage : UnturnedUIElement
 {
     public UnturnedImage(string name) : base(name) { }
@@ -11,19 +14,13 @@ public class UnturnedImage : UnturnedUIElement
     {
         AssertOwnerSet();
         EffectManager.sendUIEffectImageURL(_owner!.Key, connection, _owner.IsReliable, _name, url, true, forceRefresh);
+        if (Owner.DebugLogging)
+        {
+            Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Set image URL, link: {url}, force refresh: {forceRefresh}.");
+        }
     }
     public override object Clone()
     {
         return new UnturnedImage(this);
-    }
-    public new static UnturnedImage[] GetPattern(string name, int length, int start = 1)
-    {
-        UnturnedImage[] elems = new UnturnedImage[length];
-        for (int i = 0; i < length; ++i)
-        {
-            elems[i] = new UnturnedImage(Util.QuickFormat(name, (i + start).ToString(CultureInfo.InvariantCulture)));
-        }
-
-        return elems;
     }
 }

@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.33808.371
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UncreatedUI", "UncreatedUI\UncreatedUI.csproj", "{C25BDDBB-6B96-478F-85D1-A9F1699D4088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Uncreated.UI", "UncreatedUI\Uncreated.UI.csproj", "{C25BDDBB-6B96-478F-85D1-A9F1699D4088}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uncreated.UI.Tests", "Uncreated.UI.Tests\Uncreated.UI.Tests.csproj", "{D14BED42-FBD0-413F-9C79-A5F239E09728}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{C25BDDBB-6B96-478F-85D1-A9F1699D4088}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C25BDDBB-6B96-478F-85D1-A9F1699D4088}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C25BDDBB-6B96-478F-85D1-A9F1699D4088}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D14BED42-FBD0-413F-9C79-A5F239E09728}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D14BED42-FBD0-413F-9C79-A5F239E09728}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D14BED42-FBD0-413F-9C79-A5F239E09728}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D14BED42-FBD0-413F-9C79-A5F239E09728}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

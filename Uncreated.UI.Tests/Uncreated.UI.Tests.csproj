@@ -1,11 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <ProjectGuid>{D14BED42-FBD0-413F-9C79-A5F239E09728}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net481</TargetFramework>
-    <AssemblyTitle>UncreatedUI</AssemblyTitle>
-    <Product>UncreatedUI</Product>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <AssemblyTitle>Uncreated.UI.Tests</AssemblyTitle>
+    <Product>Uncreated.UI.Tests</Product>
     <Copyright>Copyright ©  2023</Copyright>
     <OutputPath>bin\$(Configuration)\</OutputPath>
-    <RootNamespace>Uncreated.Framework.UI</RootNamespace>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
@@ -16,11 +18,11 @@
     <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\UncreatedUI\Uncreated.UI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\..\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="com.rlabrecque.steamworks.net">
-      <HintPath>..\..\..\..\..\..\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
     </Reference>
     <Reference Include="SDG.NetTransport">
       <HintPath>..\..\..\..\..\..\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\SDG.NetTransport.dll</HintPath>

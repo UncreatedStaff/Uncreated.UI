@@ -5,11 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Uncreated.Framework.UI.Data;
+using UnityEngine;
 
 namespace Uncreated.Framework.UI;
 
 public interface IUnturnedUIDataSource
 {
+    bool RequiresMainThread { get; }
     IEnumerable<IUnturnedUIData> EnumerateData(CSteamID player);
     IEnumerable<IUnturnedUIData> EnumerateData(UnturnedUI owner);
     IEnumerable<IUnturnedUIData> EnumerateData(UnturnedUIElement element);
@@ -39,7 +41,52 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource, IDisposable
     private Dictionary<ulong, List<IUnturnedUIData>> _playerData = new Dictionary<ulong, List<IUnturnedUIData>>(96);
     private Dictionary<UnturnedUI, List<IUnturnedUIData>> _ownerData = new Dictionary<UnturnedUI, List<IUnturnedUIData>>(256);
     private Dictionary<UnturnedUIElement, List<IUnturnedUIData>> _elementData = new Dictionary<UnturnedUIElement, List<IUnturnedUIData>>(2048);
-    public void AddData(IUnturnedUIData data)
+    bool IUnturnedUIDataSource.RequiresMainThread => true;
+    /// <remarks>Thread-safe.</remarks>
+    public static void AddData(IUnturnedUIData data)
+    {
+        if (_instance.RequiresMainThread && ThreadQueue.Queue is { IsMainThread: false })
+            ThreadQueue.Queue.RunOnMainThread(() => _instance.AddData(data));
+        else _instance.AddData(data);
+    }
+    /// <remarks>Thread-safe.</remarks>
+    public static void RemoveElement(UnturnedUIElement element)
+    {
+        if (_instance.RequiresMainThread && ThreadQueue.Queue is { IsMainThread: false })
+            ThreadQueue.Queue.RunOnMainThread(() => _instance.RemoveElement(element));
+        else _instance.RemoveElement(element);
+    }
+    /// <remarks>Thread-safe.</remarks>
+    public static void RemoveOwner(UnturnedUI owner)
+    {
+        if (_instance.RequiresMainThread && ThreadQueue.Queue is { IsMainThread: false })
+            ThreadQueue.Queue.RunOnMainThread(() => _instance.RemoveOwner(owner));
+        else _instance.RemoveOwner(owner);
+    }
+    /// <remarks>Thread-safe.</remarks>
+    public static void RemovePlayer(CSteamID player)
+    {
+        if (_instance.RequiresMainThread && ThreadQueue.Queue is { IsMainThread: false })
+            ThreadQueue.Queue.RunOnMainThread(() => _instance.RemovePlayer(player));
+        else _instance.RemovePlayer(player);
+    }
+    /// <exception cref="NotSupportedException">Not ran on main thread if required.</exception>
+    public static TData? GetData<TData>(CSteamID player, UnturnedUIElement element) where TData : class, IUnturnedUIData
+        => _instance.GetData<TData>(player, element);
+
+    /// <exception cref="NotSupportedException">Not ran on main thread if required.</exception>
+    public static IEnumerable<IUnturnedUIData> EnumerateData(CSteamID player)
+        => _instance.EnumerateData(player);
+
+    /// <exception cref="NotSupportedException">Not ran on main thread if required.</exception>
+    public static IEnumerable<IUnturnedUIData> EnumerateData(UnturnedUI owner)
+        => _instance.EnumerateData(owner);
+
+    /// <exception cref="NotSupportedException">Not ran on main thread if required.</exception>
+    public static IEnumerable<IUnturnedUIData> EnumerateData(UnturnedUIElement element)
+        => _instance.EnumerateData(element);
+
+    void IUnturnedUIDataSource.AddData(IUnturnedUIData data)
     {
         ThreadUtil.assertIsGameThread();
 
@@ -62,7 +109,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource, IDisposable
             list.Add(data);
         }
     }
-    public void RemoveElement(UnturnedUIElement element)
+    void IUnturnedUIDataSource.RemoveElement(UnturnedUIElement element)
     {
         ThreadUtil.assertIsGameThread();
         
@@ -87,7 +134,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource, IDisposable
         }
         list.Clear();
     }
-    public void RemoveOwner(UnturnedUI owner)
+    void IUnturnedUIDataSource.RemoveOwner(UnturnedUI owner)
     {
         ThreadUtil.assertIsGameThread();
         
@@ -112,7 +159,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource, IDisposable
         }
         list.Clear();
     }
-    public void RemovePlayer(CSteamID player)
+    void IUnturnedUIDataSource.RemovePlayer(CSteamID player)
     {
         ThreadUtil.assertIsGameThread();
         
@@ -137,8 +184,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource, IDisposable
         }
         list.Clear();
     }
-
-    public TData? GetData<TData>(CSteamID player, UnturnedUIElement element) where TData : class, IUnturnedUIData
+    TData? IUnturnedUIDataSource.GetData<TData>(CSteamID player, UnturnedUIElement element) where TData : class
     {
         ThreadUtil.assertIsGameThread();
 
@@ -153,27 +199,26 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource, IDisposable
 
         return null;
     }
-
-    public IEnumerable<IUnturnedUIData> EnumerateData(CSteamID player)
+    IEnumerable<IUnturnedUIData> IUnturnedUIDataSource.EnumerateData(CSteamID player)
     {
         ThreadUtil.assertIsGameThread();
 
         return _playerData.TryGetValue(player.m_SteamID, out List<IUnturnedUIData> data) ? data : Array.Empty<IUnturnedUIData>();
     }
-    public IEnumerable<IUnturnedUIData> EnumerateData(UnturnedUI owner)
+    IEnumerable<IUnturnedUIData> IUnturnedUIDataSource.EnumerateData(UnturnedUI owner)
     {
         ThreadUtil.assertIsGameThread();
 
         return _ownerData.TryGetValue(owner, out List<IUnturnedUIData> data) ? data : Array.Empty<IUnturnedUIData>();
     }
 
-    public IEnumerable<IUnturnedUIData> EnumerateData(UnturnedUIElement element)
+    IEnumerable<IUnturnedUIData> IUnturnedUIDataSource.EnumerateData(UnturnedUIElement element)
     {
         ThreadUtil.assertIsGameThread();
 
         return _elementData.TryGetValue(element, out List<IUnturnedUIData> data) ? data : Array.Empty<IUnturnedUIData>();
     }
-    public void Dispose()
+    void IDisposable.Dispose()
     {
         if (_disposed)
             return;

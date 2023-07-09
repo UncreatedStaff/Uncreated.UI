@@ -1,12 +1,19 @@
 ﻿using SDG.Unturned;
 using System;
 using System.Globalization;
+using Uncreated.Networking;
 
 namespace Uncreated.Framework.UI;
 public delegate void ButtonClicked(UnturnedButton button, Player player);
+/// <summary>
+/// Represents a clickable button in a Unity UI.
+/// </summary>
 public class UnturnedButton : UnturnedUIElement, IDisposable
 {
     private bool _disposed;
+    /// <summary>
+    /// Called when the button is clicked.
+    /// </summary>
     public event ButtonClicked? OnClicked;
     public UnturnedButton(string name) : base(name)
     {
@@ -35,19 +42,16 @@ public class UnturnedButton : UnturnedUIElement, IDisposable
         Dispose(true);
     }
 
-    internal void InvokeOnClicked(Player player) => OnClicked?.Invoke(this, player);
+    internal void InvokeOnClicked(Player player)
+    {
+        if (Owner.DebugLogging)
+        {
+            Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Clicked by {player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture)}.");
+        }
+        OnClicked?.Invoke(this, player);
+    }
     public override object Clone()
     {
         return new UnturnedButton(this);
-    }
-    public new static UnturnedButton[] GetPattern(string name, int length, int start = 1)
-    {
-        UnturnedButton[] elems = new UnturnedButton[length];
-        for (int i = 0; i < length; ++i)
-        {
-            elems[i] = new UnturnedButton(Util.QuickFormat(name, (i + start).ToString(CultureInfo.InvariantCulture)));
-        }
-
-        return elems;
     }
 }
