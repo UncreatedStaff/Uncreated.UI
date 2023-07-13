@@ -13,9 +13,9 @@ public class TestUI : UnturnedUI
         Label = new UnturnedLabel[] { new UnturnedLabel("Element1_Label"), new UnturnedLabel("Element1_Label2") }
     };
     
-    public readonly TestStruct2[] Pattern = UnturnedUIPatterns.CreateArray<TestStruct2>("Pattern_{0}", 10);
+    public readonly TestStruct2[] Pattern = UnturnedUIPatterns.CreateArray<TestStruct2>("Pattern_{0}", 10, 4);
     public readonly UnturnedImage[] Pattern2 = UnturnedUIPatterns.CreateArray<UnturnedImage>("Image_{0}", 4, 2);
-    public readonly TestStruct1[] ArrayPattern = UnturnedUIPatterns.CreateArray<TestStruct1>("Array{1}_{0}", 2);
+    public readonly TestStruct1[] ArrayPattern = UnturnedUIPatterns.CreateArray<TestStruct1>("Array{1}_{0}", 2, 3);
     public TestUI() : base(1) { }
 
     public struct TestStruct1

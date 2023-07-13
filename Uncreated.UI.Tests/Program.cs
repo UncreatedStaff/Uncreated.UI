@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
 using Uncreated.Framework;
+using Uncreated.Warfare.Moderation;
 using Action = System.Action;
 
 namespace Uncreated.UI.Tests;
@@ -14,6 +15,7 @@ internal class Program
     static void Main(string[] args)
     {
         ThreadUtil.setupGameThread();
+        Environment.CurrentDirectory = @"C:\SteamCMD\steamapps\common\U3DS\";
         ThreadQueue.Queue = new TestThreadQueue();
         Test();
         while (true)
@@ -35,10 +37,8 @@ internal class Program
     }
     private static void Test()
     {
-        using TestUI testUI = new TestUI
-        {
-            DebugLogging = true
-        };
+        Warfare.Data.RegisterInitialSyncs();
+        using ModerationUI testUI = new ModerationUI();
         TestTransportConnection t = new TestTransportConnection();
 
         Thread.Sleep(1000);

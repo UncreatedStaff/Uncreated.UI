@@ -5,38 +5,38 @@ using System.Collections.Generic;
 using System.Linq;
 using Uncreated.Framework.UI.Reflection;
 using Uncreated.Networking;
-using UnityEngine;
 
 namespace Uncreated.Framework.UI;
 public class UnturnedUI : IDisposable
 {
+    [Ignore]
     private string _name;
+    [Ignore]
     private bool _isValid;
+    [Ignore]
     private bool _isDefaultName = true;
+    [Ignore]
     private bool _disposed;
+    [Ignore]
     private bool _hasDebugLogged;
-    private bool _debugLogging;
-    public bool IsReliable { get; set; }
-    public bool IsSendReliable { get; set; }
-    public bool IsValid => _isValid;
-    public bool HasElements { get; }
-    public bool DebugLogging
-    {
-        get => _debugLogging;
-        set
-        {
-            _debugLogging = value;
-            if (value && !_hasDebugLogged)
-            {
-                DumpDebugLog();
-                _hasDebugLogged = true;
-            }
-        }
-    }
 
+    [Ignore]
+    public bool IsReliable { get; set; }
+    [Ignore]
+    public bool IsSendReliable { get; set; }
+    [Ignore]
+    public bool IsValid => _isValid;
+    [Ignore]
+    public bool HasElements { get; }
+    [Ignore]
+    public bool DebugLogging { get; }
+    [Ignore]
     public IReadOnlyList<UnturnedUIElement> Elements { get; }
+    [Ignore]
     public JsonAssetReference<EffectAsset> Asset { get; private set; } = null!;
+    [Ignore]
     public bool HasDefaultName => _isDefaultName;
+    [Ignore]
     public string Name
     {
         get => _name;
@@ -46,11 +46,12 @@ public class UnturnedUI : IDisposable
             _isDefaultName = false;
         }
     }
+    [Ignore]
     public short Key { get; set; }
-    private UnturnedUI(bool hasElements = true, bool keyless = false, bool reliable = true)
+    private UnturnedUI(bool hasElements, bool keyless, bool reliable, bool debugLogging)
     {
         Type type = GetType();
-
+        DebugLogging = debugLogging;
         HasElements = hasElements;
         List<UnturnedUIElement> elements = new List<UnturnedUIElement>(hasElements ? 16 : 0);
         Elements = elements.AsReadOnly();
@@ -79,19 +80,16 @@ public class UnturnedUI : IDisposable
             UnturnedUIElement element = elements[i];
             element.RegisterOwnerInternal(this);
         }
-
-        if (_debugLogging)
-            _hasDebugLogged = true;
     }
-    public UnturnedUI(ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true) : this(hasElements, keyless, reliable)
+    public UnturnedUI(ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false) : this(hasElements, keyless, reliable, debugLogging)
     {
         LoadFromConfig(defaultId);
     }
-    public UnturnedUI(Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true) : this(hasElements, keyless, reliable)
+    public UnturnedUI(Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false) : this(hasElements, keyless, reliable, debugLogging)
     {
         LoadFromConfig(defaultGuid);
     }
-    public UnturnedUI(JsonAssetReference<EffectAsset>? asset, bool hasElements = true, bool keyless = false, bool reliable = true) : this(hasElements, keyless, reliable)
+    public UnturnedUI(JsonAssetReference<EffectAsset>? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false) : this(hasElements, keyless, reliable, debugLogging)
     {
         LoadFromConfig(asset);
     }
@@ -99,12 +97,6 @@ public class UnturnedUI : IDisposable
     {
         if (_disposed) return;
         Dispose(false);
-    }
-    private void DumpDebugLog()
-    {
-        Logging.LogInfo($"[{Name.ToUpperInvariant()}] Elements: {Elements.Count}.");
-        for (int i = 0; i < Elements.Count; ++i)
-            Elements[i].RegisterOwnerInternal(this);
     }
     private void Dispose(bool disposing)
     {
