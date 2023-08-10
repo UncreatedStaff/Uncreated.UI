@@ -63,7 +63,12 @@ public class UnturnedUIElement : ICloneable
     public void SetVisibility(ITransportConnection connection, bool isEnabled)
     {
         AssertOwnerSet();
-        EffectManager.sendUIEffectVisibility(_owner!.Key, connection, _owner.IsReliable, _name, isEnabled);
+
+        if (ThreadQueue.Queue.IsMainThread)
+            EffectManager.sendUIEffectVisibility(_owner!.Key, connection, _owner.IsReliable, _name, isEnabled);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffectVisibility(_owner!.Key, connection, _owner.IsReliable, _name, isEnabled));
+
         if (Owner.DebugLogging)
         {
             Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Set visibility for {connection.GetAddressString(true)}, visibility: {isEnabled}.");

@@ -16,7 +16,12 @@ public class UnturnedLabel : UnturnedUIElement
     public void SetText(ITransportConnection connection, string text)
     {
         AssertOwnerSet();
-        EffectManager.sendUIEffectText(_owner!.Key, connection, _owner.IsReliable, _name, text);
+
+        if (ThreadQueue.Queue.IsMainThread)
+            EffectManager.sendUIEffectText(_owner!.Key, connection, _owner.IsReliable, _name, text);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffectText(_owner!.Key, connection, _owner.IsReliable, _name, text));
+        
         if (Owner.DebugLogging)
         {
             Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Set label text, text: {text}.");

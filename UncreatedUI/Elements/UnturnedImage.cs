@@ -13,7 +13,12 @@ public class UnturnedImage : UnturnedUIElement
     public void SetImage(ITransportConnection connection, string url, bool forceRefresh = false)
     {
         AssertOwnerSet();
-        EffectManager.sendUIEffectImageURL(_owner!.Key, connection, _owner.IsReliable, _name, url, true, forceRefresh);
+
+        if (ThreadQueue.Queue.IsMainThread)
+            EffectManager.sendUIEffectImageURL(_owner!.Key, connection, _owner.IsReliable, _name, url, true, forceRefresh);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffectImageURL(_owner!.Key, connection, _owner.IsReliable, _name, url, true, forceRefresh));
+        
         if (Owner.DebugLogging)
         {
             Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Set image URL, link: {url}, force refresh: {forceRefresh}.");
