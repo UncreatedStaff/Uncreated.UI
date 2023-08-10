@@ -53,7 +53,8 @@ internal static class UIElementDiscovery
         {
             elements.Add(elem);
             elem.AddIncludedElementsInternal(elements);
-            Logging.LogInfo($"[UI ELEMENT DISCOV] Found element: {elem}.");
+            if (debug)
+                Logging.LogInfo($"[UI ELEMENT DISCOV] Found element: {elem}.");
         }
         else if (val is IEnumerable enumerable)
         {
@@ -63,13 +64,15 @@ internal static class UIElementDiscovery
                 {
                     elements.Add(elem2);
                     elem2.AddIncludedElementsInternal(elements);
-                    Logging.LogInfo($"[UI ELEMENT DISCOV] Found element (enumerable member): {elem2}.");
+                    if (debug)
+                        Logging.LogInfo($"[UI ELEMENT DISCOV] Found element (enumerable member): {elem2}.");
                 }
                 else if (value2 != null)
                 {
                     int depth2 = depth + 1;
                     DiscoverElements(value2, elements, ref depth2, debug);
-                    Logging.LogInfo($"[UI ELEMENT DISCOV] Found nested type (enumerable member): {value2}.");
+                    if (debug)
+                        Logging.LogInfo($"[UI ELEMENT DISCOV] Found nested type (enumerable member): {value2}.");
                 }
             }
         }
@@ -77,7 +80,8 @@ internal static class UIElementDiscovery
         {
             int depth2 = depth + 1;
             DiscoverElements(val, elements, ref depth2, debug);
-            Logging.LogInfo($"[UI ELEMENT DISCOV] Found nested type: {val}.");
+            if (debug)
+                Logging.LogInfo($"[UI ELEMENT DISCOV] Found nested type: {val}.");
         }
     }
 }

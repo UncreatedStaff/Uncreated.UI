@@ -6,6 +6,7 @@ using System.Linq;
 using SDG.NetTransport;
 using SDG.Unturned;
 using Uncreated.Framework.UI.Data;
+using Uncreated.Networking;
 
 namespace Uncreated.Framework.UI.Presets;
 
@@ -13,6 +14,9 @@ public delegate void ValueUpdated<TEnum>(UnturnedEnumButton<TEnum> button, Playe
 public delegate string TextFormatter<in TEnum>(TEnum value, Player player) where TEnum : unmanaged, Enum;
 public class UnturnedEnumButton<TEnum> : IDisposable where TEnum : unmanaged, Enum
 {
+    [Ignore]
+    public object? Tag { get; set; }
+
     [Ignore]
     private static readonly TEnum[] ValuesIntl = (TEnum[])typeof(TEnum).GetEnumValues();
     private int[]? _ignored;
@@ -156,7 +160,17 @@ public class UnturnedEnumButton<TEnum> : IDisposable where TEnum : unmanaged, En
     {
         Label.SetText(player.channel.owner.transportConnection, TextFormatter?.Invoke(value, player) ?? value.ToString());
         if (callEvent)
-            OnValueUpdated?.Invoke(this, player, value);
+        {
+            try
+            {
+                OnValueUpdated?.Invoke(this, player, value);
+            }
+            catch (Exception ex)
+            {
+                Logging.LogError($"[{Button.Owner.Name}] [{Button.Name}] Error invoking OnValueUpdated for enum button of {typeof(TEnum).Name}.");
+                Logging.LogException(ex);
+            }
+        }
     }
     public void Enable(ITransportConnection player) => DisableState?.SetVisibility(player, true);
     public void Disable(ITransportConnection player) => DisableState?.SetVisibility(player, false);
