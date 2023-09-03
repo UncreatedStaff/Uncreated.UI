@@ -4,11 +4,11 @@ using System.Globalization;
 using Uncreated.Networking;
 
 namespace Uncreated.Framework.UI;
-public delegate void TextUpdated(UnturnedTextBox button, Player player, string text);
+public delegate void TextUpdated(UnturnedTextBox textBox, Player player, string text);
 /// <summary>
 /// Represents an input component in a Unity UI.
 /// </summary>
-public class UnturnedTextBox : UnturnedUIElement
+public class UnturnedTextBox : UnturnedLabel, IDisposable
 {
     private bool _disposed;
     /// <summary>
