@@ -11,6 +11,11 @@ public readonly struct ChangeableTextBox
         add => TextBox.OnTextUpdated += value;
         remove => TextBox.OnTextUpdated -= value;
     }
+    public bool UseData
+    {
+        get => TextBox.UseData;
+        set => TextBox.UseData = value;
+    }
     public ChangeableTextBox(string textBox) : this(textBox, textBox + "Placeholder") { }
     public ChangeableTextBox(string textBox, string placeholder)
     {
@@ -32,6 +37,11 @@ public readonly struct ChangeableStateTextBox
     {
         add => TextBox.OnTextUpdated += value;
         remove => TextBox.OnTextUpdated -= value;
+    }
+    public bool UseData
+    {
+        get => TextBox.UseData;
+        set => TextBox.UseData = value;
     }
 
     public ChangeableStateTextBox(string textBox)
