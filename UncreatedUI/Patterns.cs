@@ -66,7 +66,7 @@ public static class UnturnedUIPatterns
         if (typeof(UnturnedUIElement).IsAssignableFrom(type))
         {
             for (int i = 0; i < array.Length; ++i)
-                array.SetValue(Activator.CreateInstance(type, Util.QuickFormat(format, (i + start).ToString(CultureInfo.InvariantCulture), 0)), i);
+                array.SetValue(Activator.CreateInstance(type, Util.QuickFormat(format, (i + start).ToString(CultureInfo.InvariantCulture), 0, repeat: true)), i);
 
             return true;
         }
@@ -154,7 +154,7 @@ public static class UnturnedUIPatterns
         {
             for (int i = 0; i < elements.Length; i++)
             {
-                elements.SetValue(Initialize(Util.QuickFormat(baseName, (i + start).ToString(CultureInfo.InvariantCulture), 0)), i);
+                elements.SetValue(Initialize(Util.QuickFormat(baseName, (i + start).ToString(CultureInfo.InvariantCulture), 0, repeat: true)), i);
             }
         }
         public object Initialize(string baseName)
@@ -220,7 +220,7 @@ public static class UnturnedUIPatterns
                 {
                     FormatMode.Prefix => pattern + baseName,
                     FormatMode.Replace => pattern,
-                    FormatMode.Format => Util.QuickFormat(baseName, pattern, Attribute is not { Mode: FormatMode.Format } ? 0 : Attribute.FormatIndex),
+                    FormatMode.Format => Util.QuickFormat(baseName, pattern, Attribute is not { Mode: FormatMode.Format } ? 0 : Attribute.FormatIndex, repeat: true),
                     _ => baseName + pattern
                 };
             }
