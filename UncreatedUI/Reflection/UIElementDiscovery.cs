@@ -28,7 +28,7 @@ internal static class UIElementDiscovery
         for (int i = 0; i < fields.Length; ++i)
         {
             FieldInfo field = fields[i];
-            if (!field.IsIgnored())
+            if (!IsIgnored(field, value))
             {
                 object val = field.GetValue(value);
                 Discover(val, depth, elements, debug);
@@ -37,7 +37,7 @@ internal static class UIElementDiscovery
         for (int i = 0; i < properties.Length; ++i)
         {
             PropertyInfo property = properties[i];
-            if (!property.IsIgnored() && property.GetGetMethod(true) != null)
+            if (!IsIgnored(property, value) && property.GetGetMethod(true) != null)
             {
                 object val = property.GetGetMethod(true).Invoke(value, Array.Empty<object>());
                 Discover(val, depth, elements, debug);
@@ -47,6 +47,10 @@ internal static class UIElementDiscovery
         ++depth;
     }
 
+    private static bool IsIgnored(MemberInfo member, object value)
+    {
+        return member.IsIgnored() || Attribute.IsDefined(member, typeof(IgnoreIfDefinedTypeAttribute)) && value.GetType() == member.DeclaringType;
+    }
     private static void Discover(object val, int depth, List<UnturnedUIElement> elements, bool debug)
     {
         if (val is UnturnedUIElement elem)

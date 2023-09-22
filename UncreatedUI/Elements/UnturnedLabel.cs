@@ -13,7 +13,7 @@ public class UnturnedLabel : UnturnedUIElement
     {
     }
     internal UnturnedLabel(UnturnedLabel original) : base(original) { }
-    public void SetText(ITransportConnection connection, string text)
+    public virtual void SetText(ITransportConnection connection, string text)
     {
         AssertOwnerSet();
 

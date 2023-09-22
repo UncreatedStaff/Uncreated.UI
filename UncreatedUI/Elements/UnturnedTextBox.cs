@@ -1,6 +1,7 @@
 ﻿using SDG.Unturned;
 using System;
 using System.Globalization;
+using SDG.NetTransport;
 using Uncreated.Framework.UI.Data;
 using Uncreated.Networking;
 
@@ -62,6 +63,34 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable
             Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Text committed by {player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture)}, text: {text}.");
         }
         OnTextUpdated?.Invoke(this, player, text);
+    }
+
+    public override void SetText(ITransportConnection connection, string text)
+    {
+        base.SetText(connection, text);
+
+        if (UseData)
+        {
+            if (Dedicator.commandWindow == null || Provider.clients == null)
+                return;
+            SteamPlayer? sp = null;
+            for (int i = 0; i < Provider.clients.Count; ++i)
+            {
+                if (Equals(Provider.clients[i].transportConnection, connection))
+                {
+                    sp = Provider.clients[i];
+                    break;
+                }
+            }
+
+            if (sp == null)
+                return;
+
+            UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(sp.playerID.steamID, this);
+            if (data == null)
+                UnturnedUIDataSource.AddData(new UnturnedTextBoxData(sp.playerID.steamID, this, text));
+            else data.Text = text;
+        }
     }
 
     public override object Clone()

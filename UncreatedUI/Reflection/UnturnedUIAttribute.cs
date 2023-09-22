@@ -26,3 +26,9 @@ public sealed class UnturnedUIAttribute : Attribute
         DisplayName = displayName;
     }
 }
+
+/// <summary>
+/// Ignore this element if the current object's type is the same as the type this element is defined in.
+/// </summary>
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public sealed class IgnoreIfDefinedTypeAttribute : Attribute { }
