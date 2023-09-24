@@ -48,6 +48,7 @@ public class UnturnedUIElement : ICloneable
         for (int i = ct; i < elements.Count; ++i)
             elements[i].Parent = this;
     }
+
     protected virtual void RegisterOwner(UnturnedUI? owner)
     {
         bool debug = owner?.DebugLogging ?? _owner is { DebugLogging: true };
@@ -60,7 +61,33 @@ public class UnturnedUIElement : ICloneable
                 Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Registered.");
         }
     }
-    public void SetVisibility(ITransportConnection connection, bool isEnabled)
+
+    public virtual void SetVisibility(SteamPlayer player, bool isEnabled)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.player.isActiveAndEnabled)
+            SetVisibilityIntl(player.transportConnection, isEnabled);
+    }
+
+    public virtual void SetVisibility(Player player, bool isEnabled)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.isActiveAndEnabled)
+            SetVisibilityIntl(player.channel.owner.transportConnection, isEnabled);
+    }
+
+    public virtual void SetVisibility(ITransportConnection connection, bool isEnabled)
+    {
+        if (connection == null)
+            throw new ArgumentNullException(nameof(connection));
+        SetVisibilityIntl(connection, isEnabled);
+    }
+
+    private void SetVisibilityIntl(ITransportConnection connection, bool isEnabled)
     {
         AssertOwnerSet();
 

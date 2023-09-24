@@ -17,8 +17,6 @@ public class UnturnedUI : IDisposable
     private bool _isDefaultName = true;
     [Ignore]
     private bool _disposed;
-    [Ignore]
-    private bool _hasDebugLogged;
 
     [Ignore]
     public bool IsReliable { get; set; }
@@ -165,73 +163,145 @@ public class UnturnedUI : IDisposable
     {
         LoadFromConfig(new JsonAssetReference<EffectAsset>(id));
     }
-    public void SendToPlayer(ITransportConnection connection)
+    public virtual void SendToPlayer(SteamPlayer player)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + _name);
-        else
-            EffectManager.sendUIEffect(this.Asset.Id, Key, connection, IsReliable || IsSendReliable);
-        if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}.");
-        }
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.player.isActiveAndEnabled)
+            SendToPlayerIntl(player.transportConnection);
     }
-    public void SendToPlayer(ITransportConnection connection, string arg1)
+    public virtual void SendToPlayer(Player player)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + _name);
-        else
-            EffectManager.sendUIEffect(this.Asset.Id, Key, connection, IsReliable || IsSendReliable, arg1);
-        if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg1}.");
-        }
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.isActiveAndEnabled)
+            SendToPlayerIntl(player.channel.owner.transportConnection);
     }
-    public void SendToPlayer(ITransportConnection connection, string arg1, string arg2)
+    public virtual void SendToPlayer(ITransportConnection connection)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + _name);
-        else
-            EffectManager.sendUIEffect(this.Asset.Id, Key, connection, IsReliable || IsSendReliable, arg1, arg2);
-        if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg1}, {arg2}.");
-        }
+        if (connection == null)
+            throw new ArgumentNullException(nameof(connection));
+
+        SendToPlayerIntl(connection);
     }
-    public void SendToPlayer(ITransportConnection connection, string arg1, string arg2, string arg3)
+    public virtual void SendToPlayer(SteamPlayer player, string arg0)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else
-            EffectManager.sendUIEffect(this.Asset.Id, Key, connection, IsReliable || IsSendReliable, arg1, arg2, arg3);
-        if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg1}, {arg2}, {arg3}.");
-        }
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.player.isActiveAndEnabled)
+            SendToPlayerIntl(player.transportConnection, arg0);
     }
-    public void SendToPlayer(ITransportConnection connection, string arg1, string arg2, string arg3, string arg4)
+    public virtual void SendToPlayer(Player player, string arg0)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else
-            EffectManager.sendUIEffect(this.Asset.Id, Key, connection, IsReliable || IsSendReliable, arg1, arg2, arg3, arg4);
-        if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg1}, {arg2}, {arg3}, {arg4}.");
-        }
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.isActiveAndEnabled)
+            SendToPlayerIntl(player.channel.owner.transportConnection, arg0);
     }
-    public void ClearFromPlayer(ITransportConnection connection)
+    public virtual void SendToPlayer(ITransportConnection connection, string arg0)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else
-            EffectManager.askEffectClearByID(this.Asset.Id, connection);
-        if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Cleared from {connection.GetAddressString(true)}.");
-        }
+        if (connection == null)
+            throw new ArgumentNullException(nameof(connection));
+
+        SendToPlayerIntl(connection, arg0);
     }
-    public void SendToAllPlayers()
+    public virtual void SendToPlayer(SteamPlayer player, string arg0, string arg1)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.player.isActiveAndEnabled)
+            SendToPlayerIntl(player.transportConnection, arg0, arg1);
+    }
+    public virtual void SendToPlayer(Player player, string arg0, string arg1)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.isActiveAndEnabled)
+            SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1);
+    }
+    public virtual void SendToPlayer(ITransportConnection connection, string arg0, string arg1)
+    {
+        if (connection == null)
+            throw new ArgumentNullException(nameof(connection));
+
+        SendToPlayerIntl(connection, arg0, arg1);
+    }
+    public virtual void SendToPlayer(SteamPlayer player, string arg0, string arg1, string arg2)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.player.isActiveAndEnabled)
+            SendToPlayerIntl(player.transportConnection, arg0, arg1, arg2);
+    }
+    public virtual void SendToPlayer(Player player, string arg0, string arg1, string arg2)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.isActiveAndEnabled)
+            SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1, arg2);
+    }
+    public virtual void SendToPlayer(ITransportConnection connection, string arg0, string arg1, string arg2)
+    {
+        if (connection == null)
+            throw new ArgumentNullException(nameof(connection));
+
+        SendToPlayerIntl(connection, arg0, arg1, arg2);
+    }
+    public virtual void SendToPlayer(SteamPlayer player, string arg0, string arg1, string arg2, string arg3)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.player.isActiveAndEnabled)
+            SendToPlayerIntl(player.transportConnection, arg0, arg1, arg2, arg3);
+    }
+    public virtual void SendToPlayer(Player player, string arg0, string arg1, string arg2, string arg3)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.isActiveAndEnabled)
+            SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1, arg2, arg3);
+    }
+    public virtual void SendToPlayer(ITransportConnection connection, string arg0, string arg1, string arg2, string arg3)
+    {
+        if (connection == null)
+            throw new ArgumentNullException(nameof(connection));
+
+        SendToPlayerIntl(connection, arg0, arg1, arg2, arg3);
+    }
+    public virtual void ClearFromPlayer(SteamPlayer player)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.player.isActiveAndEnabled)
+            ClearFromPlayerIntl(player.transportConnection);
+    }
+    public virtual void ClearFromPlayer(Player player)
+    {
+        if (player is null)
+            throw new ArgumentNullException(nameof(player));
+
+        if (player.isActiveAndEnabled)
+            ClearFromPlayerIntl(player.channel.owner.transportConnection);
+    }
+    public virtual void ClearFromPlayer(ITransportConnection connection)
+    {
+        if (connection == null)
+            throw new ArgumentNullException(nameof(connection));
+
+        ClearFromPlayerIntl(connection);
+    }
+    public virtual void SendToAllPlayers()
     {
         if (Asset is null || !Asset.Exists)
             Logging.LogWarning("Invalid UI: " + this.GetType().Name);
@@ -242,15 +312,102 @@ public class UnturnedUI : IDisposable
             Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to all players.");
         }
     }
-    public void ClearFromAllPlayers()
+    public virtual void ClearFromAllPlayers()
     {
         if (Asset is null || !Asset.Exists)
             Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else
+        else if (ThreadQueue.Queue.IsMainThread)
             EffectManager.ClearEffectByID_AllPlayers(this.Asset.Id);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.ClearEffectByID_AllPlayers(this.Asset.Id));
+        
         if (DebugLogging)
         {
             Logging.LogInfo($"[{Name.ToUpperInvariant()}] Cleared from all players.");
+        }
+    }
+    private void SendToPlayerIntl(ITransportConnection connection)
+    {
+        if (Asset is null || !Asset.Exists)
+            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
+        else if (ThreadQueue.Queue.IsMainThread)
+            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable));
+
+        if (DebugLogging)
+        {
+            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}.");
+        }
+    }
+    private void SendToPlayerIntl(ITransportConnection connection, string arg0)
+    {
+        if (Asset is null || !Asset.Exists)
+            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
+        else if (ThreadQueue.Queue.IsMainThread)
+            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0));
+
+        if (DebugLogging)
+        {
+            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, arg: {arg0}.");
+        }
+    }
+    private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1)
+    {
+        if (Asset is null || !Asset.Exists)
+            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
+        else if (ThreadQueue.Queue.IsMainThread)
+            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1));
+
+        if (DebugLogging)
+        {
+            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg0}, {arg1}.");
+        }
+    }
+    private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2)
+    {
+        if (Asset is null || !Asset.Exists)
+            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
+        else if (ThreadQueue.Queue.IsMainThread)
+            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2));
+
+        if (DebugLogging)
+        {
+            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg0}, {arg1}, {arg2}.");
+        }
+    }
+    private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2, string arg3)
+    {
+        if (Asset is null || !Asset.Exists)
+            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
+        else if (ThreadQueue.Queue.IsMainThread)
+            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3));
+
+        if (DebugLogging)
+        {
+            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg0}, {arg1}, {arg2}, {arg3}.");
+        }
+    }
+    private void ClearFromPlayerIntl(ITransportConnection connection)
+    {
+        if (Asset is null || !Asset.Exists)
+            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
+        else if (ThreadQueue.Queue.IsMainThread)
+            EffectManager.askEffectClearByID(Asset.Id, connection);
+        else
+            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.askEffectClearByID(Asset.Id, connection));
+
+        if (DebugLogging)
+        {
+            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Cleared from {connection.GetAddressString(true)}.");
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using SDG.NetTransport;
-using SDG.Unturned;
+﻿using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,7 @@ using Uncreated.Framework.UI.Reflection;
 using Uncreated.Networking;
 
 namespace Uncreated.Framework.UI.Presets;
-public class UnturnedEnumButtonTracker<TEnum> where TEnum : unmanaged, Enum
+public class UnturnedEnumButtonTracker<TEnum> : IStateElement, IRightClickableButton where TEnum : unmanaged, Enum
 {
     [Ignore]
     private static TEnum[]? _vals;
@@ -57,6 +56,7 @@ public class UnturnedEnumButtonTracker<TEnum> where TEnum : unmanaged, Enum
     [Ignore]
     private readonly TEnum[] _values;
 
+
     [IgnoreIfDefinedType]
     public UnturnedButton Button { get; }
 
@@ -64,13 +64,29 @@ public class UnturnedEnumButtonTracker<TEnum> where TEnum : unmanaged, Enum
     public UnturnedLabel Label { get; }
 
     [IgnoreIfDefinedType]
-    public UnturnedUIElement? DisableState { get; }
+    public UnturnedUIElement? State { get; }
+
+    public event ButtonClicked? OnClicked;
+
+    public event ButtonClicked? OnRightClicked
+    {
+        add
+        {
+            if (RightClickListener != null)
+                RightClickListener.OnClicked += value;
+        }
+        remove
+        {
+            if (RightClickListener != null)
+                RightClickListener.OnClicked -= value;
+        }
+    }
 
     [IgnoreIfDefinedType]
     public UnturnedButton? RightClickListener { get; }
-
-    public UnturnedEnumButtonTracker(TEnum defaultValue, RightClickableStateButton button) : this(defaultValue, button.Button, button.Label, button.State, button.RightClickListener) { }
-    public UnturnedEnumButtonTracker(TEnum defaultValue, RightClickableButton button) : this(defaultValue, button.Button, button.Label, null, button.RightClickListener) { }
+    [Ignore]
+    UnturnedButton IRightClickableButton.RightClickListener => RightClickListener!;
+    public UnturnedEnumButtonTracker(TEnum defaultValue, ILabeledButton button) : this(defaultValue, button.Button, button.Label, button is IStateElement state ? state.State : null, button is IRightClickableButton rightClickableButton ? rightClickableButton.RightClickListener : null) { }
     public UnturnedEnumButtonTracker(TEnum defaultValue, UnturnedButton button, UnturnedLabel label) : this(defaultValue, button, label, null, null) { }
     public UnturnedEnumButtonTracker(TEnum defaultValue, UnturnedButton button, UnturnedLabel label, UnturnedUIElement? disableState, UnturnedButton? rightClickListener) : this(button, label, disableState, rightClickListener)
     {
@@ -88,8 +104,7 @@ public class UnturnedEnumButtonTracker<TEnum> where TEnum : unmanaged, Enum
         _values = values;
         Values = new ReadOnlyCollection<TEnum>(values);
     }
-    public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, RightClickableStateButton button) : this(valueSet, defaultValue, button.Button, button.Label, button.State, button.RightClickListener) { }
-    public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, RightClickableButton button) : this(valueSet, defaultValue, button.Button, button.Label, null, button.RightClickListener) { }
+    public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, ILabeledButton button) : this(valueSet, defaultValue, button.Button, button.Label, button is IStateElement state ? state.State : null, button is IRightClickableButton rightClickableButton ? rightClickableButton.RightClickListener : null) { }
     public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, UnturnedButton button, UnturnedLabel label) : this(valueSet, defaultValue, button, label, null, null) { }
     public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, UnturnedButton button, UnturnedLabel label, UnturnedUIElement? disableState, UnturnedButton? rightClickListener) : this(button, label, disableState, rightClickListener)
     {
@@ -107,11 +122,11 @@ public class UnturnedEnumButtonTracker<TEnum> where TEnum : unmanaged, Enum
     }
 
 #nullable disable
-    private UnturnedEnumButtonTracker(UnturnedButton button, UnturnedLabel label, UnturnedUIElement disableState, UnturnedButton rightClickListener)
+    private UnturnedEnumButtonTracker(UnturnedButton button, UnturnedLabel label, UnturnedUIElement state, UnturnedButton rightClickListener)
     {
         Button = button;
         Label = label;
-        DisableState = disableState;
+        State = state;
         RightClickListener = rightClickListener;
         Button.OnClicked += ButtonOnClicked;
         RightClickReverses = RightClickListener != null;
@@ -188,6 +203,9 @@ public class UnturnedEnumButtonTracker<TEnum> where TEnum : unmanaged, Enum
         if (!selection.HasValue)
             return;
         SetIntl(player, selection.Value, true);
+
+        if (!reversed)
+            OnClicked?.Invoke(button, player);
     }
     public void SetDefault(Player player, bool callEvent = false) => Set(player, _defaultIndex >= 0 && _defaultIndex < _values.Length ? _values[_defaultIndex] : default, callEvent);
     public void Set(Player player, TEnum value, bool callEvent = false)
@@ -248,16 +266,15 @@ public class UnturnedEnumButtonTracker<TEnum> where TEnum : unmanaged, Enum
             }
         }
     }
-    public void Enable(ITransportConnection player) => DisableState?.SetVisibility(player, true);
-    public void Disable(ITransportConnection player) => DisableState?.SetVisibility(player, false);
-    public void Show(ITransportConnection player) => Button.SetVisibility(player, true);
-    public void Hide(ITransportConnection player) => Button.SetVisibility(player, false);
     public void Dispose()
     {
         Button.OnClicked -= ButtonOnClicked;
         if (RightClickListener != null)
             RightClickListener.OnClicked -= ButtonOnClicked;
     }
+
+    [Ignore]
+    UnturnedUIElement IElement.Element => Button;
 
     private class UnturnedEnumButtonData : IUnturnedUIData
     {

@@ -65,8 +65,9 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable
         OnTextUpdated?.Invoke(this, player, text);
     }
 
-    public override void SetText(ITransportConnection connection, string text)
+    public override void SetText(ITransportConnection connection, string? text)
     {
+        text ??= string.Empty;
         base.SetText(connection, text);
 
         if (UseData)
@@ -89,6 +90,38 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable
             UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(sp.playerID.steamID, this);
             if (data == null)
                 UnturnedUIDataSource.AddData(new UnturnedTextBoxData(sp.playerID.steamID, this, text));
+            else data.Text = text;
+        }
+    }
+    public override void SetText(Player player, string? text)
+    {
+        text ??= string.Empty;
+        base.SetText(player, text);
+
+        if (UseData)
+        {
+            if (Dedicator.commandWindow == null || player.channel?.owner == null)
+                return;
+
+            UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(player.channel.owner.playerID.steamID, this);
+            if (data == null)
+                UnturnedUIDataSource.AddData(new UnturnedTextBoxData(player.channel.owner.playerID.steamID, this, text));
+            else data.Text = text;
+        }
+    }
+    public override void SetText(SteamPlayer player, string text)
+    {
+        text ??= string.Empty;
+        base.SetText(player, text);
+
+        if (UseData)
+        {
+            if (Dedicator.commandWindow == null)
+                return;
+
+            UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(player.playerID.steamID, this);
+            if (data == null)
+                UnturnedUIDataSource.AddData(new UnturnedTextBoxData(player.playerID.steamID, this, text));
             else data.Text = text;
         }
     }
@@ -135,10 +168,10 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable
         UnturnedTextBoxData? messageData = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(player.channel.owner.playerID.steamID, this);
         string val;
         if (messageData != null)
-            SetText(player.channel.owner.transportConnection, val = messageData.Text ?? defaultValue);
+            base.SetText(player.channel.owner.transportConnection, val = messageData.Text ?? defaultValue);
         else
         {
-            SetText(player.channel.owner.transportConnection, val = defaultValue);
+            base.SetText(player.channel.owner.transportConnection, val = defaultValue);
             messageData = new UnturnedTextBoxData(player.channel.owner.playerID.steamID, Owner, this, defaultValue);
             UnturnedUIDataSource.AddData(messageData);
         }

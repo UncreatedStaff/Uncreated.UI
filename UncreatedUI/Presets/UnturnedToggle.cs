@@ -7,7 +7,7 @@ using Uncreated.Networking;
 namespace Uncreated.Framework.UI.Presets;
 
 public delegate void ToggleUpdated(UnturnedToggle toggle, Player player, bool value);
-public class UnturnedToggle : IDisposable
+public class UnturnedToggle : IDisposable, IButton, IStateElement
 {
     [Ignore]
     public object? Tag { get; set; }
@@ -18,9 +18,14 @@ public class UnturnedToggle : IDisposable
 
     [Ignore]
     public bool DefaultValue { get; }
-
-    [Ignore]
+    
     public event ToggleUpdated? OnToggleUpdated;
+
+    public event ButtonClicked? OnClicked
+    {
+        add => ToggleButton.OnClicked += value;
+        remove => ToggleButton.OnClicked -= value;
+    }
 
     public UnturnedToggle(bool defaultValue, string rootButtonName) : this (defaultValue, rootButtonName, rootButtonName + "ToggleState") { }
     public UnturnedToggle(bool defaultValue, string rootButtonName, string toggleStateName, string? disableState = null)
@@ -30,14 +35,14 @@ public class UnturnedToggle : IDisposable
         if (disableState != null)
             DisableState = new UnturnedUIElement(disableState);
         DefaultValue = defaultValue;
-        ToggleButton.OnClicked += OnClicked;
+        ToggleButton.OnClicked += OnButtonClicked;
     }
     public void Dispose()
     {
-        ToggleButton.OnClicked -= OnClicked;
+        ToggleButton.OnClicked -= OnButtonClicked;
     }
 
-    private void OnClicked(UnturnedButton button, Player player)
+    private void OnButtonClicked(UnturnedButton button, Player player)
     {
         UnturnedToggleData? data = UnturnedUIDataSource.Instance.GetData<UnturnedToggleData>(player.channel.owner.playerID.steamID, ToggleButton);
         if (data == null)
@@ -100,13 +105,18 @@ public class UnturnedToggle : IDisposable
         value = data.Value.Value;
         return true;
     }
-    public void Show(ITransportConnection player) => ToggleButton.SetVisibility(player, true);
-    public void Hide(ITransportConnection player) => ToggleButton.SetVisibility(player, false);
-    public void Enable(ITransportConnection player) => DisableState?.SetVisibility(player, true);
-    public void Disable(ITransportConnection player) => DisableState?.SetVisibility(player, false);
+
+    [Ignore]
+    UnturnedUIElement IElement.Element => ToggleButton;
+
+    [Ignore]
+    UnturnedButton IButton.Button => ToggleButton;
+
+    [Ignore]
+    UnturnedUIElement? IStateElement.State => DisableState;
 }
 
-public class LabeledUnturnedToggle : UnturnedToggle
+public class LabeledUnturnedToggle : UnturnedToggle, ILabel
 {
     public UnturnedLabel Label { get; }
     public LabeledUnturnedToggle(bool defaultValue, string rootButtonName) : this(defaultValue, rootButtonName, rootButtonName + "Label") { }
@@ -122,5 +132,4 @@ public class LabeledUnturnedToggle : UnturnedToggle
 
     public void ShowLabel(ITransportConnection player) => Label.SetVisibility(player, true);
     public void HideLabel(ITransportConnection player) => Label.SetVisibility(player, false);
-    public void SetLabelText(ITransportConnection player, string text) => Label.SetText(player, text);
 }
