@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ProjectGuid>{D14BED42-FBD0-413F-9C79-A5F239E09728}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net481</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <AssemblyTitle>Uncreated.UI.Tests</AssemblyTitle>
     <Product>Uncreated.UI.Tests</Product>

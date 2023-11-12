@@ -1,4 +1,6 @@
-﻿namespace Uncreated.Framework.UI.Presets;
+﻿using DanielWillett.ReflectionTools;
+
+namespace Uncreated.Framework.UI.Presets;
 
 /// <summary>
 /// Represents a text box with a placeholder.
