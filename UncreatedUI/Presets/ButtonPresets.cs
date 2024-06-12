@@ -1,4 +1,6 @@
 ﻿using DanielWillett.ReflectionTools;
+using Microsoft.Extensions.Logging;
+using System;
 
 namespace Uncreated.Framework.UI.Presets;
 public class LabeledButton : ILabeledButton
@@ -11,11 +13,23 @@ public class LabeledButton : ILabeledButton
         add => Button.OnClicked += value;
         remove => Button.OnClicked -= value;
     }
-    public LabeledButton(string name) : this(name, name + "Label") { }
-    public LabeledButton(string button, string? label)
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public LabeledButton(string name) : this(GlobalLogger.Instance, name, name + "Label") { }
+    public LabeledButton(ILoggerFactory factory, string name) : this(factory, name, name + "Label") { }
+    public LabeledButton(ILogger logger, string name) : this(logger, name, name + "Label") { }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public LabeledButton(string button, string? label) : this(GlobalLogger.Instance, button, label) { }
+    public LabeledButton(ILoggerFactory factory, string button, string? label)
     {
-        Button = new UnturnedButton(button);
-        Label = new UnturnedLabel(label ?? (button + "Label"));
+        Button = new UnturnedButton(factory, button);
+        Label = new UnturnedLabel(factory, label ?? (button + "Label"));
+    }
+    public LabeledButton(ILogger logger, string button, string? label)
+    {
+        Button = new UnturnedButton(logger, button);
+        Label = new UnturnedLabel(logger, label ?? (button + "Label"));
     }
 
     [Ignore]
@@ -32,11 +46,23 @@ public class StateButton : IButton, IStateElement
         add => Button.OnClicked += value;
         remove => Button.OnClicked -= value;
     }
-    public StateButton(string name) : this(name, name + "State") { }
-    public StateButton(string button, string? state)
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public StateButton(string name) : this(GlobalLogger.Instance, name, name + "State") { }
+    public StateButton(ILogger logger, string name) : this(logger, name, name + "State") { }
+    public StateButton(ILoggerFactory factory, string name) : this(factory, name, name + "State") { }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public StateButton(string button, string? state) : this(GlobalLogger.Instance, button, state) { }
+    public StateButton(ILogger logger, string button, string? state)
     {
-        Button = new UnturnedButton(button);
-        State = new UnturnedUIElement(state ?? (button + "State"));
+        Button = new UnturnedButton(logger, button);
+        State = new UnturnedUIElement(logger, state ?? (button + "State"));
+    }
+    public StateButton(ILoggerFactory factory, string button, string? state)
+    {
+        Button = new UnturnedButton(factory, button);
+        State = new UnturnedUIElement(factory, state ?? (button + "State"));
     }
 
     [Ignore]
@@ -58,11 +84,23 @@ public class RightClickableButton : IRightClickableButton
         add => RightClickListener.OnClicked += value;
         remove => RightClickListener.OnClicked -= value;
     }
-    public RightClickableButton(string name) : this(name, name + "RightClickListener") { }
-    public RightClickableButton(string button, string? rightClickListenerButton)
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public RightClickableButton(string name) : this(GlobalLogger.Instance, name, name + "RightClickListener") { }
+    public RightClickableButton(ILogger logger, string name) : this(logger, name, name + "RightClickListener") { }
+    public RightClickableButton(ILoggerFactory factory, string name) : this(factory, name, name + "RightClickListener") { }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public RightClickableButton(string button, string? rightClickListenerButton) : this(GlobalLogger.Instance, button, rightClickListenerButton) { }
+    public RightClickableButton(ILogger logger, string button, string? rightClickListenerButton)
     {
-        Button = new UnturnedButton(button);
-        RightClickListener = new UnturnedButton(rightClickListenerButton ?? (button + "RightClickListener"));
+        Button = new UnturnedButton(logger, button);
+        RightClickListener = new UnturnedButton(logger, rightClickListenerButton ?? (button + "RightClickListener"));
+    }
+    public RightClickableButton(ILoggerFactory factory, string button, string? rightClickListenerButton)
+    {
+        Button = new UnturnedButton(factory, button);
+        RightClickListener = new UnturnedButton(factory, rightClickListenerButton ?? (button + "RightClickListener"));
     }
 
     [Ignore]
@@ -73,52 +111,106 @@ public class LabeledStateButton : LabeledButton, IStateElement
 {
     public UnturnedUIElement State { get; }
 
-    public LabeledStateButton(string name) : base(name)
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public LabeledStateButton(string name) : this(GlobalLogger.Instance, name) { }
+    public LabeledStateButton(ILogger logger, string name) : base(logger, name)
     {
-        State = new UnturnedUIElement(name + "State");
+        State = new UnturnedUIElement(logger, name + "State");
     }
-    public LabeledStateButton(string button, string? label, string? state) : base(button, label)
+    public LabeledStateButton(ILoggerFactory factory, string name) : base(factory, name)
     {
-        State = new UnturnedUIElement(state ?? (button + "State"));
+        State = new UnturnedUIElement(factory, name + "State");
+    }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public LabeledStateButton(string button, string? label, string? state) : this(GlobalLogger.Instance, button, label, state) { }
+    public LabeledStateButton(ILogger logger, string button, string? label, string? state) : base(logger, button, label)
+    {
+        State = new UnturnedUIElement(logger, state ?? (button + "State"));
+    }
+    public LabeledStateButton(ILoggerFactory factory, string button, string? label, string? state) : base(factory, button, label)
+    {
+        State = new UnturnedUIElement(factory, state ?? (button + "State"));
     }
 }
 
 public class RightClickableStateButton : RightClickableButton, IStateElement
 {
     public UnturnedUIElement State { get; }
-    
-    public RightClickableStateButton(string name) : base(name)
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public RightClickableStateButton(string name) : this(GlobalLogger.Instance, name) { }
+    public RightClickableStateButton(ILogger logger, string name) : base(logger, name)
     {
-        State = new UnturnedUIElement(name + "State");
+        State = new UnturnedUIElement(logger, name + "State");
     }
-    public RightClickableStateButton(string button, string? rightClickListenerButton, string? state) : base(button, rightClickListenerButton)
+    public RightClickableStateButton(ILoggerFactory factory, string name) : base(factory, name)
     {
-        State = new UnturnedUIElement(state ?? (button + "State"));
+        State = new UnturnedUIElement(factory, name + "State");
+    }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public RightClickableStateButton(string button, string? rightClickListenerButton, string? state) : this(GlobalLogger.Instance, button, rightClickListenerButton, state) { }
+    public RightClickableStateButton(ILogger logger, string button, string? rightClickListenerButton, string? state) : base(logger, button, rightClickListenerButton)
+    {
+        State = new UnturnedUIElement(logger, state ?? (button + "State"));
+    }
+    public RightClickableStateButton(ILoggerFactory factory, string button, string? rightClickListenerButton, string? state) : base(factory, button, rightClickListenerButton)
+    {
+        State = new UnturnedUIElement(factory, state ?? (button + "State"));
     }
 }
 
 public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
 {
     public UnturnedLabel Label { get; }
-    public LabeledRightClickableButton(string name) : base(name)
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public LabeledRightClickableButton(string name) : this(GlobalLogger.Instance, name) { }
+    public LabeledRightClickableButton(ILogger logger, string name) : base(logger, name)
     {
-        Label = new UnturnedLabel(name + "Label");
+        Label = new UnturnedLabel(logger, name + "Label");
     }
-    public LabeledRightClickableButton(string button, string? label, string? rightClickListenerButton) : base(button, rightClickListenerButton)
+    public LabeledRightClickableButton(ILoggerFactory factory, string name) : base(factory, name)
     {
-        Label = new UnturnedLabel(label ?? (button + "Label"));
+        Label = new UnturnedLabel(factory, name + "Label");
+    }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public LabeledRightClickableButton(string button, string? label, string? rightClickListenerButton) : this(GlobalLogger.Instance, button, label, rightClickListenerButton) { }
+    public LabeledRightClickableButton(ILogger logger, string button, string? label, string? rightClickListenerButton) : base(logger, button, rightClickListenerButton)
+    {
+        Label = new UnturnedLabel(logger, label ?? (button + "Label"));
+    }
+    public LabeledRightClickableButton(ILoggerFactory factory, string button, string? label, string? rightClickListenerButton) : base(factory, button, rightClickListenerButton)
+    {
+        Label = new UnturnedLabel(factory, label ?? (button + "Label"));
     }
 }
 
 public class LabeledRightClickableStateButton : LabeledRightClickableButton, IStateElement
 {
     public UnturnedUIElement State { get; }
-    public LabeledRightClickableStateButton(string name) : base(name)
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public LabeledRightClickableStateButton(string name) : this(GlobalLogger.Instance, name) { }
+    public LabeledRightClickableStateButton(ILogger logger, string name) : base(logger, name)
     {
-        State = new UnturnedUIElement(name + "State");
+        State = new UnturnedUIElement(logger, name + "State");
     }
-    public LabeledRightClickableStateButton(string button, string? label, string? rightClickListenerButton, string? state) : base(button, label, rightClickListenerButton)
+    public LabeledRightClickableStateButton(ILoggerFactory factory, string name) : base(factory, name)
     {
-        State = new UnturnedUIElement(state ?? (button + "State"));
+        State = new UnturnedUIElement(factory, name + "State");
+    }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public LabeledRightClickableStateButton(string button, string? label, string? rightClickListenerButton, string? state) : this(GlobalLogger.Instance, button, label, rightClickListenerButton, state) { }
+    public LabeledRightClickableStateButton(ILogger logger, string button, string? label, string? rightClickListenerButton, string? state) : base(logger, button, label, rightClickListenerButton)
+    {
+        State = new UnturnedUIElement(logger, state ?? (button + "State"));
+    }
+    public LabeledRightClickableStateButton(ILoggerFactory factory, string button, string? label, string? rightClickListenerButton, string? state) : base(factory, button, label, rightClickListenerButton)
+    {
+        State = new UnturnedUIElement(factory, state ?? (button + "State"));
     }
 }

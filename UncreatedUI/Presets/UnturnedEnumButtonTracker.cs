@@ -1,36 +1,52 @@
-﻿using SDG.Unturned;
+﻿using Cysharp.Threading.Tasks;
+using DanielWillett.ReflectionTools;
+using Microsoft.Extensions.Logging;
+using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using DanielWillett.ReflectionTools;
+using System.Threading;
 using Uncreated.Framework.UI.Data;
 using Uncreated.Framework.UI.Reflection;
-using Uncreated.Networking;
 
 namespace Uncreated.Framework.UI.Presets;
-public class UnturnedEnumButtonTracker<TEnum> : IStateElement, IRightClickableButton where TEnum : unmanaged, Enum
-{
-    [Ignore]
-    private static TEnum[]? _vals;
-    [Ignore]
-    private static TEnum[] ValuesIntl => _vals ??= (TEnum[])typeof(TEnum).GetEnumValues();
-    [Ignore]
-    private int[]? _ignored;
-    [Ignore]
-    private readonly int _defaultIndex;
-    [Ignore]
-    public event ValueUpdated<TEnum>? OnValueUpdated;
-    [Ignore]
-    public TEnum Default { get; set; }
-    [Ignore]
-    public bool Reversed { get; set; }
-    [Ignore]
-    public TextFormatter<TEnum>? TextFormatter { get; set; }
-    [Ignore]
-    public object? Tag { get; set; }
 
+/// <summary>
+/// A 'enum' button that switches between various values of an enum with an optional <see cref="TextFormatter"/>.
+/// </summary>
+public class UnturnedEnumButtonTracker<TEnum> : IStateElement, IRightClickableButton, IDisposable where TEnum : unmanaged, Enum
+{
+    [Ignore] private static readonly TEnum[] EnumValues = (TEnum[])typeof(TEnum).GetEnumValues();
+    [Ignore] private readonly TEnum[] _values;
+    [Ignore] private int[]? _ignored;
+    [Ignore] private readonly int _defaultIndex;
+    [Ignore] public event ValueUpdated<TEnum>? OnValueUpdated;
+
+    /// <summary>
+    /// Initial value of the enum button.
+    /// </summary>
+    [Ignore] public TEnum Default { get; set; }
+
+    /// <summary>
+    /// If clicking should move the button in the opposite direction.
+    /// </summary>
+    [Ignore] public bool Reversed { get; set; }
+
+    /// <summary>
+    /// Custom converter from enum value to <see cref="string"/>.
+    /// </summary>
+    [Ignore] public TextFormatter<TEnum>? TextFormatter { get; set; }
+
+    /// <summary>
+    /// Arbitrary data storage for third-party usage.
+    /// </summary>
+    [Ignore] public object? Tag { get; set; }
+
+    /// <summary>
+    /// Multiple ignored enum values. Use <see cref="Ignored"/> for ignoring just one.
+    /// </summary>
     [Ignore]
     public IEnumerable<TEnum>? ManyIgnored
     {
@@ -38,6 +54,9 @@ public class UnturnedEnumButtonTracker<TEnum> : IStateElement, IRightClickableBu
         set => _ignored = value?.Select(x => Array.IndexOf(_values, x)).Where(x => x >= 0).Distinct().ToArray();
     }
 
+    /// <summary>
+    /// A single ignored enum value. Use <see cref="ManyIgnored"/> to ignore multiple values.
+    /// </summary>
     [Ignore]
     public TEnum Ignored
     {
@@ -50,25 +69,48 @@ public class UnturnedEnumButtonTracker<TEnum> : IStateElement, IRightClickableBu
         }
     }
 
-    [Ignore]
-    public IReadOnlyList<TEnum> Values { get; }
-    [Ignore]
-    public bool RightClickReverses { get; set; }
-    [Ignore]
-    private readonly TEnum[] _values;
+    /// <summary>
+    /// All available values.
+    /// </summary>
+    [Ignore] public IReadOnlyList<TEnum> Values { get; }
 
+    /// <summary>
+    /// If right click goes in the opposite direction. Only supported when <see cref="RightClickListener"/> isn't <see langword="null"/>.
+    /// </summary>
+    [Ignore] public bool RightClickReverses { get; set; }
 
+    /// <summary>
+    /// The button used to listen to left clicks.
+    /// </summary>
     [IgnoreIfDefinedType]
     public UnturnedButton Button { get; }
 
+    /// <summary>
+    /// Optional button used to listen to right clicks.
+    /// </summary>
+    [IgnoreIfDefinedType]
+    public UnturnedButton? RightClickListener { get; }
+
+    /// <summary>
+    /// The label displaying text on the button.
+    /// </summary>
     [IgnoreIfDefinedType]
     public UnturnedLabel Label { get; }
 
+    /// <summary>
+    /// Optional activation hook object to enable and disable interaction with the button.
+    /// </summary>
     [IgnoreIfDefinedType]
     public UnturnedUIElement? State { get; }
 
+    /// <summary>
+    /// Event fired when <see cref="Button"/> is left clicked.
+    /// </summary>
     public event ButtonClicked? OnClicked;
 
+    /// <summary>
+    /// Event fired when <see cref="RightClickListener"/> is clicked (<see cref="Button"/> is right clicked).
+    /// </summary>
     public event ButtonClicked? OnRightClicked
     {
         add
@@ -83,40 +125,44 @@ public class UnturnedEnumButtonTracker<TEnum> : IStateElement, IRightClickableBu
         }
     }
 
-    [IgnoreIfDefinedType]
-    public UnturnedButton? RightClickListener { get; }
     [Ignore]
     UnturnedButton IRightClickableButton.RightClickListener => RightClickListener!;
-    public UnturnedEnumButtonTracker(TEnum defaultValue, ILabeledButton button) : this(defaultValue, button.Button, button.Label, button is IStateElement state ? state.State : null, button is IRightClickableButton rightClickableButton ? rightClickableButton.RightClickListener : null) { }
-    public UnturnedEnumButtonTracker(TEnum defaultValue, UnturnedButton button, UnturnedLabel label) : this(defaultValue, button, label, null, null) { }
-    public UnturnedEnumButtonTracker(TEnum defaultValue, UnturnedButton button, UnturnedLabel label, UnturnedUIElement? disableState, UnturnedButton? rightClickListener) : this(button, label, disableState, rightClickListener)
+    public UnturnedEnumButtonTracker(TEnum defaultValue, ILabeledButton button)
+        : this(defaultValue, button.Button, button.Label, button is IStateElement state ? state.State : null, button is IRightClickableButton rightClickableButton ? rightClickableButton.RightClickListener : null) { }
+    public UnturnedEnumButtonTracker(TEnum defaultValue, UnturnedButton button, UnturnedLabel label)
+        : this(defaultValue, button, label, null, null) { }
+    public UnturnedEnumButtonTracker(TEnum defaultValue, UnturnedButton button, UnturnedLabel label, UnturnedUIElement? disableState, UnturnedButton? rightClickListener)
+        : this(button, label, disableState, rightClickListener)
     {
         _defaultIndex = -1;
-        TEnum[] values = ValuesIntl;
+        TEnum[] values = EnumValues;
         for (int i = 0; i < values.Length; ++i)
         {
-            if (values[i].CompareTo(defaultValue) == 0)
-            {
-                _defaultIndex = i;
-                break;
-            }
+            if (values[i].CompareTo(defaultValue) != 0)
+                continue;
+
+            _defaultIndex = i;
+            break;
         }
 
         _values = values;
         Values = new ReadOnlyCollection<TEnum>(values);
     }
-    public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, ILabeledButton button) : this(valueSet, defaultValue, button.Button, button.Label, button is IStateElement state ? state.State : null, button is IRightClickableButton rightClickableButton ? rightClickableButton.RightClickListener : null) { }
-    public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, UnturnedButton button, UnturnedLabel label) : this(valueSet, defaultValue, button, label, null, null) { }
-    public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, UnturnedButton button, UnturnedLabel label, UnturnedUIElement? disableState, UnturnedButton? rightClickListener) : this(button, label, disableState, rightClickListener)
+    public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, ILabeledButton button)
+        : this(valueSet, defaultValue, button.Button, button.Label, button is IStateElement state ? state.State : null, button is IRightClickableButton rightClickableButton ? rightClickableButton.RightClickListener : null) { }
+    public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, UnturnedButton button, UnturnedLabel label)
+        : this(valueSet, defaultValue, button, label, null, null) { }
+    public UnturnedEnumButtonTracker(TEnum[] valueSet, TEnum defaultValue, UnturnedButton button, UnturnedLabel label, UnturnedUIElement? disableState, UnturnedButton? rightClickListener)
+        : this(button, label, disableState, rightClickListener)
     {
         _defaultIndex = -1;
         for (int i = 0; i < valueSet.Length; ++i)
         {
-            if (valueSet[i].CompareTo(defaultValue) == 0)
-            {
-                _defaultIndex = i;
-                break;
-            }
+            if (valueSet[i].CompareTo(defaultValue) != 0)
+                continue;
+
+            _defaultIndex = i;
+            break;
         }
         _values = valueSet;
         Values = new ReadOnlyCollection<TEnum>(valueSet);
@@ -135,6 +181,114 @@ public class UnturnedEnumButtonTracker<TEnum> : IStateElement, IRightClickableBu
             RightClickListener!.OnClicked += ButtonOnClicked;
     }
 #nullable restore
+
+    /// <summary>
+    /// Swich the current value to the default value.
+    /// </summary>
+    /// <param name="player">Player to switch it for.</param>
+    /// <param name="callEvent">Whether or not to invoke the <see cref="OnValueUpdated"/> event.</param>
+    public void SetDefault(Player player, bool callEvent = false)
+    {
+        Set(player, _defaultIndex >= 0 && _defaultIndex < _values.Length ? _values[_defaultIndex] : default, callEvent);
+    }
+
+    /// <summary>
+    /// Swich the current value to the given <paramref name="value"/>.
+    /// </summary>
+    /// <param name="player">Player to switch it for.</param>
+    /// <param name="value">Enum value to switch to. Will default to <see cref="Default"/> if it's not a valid enum value.</param>
+    /// <param name="callEvent">Whether or not to invoke the <see cref="OnValueUpdated"/> event.</param>
+    public void Set(Player player, TEnum value, bool callEvent = false)
+    {
+        int index = Array.IndexOf(_values, value);
+        if (index == -1)
+            index = _defaultIndex;
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            SetOnMainThread(player, index, callEvent);
+        }
+        else
+        {
+            Player p2 = player;
+            bool call2 = callEvent;
+            int ind2 = index;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                SetOnMainThread(p2, ind2, call2);
+            });
+        }
+    }
+    private void SetOnMainThread(Player player, int index, bool callEvent)
+    {
+        UnturnedEnumButtonData? data = UnturnedUIDataSource.Instance.GetData<UnturnedEnumButtonData>(player.channel.owner.playerID.steamID, Button);
+        if (data == null)
+        {
+            data = new UnturnedEnumButtonData(player.channel.owner.playerID.steamID, Button.Owner, this, index);
+            UnturnedUIDataSource.Instance.AddData(data);
+        }
+        else data.SelectionValueIndex = index;
+
+        TEnum? selection = data.Selection;
+        if (!selection.HasValue)
+            return;
+        SendValue(player, selection.Value, callEvent);
+    }
+
+    /// <summary>
+    /// Update what the player sees from the <see cref="UnturnedEnumButtonData"/> linked to their player.
+    /// </summary>
+    /// <param name="player">Player to switch it for.</param>
+    /// <param name="callEvent">Whether or not to invoke the <see cref="OnValueUpdated"/> event.</param>
+    public void Update(Player player, bool callEvent = false)
+    {
+        if (TryGetSelection(player, out TEnum selection))
+            Set(player, selection, callEvent);
+        else
+            SetDefault(player, callEvent);
+    }
+
+    /// <summary>
+    /// If it's been set, get the last value the player selected.
+    /// </summary>
+    public bool TryGetSelection(Player player, out TEnum selection)
+    {
+        UnturnedEnumButtonData? data = UnturnedUIDataSource.Instance.GetData<UnturnedEnumButtonData>(player.channel.owner.playerID.steamID, Button);
+        if (data is not { Selection: not null })
+        {
+            selection = default;
+            return false;
+        }
+
+        selection = data.Selection.Value;
+        return true;
+    }
+
+    /// <summary>
+    /// Check if a player has selected anything yet.
+    /// </summary>
+    public bool HasSelection(Player player)
+    {
+        UnturnedEnumButtonData? data = UnturnedUIDataSource.Instance.GetData<UnturnedEnumButtonData>(player.channel.owner.playerID.steamID, Button);
+        return data is { HasSelection: true };
+    }
+    private void SendValue(Player player, TEnum value, bool callEvent)
+    {
+        Label.SetText(player.channel.owner.transportConnection, TextFormatter?.Invoke(value, player) ?? value.ToString());
+        if (!callEvent)
+            return;
+
+        try
+        {
+            OnValueUpdated?.Invoke(this, player, value);
+        }
+        catch (Exception ex)
+        {
+            Label.Logger.LogError(ex, "[{0}] [{1}] Error invoking {2} for enum button of {3}.", Button.Owner.Name, Button.Name, nameof(OnValueUpdated), typeof(TEnum).Name);
+        }
+    }
+
     private void ButtonOnClicked(UnturnedButton button, Player player)
     {
         UnturnedEnumButtonData? data = UnturnedUIDataSource.Instance.GetData<UnturnedEnumButtonData>(player.channel.owner.playerID.steamID, Button);
@@ -151,24 +305,24 @@ public class UnturnedEnumButtonTracker<TEnum> : IStateElement, IRightClickableBu
         {
             for (int i = start - 1; i >= 0; --i)
             {
-                if (_ignored == null || Array.IndexOf(_ignored, i) == -1)
-                {
-                    data.SelectionValueIndex = i;
-                    found = true;
-                    break;
-                }
+                if (_ignored != null && Array.IndexOf(_ignored, i) != -1)
+                    continue;
+
+                data.SelectionValueIndex = i;
+                found = true;
+                break;
             }
 
             if (!found)
             {
                 for (int i = _values.Length - 1; i >= start; ++i)
                 {
-                    if (_ignored == null || Array.IndexOf(_ignored, i) == -1)
-                    {
-                        data.SelectionValueIndex = i;
-                        found = true;
-                        break;
-                    }
+                    if (_ignored != null && Array.IndexOf(_ignored, i) != -1)
+                        continue;
+
+                    data.SelectionValueIndex = i;
+                    found = true;
+                    break;
                 }
             }
         }
@@ -176,97 +330,44 @@ public class UnturnedEnumButtonTracker<TEnum> : IStateElement, IRightClickableBu
         {
             for (int i = start + 1; i < _values.Length; ++i)
             {
-                if (_ignored == null || Array.IndexOf(_ignored, i) == -1)
-                {
-                    data.SelectionValueIndex = i;
-                    found = true;
-                    break;
-                }
+                if (_ignored != null && Array.IndexOf(_ignored, i) != -1)
+                    continue;
+
+                data.SelectionValueIndex = i;
+                found = true;
+                break;
             }
 
             if (!found)
             {
                 for (int i = 0; i <= start; ++i)
                 {
-                    if (_ignored == null || Array.IndexOf(_ignored, i) == -1)
-                    {
-                        data.SelectionValueIndex = i;
-                        found = true;
-                        break;
-                    }
+                    if (_ignored != null && Array.IndexOf(_ignored, i) != -1)
+                        continue;
+
+                    data.SelectionValueIndex = i;
+                    found = true;
+                    break;
                 }
             }
         }
 
         if (!found)
             return;
+
         TEnum? selection = data.Selection;
         if (!selection.HasValue)
             return;
-        SetIntl(player, selection.Value, true);
+
+        SendValue(player, selection.Value, true);
 
         if (!reversed)
             OnClicked?.Invoke(button, player);
     }
-    public void SetDefault(Player player, bool callEvent = false) => Set(player, _defaultIndex >= 0 && _defaultIndex < _values.Length ? _values[_defaultIndex] : default, callEvent);
-    public void Set(Player player, TEnum value, bool callEvent = false)
-    {
-        int index = Array.IndexOf(_values, value);
-        if (index == -1)
-            index = _defaultIndex;
-        UnturnedEnumButtonData? data = UnturnedUIDataSource.Instance.GetData<UnturnedEnumButtonData>(player.channel.owner.playerID.steamID, Button);
-        if (data == null)
-        {
-            data = new UnturnedEnumButtonData(player.channel.owner.playerID.steamID, Button.Owner, this, index);
-            UnturnedUIDataSource.Instance.AddData(data);
-        }
-        else data.SelectionValueIndex = index;
 
-        TEnum? selection = data.Selection;
-        if (!selection.HasValue)
-            return;
-        SetIntl(player, selection.Value, callEvent);
-    }
-    public void Update(Player player, bool callEvent = false)
-    {
-        if (TryGetSelection(player, out TEnum selection))
-            Set(player, selection, callEvent);
-        else
-            SetDefault(player, callEvent);
-    }
-    public bool TryGetSelection(Player player, out TEnum selection)
-    {
-        UnturnedEnumButtonData? data = UnturnedUIDataSource.Instance.GetData<UnturnedEnumButtonData>(player.channel.owner.playerID.steamID, Button);
-        if (data is not { Selection: not null })
-        {
-            selection = default;
-            return false;
-        }
-
-        selection = data.Selection.Value;
-        return true;
-    }
-    public bool HasSelection(Player player)
-    {
-        UnturnedEnumButtonData? data = UnturnedUIDataSource.Instance.GetData<UnturnedEnumButtonData>(player.channel.owner.playerID.steamID, Button);
-        return data is { HasSelection: true };
-    }
-    private void SetIntl(Player player, TEnum value, bool callEvent)
-    {
-        Label.SetText(player.channel.owner.transportConnection, TextFormatter?.Invoke(value, player) ?? value.ToString());
-        if (callEvent)
-        {
-            try
-            {
-                OnValueUpdated?.Invoke(this, player, value);
-            }
-            catch (Exception ex)
-            {
-                Logging.LogError($"[{Button.Owner.Name}] [{Button.Name}] Error invoking OnValueUpdated for enum button of {typeof(TEnum).Name}.");
-                Logging.LogException(ex);
-            }
-        }
-    }
+    /// <summary>
+    /// Unsubscribe from the buttons' events.
+    /// </summary>
     public void Dispose()
     {
         Button.OnClicked -= ButtonOnClicked;

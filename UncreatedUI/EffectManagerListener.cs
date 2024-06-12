@@ -1,6 +1,8 @@
-﻿using SDG.Unturned;
+﻿using Cysharp.Threading.Tasks;
+using SDG.Unturned;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Uncreated.Framework.UI;
 
@@ -13,75 +15,91 @@ internal static class EffectManagerListener
     private static readonly Dictionary<string, UnturnedTextBox> TextBoxes = new Dictionary<string, UnturnedTextBox>(32, StringComparer.Ordinal);
     internal static void DeregisterButton(string name)
     {
-        if (ThreadQueue.Queue == null)
+        if (Thread.CurrentThread.IsGameThread())
         {
             DeregisterButtonIntl(name);
-            return;
         }
-
-        ThreadQueue.Queue.RunOnMainThread(() =>
+        else
         {
-            DeregisterButtonIntl(name);
-        });
+            string n2 = name;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                DeregisterButtonIntl(n2);
+            });
+        }
     }
-    internal static void DeregisterInputBox(string name)
+    internal static void DeregisterTextBox(string name)
     {
-        if (ThreadQueue.Queue == null)
+        if (Thread.CurrentThread.IsGameThread())
         {
             DeregisterInputIntl(name);
-            return;
         }
-
-        ThreadQueue.Queue.RunOnMainThread(() =>
+        else
         {
-            DeregisterInputIntl(name);
-        });
+            string n2 = name;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                DeregisterInputIntl(n2);
+            });
+        }
     }
     internal static void RegisterButton(string name, UnturnedButton button)
     {
-        if (ThreadQueue.Queue == null)
+        if (Thread.CurrentThread.IsGameThread())
         {
             RegisterButtonIntl(name, button);
-            return;
         }
-
-        ThreadQueue.Queue.RunOnMainThread(() =>
+        else
         {
-            RegisterButtonIntl(name, button);
-        });
+            string n2 = name;
+            UnturnedButton b2 = button;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                RegisterButtonIntl(n2, b2);
+            });
+        }
     }
-    internal static void RegisterInputBox(string name, UnturnedTextBox textBox)
+    internal static void RegisterTextBox(string name, UnturnedTextBox textBox)
     {
-        if (ThreadQueue.Queue == null)
+        if (Thread.CurrentThread.IsGameThread())
         {
             RegisterInputIntl(name, textBox);
-            return;
         }
-
-        ThreadQueue.Queue.RunOnMainThread(() =>
+        else
         {
-            RegisterInputIntl(name, textBox);
-        });
+            string n2 = name;
+            UnturnedTextBox b2 = textBox;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                RegisterInputIntl(n2, b2);
+            });
+        }
     }
     private static void DeregisterButtonIntl(string name)
     {
         if (!Buttons.Remove(name))
             return;
-        if (Buttons.Count == 0 && _btnSubbed)
-        {
-            EffectManager.onEffectButtonClicked -= OnEffectButtonClicked;
-            _btnSubbed = false;
-        }
+
+        if (Buttons.Count != 0 || !_btnSubbed)
+            return;
+
+        EffectManager.onEffectButtonClicked -= OnEffectButtonClicked;
+        _btnSubbed = false;
     }
     private static void DeregisterInputIntl(string name)
     {
         if (!TextBoxes.Remove(name))
             return;
-        if (TextBoxes.Count == 0 && _inpSubbed)
-        {
-            EffectManager.onEffectTextCommitted -= OnEffectTextCommitted;
-            _inpSubbed = false;
-        }
+
+        if (TextBoxes.Count != 0 || !_inpSubbed)
+            return;
+
+        EffectManager.onEffectTextCommitted -= OnEffectTextCommitted;
+        _inpSubbed = false;
     }
     private static void RegisterButtonIntl(string name, UnturnedButton button)
     {
@@ -90,6 +108,7 @@ internal static class EffectManagerListener
             EffectManager.onEffectButtonClicked += OnEffectButtonClicked;
             _btnSubbed = true;
         }
+
         Buttons[name] = button;
     }
     private static void RegisterInputIntl(string name, UnturnedTextBox textBox)
@@ -99,6 +118,7 @@ internal static class EffectManagerListener
             EffectManager.onEffectTextCommitted += OnEffectTextCommitted;
             _inpSubbed = true;
         }
+
         TextBoxes[name] = textBox;
     }
     private static void OnEffectTextCommitted(Player player, string inputName, string input)

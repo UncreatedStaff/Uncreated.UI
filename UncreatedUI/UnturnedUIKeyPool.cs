@@ -1,9 +1,17 @@
 ﻿using System.Threading;
 
 namespace Uncreated.Framework.UI;
+
+/// <summary>
+/// Cycle through all valid <see cref="short"/> keys, skipping -1.
+/// </summary>
 public static class UnturnedUIKeyPool
 {
     private static int _index;
+
+    /// <summary>
+    /// Get the next key, skipping -1.
+    /// </summary>
     public static short Claim()
     {
         int rtn = Interlocked.Increment(ref _index);

@@ -1,53 +1,73 @@
-﻿using SDG.NetTransport;
+﻿using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using SDG.NetTransport;
 using SDG.Unturned;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using DanielWillett.ReflectionTools;
+using System.Threading;
 using Uncreated.Framework.UI.Reflection;
-using Uncreated.Networking;
 
 namespace Uncreated.Framework.UI;
 public class UnturnedUI : IDisposable
 {
-    [Ignore]
     private string _name;
-    [Ignore]
-    private bool _isValid;
-    [Ignore]
-    private bool _isDefaultName = true;
-    [Ignore]
-    private bool _disposed;
+    private int _disposed;
+    protected internal readonly ILogger Logger;
+    internal readonly ILoggerFactory? Factory;
 
-    [Ignore]
-    public bool IsReliable { get; set; }
-    [Ignore]
-    public bool IsSendReliable { get; set; }
-    [Ignore]
-    public bool IsValid => _isValid;
-    [Ignore]
+    /// <summary>
+    /// If the current configuration includes a valid asset or 16-bit Id.
+    /// </summary>
+    public bool HasAssetOrId { get; private set; }
+
+    /// <summary>
+    /// The current asset's Id, or 0.
+    /// </summary>
+    public ushort Id { get; private set; }
+
+    /// <summary>
+    /// The current asset's GUID, or 0.
+    /// </summary>
+    public Guid Guid { get; private set; }
+
+    /// <summary>
+    /// The current asset, or <see langword="null"/>.
+    /// </summary>
+    public EffectAsset? Asset { get; private set; }
+
+    /// <summary>
+    /// Are all UI write operations reliable?
+    /// </summary>
+    public bool IsReliable { get; }
+
+    /// <summary>
+    /// Is the initial sending of the UI reliable?
+    /// </summary>
+    public bool IsSendReliable { get; }
+
+    /// <summary>
+    /// Does this UI support elements defined in fields and properties?
+    /// </summary>
     public bool HasElements { get; }
-    [Ignore]
+
+    /// <summary>
+    /// Is debug logging enabled on this object?
+    /// </summary>
     public bool DebugLogging { get; }
-    [Ignore]
     public IReadOnlyList<UnturnedUIElement> Elements { get; }
-    [Ignore]
-    public JsonAssetReference<EffectAsset> Asset { get; private set; } = null!;
-    [Ignore]
-    public bool HasDefaultName => _isDefaultName;
-    [Ignore]
+    public bool HasDefaultName { get; private set; } = true;
     public string Name
     {
         get => _name;
         set
         {
             _name = value;
-            _isDefaultName = false;
+            HasDefaultName = false;
         }
     }
-    [Ignore]
     public short Key { get; set; }
-    private UnturnedUI(bool hasElements, bool keyless, bool reliable, bool debugLogging)
+    private UnturnedUI(object logger, bool hasElements, bool keyless, bool reliable, bool debugLogging)
     {
         Type type = GetType();
         DebugLogging = debugLogging;
@@ -59,10 +79,20 @@ public class UnturnedUI : IDisposable
         IsSendReliable = reliable;
 
         _name = type.Name;
+        if (logger is ILoggerFactory factory)
+        {
+            Logger = factory.CreateLogger(_name);
+            Factory = factory;
+        }
+        else
+        {
+            Logger = (ILogger)logger;
+        }
 
         if (Attribute.GetCustomAttribute(type, typeof(UnturnedUIAttribute)) is UnturnedUIAttribute attr)
         {
-            Name = attr.DisplayName;
+            if (!string.IsNullOrEmpty(attr.DisplayName))
+                Name = attr.DisplayName;
             if (attr.Reliable.HasValue)
                 IsReliable = attr.Reliable.Value;
             if (attr.HasElements.HasValue)
@@ -72,40 +102,69 @@ public class UnturnedUI : IDisposable
         if (!hasElements)
             return;
 
-        UIElementDiscovery.LinkAllElements(this, elements);
+        UIElementDiscovery.LinkAllElements(Logger, this, elements);
 
         for (int i = 0; i < elements.Count; ++i)
         {
             UnturnedUIElement element = elements[i];
-            element.RegisterOwnerInternal(this);
+            element.RegisterOwner(this);
         }
     }
-    public UnturnedUI(ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false) : this(hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(ILogger logger, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
     {
         LoadFromConfig(defaultId);
     }
-    public UnturnedUI(Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false) : this(hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(ILoggerFactory factory, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging)
+    {
+        LoadFromConfig(defaultId);
+    }
+    public UnturnedUI(ILogger logger, Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
     {
         LoadFromConfig(defaultGuid);
     }
-    public UnturnedUI(JsonAssetReference<EffectAsset>? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false) : this(hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(ILoggerFactory factory, Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging)
+    {
+        LoadFromConfig(defaultGuid);
+    }
+    public UnturnedUI(ILogger logger, EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
+    {
+        LoadFromConfig(asset);
+    }
+    public UnturnedUI(ILoggerFactory factory, EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging)
     {
         LoadFromConfig(asset);
     }
     ~UnturnedUI()
     {
-        if (_disposed) return;
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
         Dispose(false);
     }
     private void Dispose(bool disposing)
     {
-        _disposed = true;
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
         IUnturnedUIDataSource? src = UnturnedUIDataSource.Instance;
 
         if (src != null)
         {
-            if (src.RequiresMainThread && ThreadQueue.Queue is { IsMainThread: false })
-                ThreadQueue.Queue.RunOnMainThread(() => IntlDispose(Elements.ToList(), src));
+            if (src.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
+            {
+                IUnturnedUIDataSource src2 = src;
+                List<UnturnedUIElement> elements = Elements.ToList();
+                UniTask.Create(async () =>
+                {
+                    await UniTask.SwitchToMainThread();
+                    IntlDispose(elements, src2);
+                });
+            }
             else
                 IntlDispose(Elements, src);
         }
@@ -116,53 +175,91 @@ public class UnturnedUI : IDisposable
     private void IntlDispose(IReadOnlyList<UnturnedUIElement> elements, IUnturnedUIDataSource src)
     {
         if (DebugLogging)
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Deregistering {elements.Count} elements.");
+            Logger.LogInformation("[{0}] Deregistering {1} elements.", Name, elements.Count);
 
         src.RemoveOwner(this);
         for (int i = 0; i < elements.Count; ++i)
         {
             UnturnedUIElement element = elements[i];
             src.RemoveElement(element);
-            element.RegisterOwnerInternal(null);
+            element.RegisterOwner(null);
             if (element is IDisposable disp)
                 disp.Dispose();
         }
     }
     public void Dispose()
     {
-        if (_disposed) return;
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
         Dispose(true);
     }
 
-    public void LoadFromConfig(JsonAssetReference<EffectAsset>? asset)
-    {
-        if (asset is null)
-        {
-            Asset = JsonAssetReference<EffectAsset>.Nil;
-            return;
-        }
-        if (asset.Exists)
-        {
-            this.Asset = asset;
-            _isValid = true;
-            if (_isDefaultName)
-                _name = asset.Asset!.FriendlyName;
-        }
-        else if (asset.Id != 0 || Asset is null)
-        {
-            this.Asset = asset;
-            if (_isDefaultName)
-                _name = asset.Id.ToString();
-        }
-        else Asset = asset;
-    }
     public void LoadFromConfig(Guid guid)
     {
-        LoadFromConfig(new JsonAssetReference<EffectAsset>(guid));
+        ThreadUtil.assertIsGameThread();
+
+        Guid = guid;
+        Id = 0;
+        Asset = Assets.find(guid) as EffectAsset;
+        LoadFromConfigIntl();
     }
     public void LoadFromConfig(ushort id)
     {
-        LoadFromConfig(new JsonAssetReference<EffectAsset>(id));
+        ThreadUtil.assertIsGameThread();
+
+        Guid = default;
+        Id = id;
+        Asset = Assets.find(EAssetType.EFFECT, id) as EffectAsset;
+        LoadFromConfigIntl();
+    }
+    public void LoadFromConfig(EffectAsset? asset)
+    {
+        ThreadUtil.assertIsGameThread();
+
+        Asset = asset;
+        if (asset == null)
+        {
+            Guid = default;
+            Id = default;
+        }
+        else
+        {
+            Guid = asset.GUID;
+            Id = asset.id;
+        }
+        LoadFromConfigIntl();
+    }
+    public void LoadFromConfigIntl()
+    {
+        if (Asset != null)
+        {
+            if (HasDefaultName)
+                _name = Asset.FriendlyName;
+        }
+        else if (Id != 0)
+        {
+            if (HasDefaultName)
+                _name = Id.ToString();
+            Logger.LogWarning("No asset available, id: {0}.", Id);
+        }
+        else if (Guid != default)
+        {
+            if (HasDefaultName)
+                _name = Guid.ToString("N");
+
+            HasAssetOrId = false;
+            Logger.LogWarning("No asset or ID available, guid: {0}.", Guid);
+            return;
+        }
+        else
+        {
+            HasAssetOrId = false;
+            Logger.LogWarning("No asset or ID available.");
+            return;
+        }
+
+        HasAssetOrId = true;
     }
     public virtual void SendToPlayer(SteamPlayer player)
     {
@@ -304,111 +401,210 @@ public class UnturnedUI : IDisposable
     }
     public virtual void SendToAllPlayers()
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else
-            EffectManager.sendUIEffect(this.Asset.Id, Key, IsReliable || IsSendReliable);
-        if (DebugLogging)
+        if (!HasAssetOrId)
         {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to all players.");
+            Logger.LogWarning("[{0}] No asset or id.", Name);
+            return;
         }
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            EffectManager.sendUIEffect(Id, Key, IsReliable || IsSendReliable);
+        }
+        else
+        {
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                EffectManager.sendUIEffect(Id, Key, IsReliable || IsSendReliable);
+            });
+        }
+
+        if (DebugLogging)
+            Logger.LogInformation("[{0}] Sent to all players.", Name);
     }
     public virtual void ClearFromAllPlayers()
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else if (ThreadQueue.Queue.IsMainThread)
-            EffectManager.ClearEffectByID_AllPlayers(this.Asset.Id);
-        else
-            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.ClearEffectByID_AllPlayers(this.Asset.Id));
-        
-        if (DebugLogging)
+        if (!HasAssetOrId)
         {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Cleared from all players.");
+            Logger.LogWarning("[{0}] No asset or id.", Name);
+            return;
         }
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            EffectManager.ClearEffectByID_AllPlayers(Id);
+        }
+        else
+        {
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                EffectManager.ClearEffectByID_AllPlayers(Id);
+            });
+        }
+
+        if (DebugLogging)
+            Logger.LogInformation("[{0}] Cleared from all players.", Name);
     }
     private void SendToPlayerIntl(ITransportConnection connection)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else if (ThreadQueue.Queue.IsMainThread)
-            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable);
+        if (!HasAssetOrId)
+        {
+            Logger.LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable);
+        }
         else
-            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable));
+        {
+            ITransportConnection c2 = connection;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable);
+            });
+        }
 
         if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}.");
-        }
+            Logger.LogInformation("[{0}] Sent to {1}.", Name, connection.GetAddressString(true));
     }
     private void SendToPlayerIntl(ITransportConnection connection, string arg0)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else if (ThreadQueue.Queue.IsMainThread)
-            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0);
+        if (!HasAssetOrId)
+        {
+            Logger.LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable, arg0);
+        }
         else
-            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0));
+        {
+            ITransportConnection c2 = connection;
+            string arg02 = arg0;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable, arg02);
+            });
+        }
 
         if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, arg: {arg0}.");
-        }
+            Logger.LogInformation("[{0}] Sent to {1}, arg: {2}.", Name, connection.GetAddressString(true), arg0);
     }
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else if (ThreadQueue.Queue.IsMainThread)
-            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1);
+        if (!HasAssetOrId)
+        {
+            Logger.LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1);
+        }
         else
-            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1));
+        {
+            ITransportConnection c2 = connection;
+            string arg02 = arg0;
+            string arg12 = arg1;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable, arg02, arg12);
+            });
+        }
 
         if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg0}, {arg1}.");
-        }
+            Logger.LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}.", Name, connection.GetAddressString(true), arg0, arg1);
     }
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else if (ThreadQueue.Queue.IsMainThread)
-            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2);
+        if (!HasAssetOrId)
+        {
+            Logger.LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2);
+        }
         else
-            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2));
+        {
+            ITransportConnection c2 = connection;
+            string arg02 = arg0;
+            string arg12 = arg1;
+            string arg22 = arg2;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable, arg02, arg12, arg22);
+            });
+        }
 
         if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg0}, {arg1}, {arg2}.");
-        }
+            Logger.LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}.", Name, connection.GetAddressString(true), arg0, arg1, arg2);
     }
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2, string arg3)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else if (ThreadQueue.Queue.IsMainThread)
-            EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
+        if (!HasAssetOrId)
+        {
+            Logger.LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
+        }
         else
-            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffect(Asset.Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3));
+        {
+            ITransportConnection c2 = connection;
+            string arg02 = arg0;
+            string arg12 = arg1;
+            string arg22 = arg2;
+            string arg32 = arg3;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable, arg02, arg12, arg22, arg32);
+            });
+        }
 
         if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Sent to {connection.GetAddressString(true)}, args: {arg0}, {arg1}, {arg2}, {arg3}.");
-        }
+            Logger.LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}, {{3}} = {5}.", Name, connection.GetAddressString(true), arg0, arg1, arg2, arg3);
     }
     private void ClearFromPlayerIntl(ITransportConnection connection)
     {
-        if (Asset is null || !Asset.Exists)
-            Logging.LogWarning("Invalid UI: " + this.GetType().Name);
-        else if (ThreadQueue.Queue.IsMainThread)
-            EffectManager.askEffectClearByID(Asset.Id, connection);
+        if (!HasAssetOrId)
+        {
+            Logger.LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            EffectManager.askEffectClearByID(Id, connection);
+        }
         else
-            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.askEffectClearByID(Asset.Id, connection));
+        {
+            ITransportConnection c2 = connection;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                EffectManager.askEffectClearByID(Id, c2);
+            });
+        }
 
         if (DebugLogging)
-        {
-            Logging.LogInfo($"[{Name.ToUpperInvariant()}] Cleared from {connection.GetAddressString(true)}.");
-        }
+            Logger.LogInformation("[{0}] Cleared from {1}.", Name, connection.GetAddressString(true));
     }
 }

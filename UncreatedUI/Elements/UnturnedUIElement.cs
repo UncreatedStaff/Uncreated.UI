@@ -1,19 +1,32 @@
-﻿using SDG.NetTransport;
+﻿using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using SDG.NetTransport;
 using SDG.Unturned;
 using System;
-using System.Collections.Generic;
-using Uncreated.Networking;
+using System.Threading;
+using UnityEngine;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Uncreated.Framework.UI;
+
 /// <summary>
-/// Any GameObject in a Unity UI.
+/// Any <see cref="GameObject"/> in a Unity UI.
 /// </summary>
-public class UnturnedUIElement : ICloneable
+public class UnturnedUIElement
 {
-    protected readonly string _name;
+    protected internal ILogger Logger;
     protected UnturnedUI? _owner;
     protected UnturnedUIElement? _parent;
-    public string Name => _name;
+
+    /// <summary>
+    /// Name in Unity of this UI element.
+    /// </summary>
+    public string Name { get; }
+
+    /// <summary>
+    /// Hierarchical path to this UI element in Unity.
+    /// </summary>
+    public string Path { get; private set; }
 
     /// <exception cref="InvalidOperationException">Thrown when the owner has yet to be set.</exception>
     public UnturnedUI Owner
@@ -24,14 +37,31 @@ public class UnturnedUIElement : ICloneable
             return _owner!;
         }
     }
-    public UnturnedUIElement? Parent { get; private set; }
-    public UnturnedUIElement(string name)
+
+    /// <summary>
+    /// Create a new <see cref="UnturnedUIElement"/> with the given name.
+    /// </summary>
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public UnturnedUIElement(string name) : this(GlobalLogger.Instance, name) { }
+    
+    /// <summary>
+    /// Create a new <see cref="UnturnedUIElement"/> with the given display name and logger factory.
+    /// </summary>
+    public UnturnedUIElement(ILoggerFactory logFactory, string name)
     {
-        _name = name;
+        Name = name;
+        Path = name;
+        Logger = logFactory.CreateLogger(name);
     }
-    protected UnturnedUIElement(UnturnedUIElement original)
+
+    /// <summary>
+    /// Create a new <see cref="UnturnedUIElement"/> with the given display name and logger.
+    /// </summary>
+    public UnturnedUIElement(ILogger logger, string name)
     {
-        _name = original._name;
+        Name = name;
+        Path = name;
+        Logger = logger;
     }
     protected void AssertOwnerSet(bool checkKey = true)
     {
@@ -40,28 +70,17 @@ public class UnturnedUIElement : ICloneable
         if (_owner.Key == -1 && checkKey)
             throw new InvalidOperationException("Owner's key is set to -1.");
     }
-    internal void RegisterOwnerInternal(UnturnedUI? owner) => RegisterOwner(owner);
-    internal void AddIncludedElementsInternal(List<UnturnedUIElement> elements)
+    protected internal virtual void RegisterOwner(UnturnedUI? owner)
     {
-        int ct = elements.Count;
-        AddIncludedElements(elements);
-        for (int i = ct; i < elements.Count; ++i)
-            elements[i].Parent = this;
+        _owner = owner;
     }
 
-    protected virtual void RegisterOwner(UnturnedUI? owner)
-    {
-        bool debug = owner?.DebugLogging ?? _owner is { DebugLogging: true };
-        this._owner = owner;
-        if (debug)
-        {
-            if (owner == null)
-                Logging.LogInfo($"[{Name.ToUpperInvariant()}] Deregistered.");
-            else
-                Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Registered.");
-        }
-    }
-
+    /// <summary>
+    /// Set the visibility of this element.
+    /// </summary>
+    /// <param name="player">Player to send the image to.</param>
+    /// <param name="isEnabled">If the element is enabled/activated or disabled/inactivated.</param>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SetVisibility(SteamPlayer player, bool isEnabled)
     {
         if (player is null)
@@ -71,6 +90,12 @@ public class UnturnedUIElement : ICloneable
             SetVisibilityIntl(player.transportConnection, isEnabled);
     }
 
+    /// <summary>
+    /// Set the visibility of this element.
+    /// </summary>
+    /// <param name="player">Player to send the image to.</param>
+    /// <param name="isEnabled">If the element is enabled/activated or disabled/inactivated.</param>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SetVisibility(Player player, bool isEnabled)
     {
         if (player is null)
@@ -80,10 +105,17 @@ public class UnturnedUIElement : ICloneable
             SetVisibilityIntl(player.channel.owner.transportConnection, isEnabled);
     }
 
+    /// <summary>
+    /// Set the visibility of this element.
+    /// </summary>
+    /// <param name="connection">Connection to send the image to.</param>
+    /// <param name="isEnabled">If the element is enabled/activated or disabled/inactivated.</param>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SetVisibility(ITransportConnection connection, bool isEnabled)
     {
         if (connection == null)
             throw new ArgumentNullException(nameof(connection));
+
         SetVisibilityIntl(connection, isEnabled);
     }
 
@@ -91,19 +123,24 @@ public class UnturnedUIElement : ICloneable
     {
         AssertOwnerSet();
 
-        if (ThreadQueue.Queue.IsMainThread)
-            EffectManager.sendUIEffectVisibility(_owner!.Key, connection, _owner.IsReliable, _name, isEnabled);
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            EffectManager.sendUIEffectVisibility(_owner!.Key, connection, _owner.IsReliable, Name, isEnabled);
+        }
         else
-            ThreadQueue.Queue.RunOnMainThread(() => EffectManager.sendUIEffectVisibility(_owner!.Key, connection, _owner.IsReliable, _name, isEnabled));
+        {
+            ITransportConnection c2 = connection;
+            bool state2 = isEnabled;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                EffectManager.sendUIEffectVisibility(_owner!.Key, c2, _owner.IsReliable, Name, state2);
+            });
+        }
 
         if (Owner.DebugLogging)
         {
-            Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Set visibility for {connection.GetAddressString(true)}, visibility: {isEnabled}.");
+            Logger.LogInformation("[{0}] [{1}] {{{2}}} Set visibility for {3}, visibility: {4}.", Owner.Name, Name, Owner.Key, connection.GetAddressString(true), isEnabled);
         }
-    }
-    protected virtual void AddIncludedElements(List<UnturnedUIElement> elements) { }
-    public virtual object Clone()
-    {
-        return new UnturnedUIElement(this);
     }
 }

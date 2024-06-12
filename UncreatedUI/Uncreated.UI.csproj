@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyTitle>UncreatedUI</AssemblyTitle>
+    <AssemblyTitle>Uncreated.UI</AssemblyTitle>
     <Product>Uncreated.UI</Product>
     <Copyright></Copyright>
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -10,13 +10,19 @@
     <LangVersion>preview</LangVersion>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <Title>Uncreated.UI</Title>
+    <AssemblyName>Uncreated.UI</AssemblyName>
     <Authors>DanielWillett</Authors>
     <Company>Uncreated Network</Company>
     <Version>1.0.0</Version>
     <Description>UI utilities for abstracting EffectManager UI methods.</Description>
     <RepositoryUrl>https://github.com/UncreatedStaff/Uncreated.UI.git</RepositoryUrl>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
-    <FileVersion>1.0.0</FileVersion>
+    <AssemblyVersion>$(Version).0</AssemblyVersion>
+    <FileVersion>$(Version).0</FileVersion>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>full</DebugType>
@@ -27,23 +33,14 @@
     <NoWarn>1701;1702;CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="DanielWillett.ReflectionTools" Version="1.0.4" />
+    <None Include="..\icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>C:\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="com.rlabrecque.steamworks.net">
-      <HintPath>C:\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
-    </Reference>
-    <Reference Include="SDG.NetTransport">
-      <HintPath>C:\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\SDG.NetTransport.dll</HintPath>
-    </Reference>
-    <Reference Include="UncreatedNetworking">
-      <HintPath>C:\SteamCMD\steamapps\common\U3DS\Modules\UncreatedWarfare\Libraries\UncreatedNetworking.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>C:\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
+    <PackageReference Include="UniTask" Version="[2.5.0,)" />
+    <PackageReference Include="DanielWillett.ReflectionTools" Version="[2.0.2,)" />
+    <PackageReference Include="OpenMod.UnityEngine.Redist" Version="[2021.3.29.1,)" />
+    <PackageReference Include="OpenMod.Unturned.Redist" Version="[3.23.12.3,)" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[3.1.0,)" />
   </ItemGroup>
 </Project>

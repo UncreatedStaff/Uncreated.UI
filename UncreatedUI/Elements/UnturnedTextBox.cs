@@ -1,53 +1,41 @@
-﻿using SDG.Unturned;
+﻿using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using SDG.NetTransport;
+using SDG.Unturned;
 using System;
 using System.Globalization;
-using SDG.NetTransport;
+using System.Threading;
 using Uncreated.Framework.UI.Data;
-using Uncreated.Networking;
 
 namespace Uncreated.Framework.UI;
-public delegate void TextUpdated(UnturnedTextBox textBox, Player player, string text);
+
 /// <summary>
 /// Represents an input component in a Unity UI.
 /// </summary>
 public class UnturnedTextBox : UnturnedLabel, IDisposable
 {
-    private bool _disposed;
+    private int _disposed;
+
     /// <summary>
     /// Called when text is committed by the user.
     /// </summary>
     public event TextUpdated? OnTextUpdated;
 
     /// <summary>
-    /// Whether or not to save input to <see cref="UnturnedTextBoxData"/> or not.
+    /// Whether or not to save input to <see cref="UnturnedTextBoxData"/>.
     /// </summary>
     /// <remarks>Default: <see langword="false"/>.</remarks>
     public bool UseData { get; set; } = false;
-    public UnturnedTextBox(string name) : base(name)
-    {
-        EffectManagerListener.RegisterInputBox(Name, this);
-    }
-    internal UnturnedTextBox(UnturnedTextBox original) : base(original)
-    {
-        EffectManagerListener.RegisterInputBox(Name, this);
-    }
-    ~UnturnedTextBox()
-    {
-        if (_disposed) return;
-        Dispose(false);
-    }
-    private void Dispose(bool disposing)
-    {
-        _disposed = true;
-        EffectManagerListener.DeregisterInputBox(Name);
 
-        if (disposing)
-            GC.SuppressFinalize(this);
-    }
-    public void Dispose()
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public UnturnedTextBox(string name) : base(GlobalLogger.Instance, name) { }
+    public UnturnedTextBox(ILogger logger, string name) : base(logger, name)
     {
-        if (_disposed) return;
-        Dispose(true);
+        EffectManagerListener.RegisterTextBox(Name, this);
+    }
+    public UnturnedTextBox(ILoggerFactory factory, string name) : base(factory, name)
+    {
+        EffectManagerListener.RegisterTextBox(Name, this);
     }
     internal void InvokeOnTextCommitted(Player player, string text)
     {
@@ -58,77 +46,107 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable
                 UnturnedUIDataSource.AddData(new UnturnedTextBoxData(player.channel.owner.playerID.steamID, this, text));
             else data.Text = text;
         }
+
         if (Owner.DebugLogging)
         {
-            Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Text committed by {player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture)}, text: {text}.");
+            Logger.LogInformation("[{0}] [{1}] {{{2}}} Text committed by {3}, text: \"{4}\".", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), text);
         }
-        OnTextUpdated?.Invoke(this, player, text);
+
+        try
+        {
+            OnTextUpdated?.Invoke(this, player, text);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "[{0}] [{1}] Error invoking {2}.", Owner.Name, Name, nameof(OnTextUpdated));
+        }
     }
 
+    /// <inheritdoc />
     public override void SetText(ITransportConnection connection, string? text)
     {
         text ??= string.Empty;
-        base.SetText(connection, text);
-
-        if (UseData)
+        if (!UseData)
         {
-            if (Dedicator.commandWindow == null || Provider.clients == null)
-                return;
-            SteamPlayer? sp = null;
-            for (int i = 0; i < Provider.clients.Count; ++i)
+            base.SetText(connection, text);
+            return;
+        }
+
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            SetTextIntl(connection, text);
+        }
+        else
+        {
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
+
+            ITransportConnection c2 = connection;
+            string txt2 = text;
+            UniTask.Create(async () =>
             {
-                if (Equals(Provider.clients[i].transportConnection, connection))
-                {
-                    sp = Provider.clients[i];
-                    break;
-                }
-            }
-
-            if (sp == null)
-                return;
-
-            UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(sp.playerID.steamID, this);
-            if (data == null)
-                UnturnedUIDataSource.AddData(new UnturnedTextBoxData(sp.playerID.steamID, this, text));
-            else data.Text = text;
+                await UniTask.SwitchToMainThread();
+                SetTextIntl(c2, txt2);
+            });
         }
     }
+
+    /// <inheritdoc />
     public override void SetText(Player player, string? text)
     {
         text ??= string.Empty;
-        base.SetText(player, text);
-
-        if (UseData)
+        if (!UseData)
         {
-            if (Dedicator.commandWindow == null || player.channel?.owner == null)
-                return;
+            base.SetText(player, text);
+            return;
+        }
 
-            UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(player.channel.owner.playerID.steamID, this);
-            if (data == null)
-                UnturnedUIDataSource.AddData(new UnturnedTextBoxData(player.channel.owner.playerID.steamID, this, text));
-            else data.Text = text;
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            SetTextIntl(player, text);
+        }
+        else
+        {
+            if (player is null)
+                throw new ArgumentNullException(nameof(player));
+
+            Player p2 = player;
+            string txt2 = text;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                SetTextIntl(p2, txt2);
+            });
         }
     }
+
+    /// <inheritdoc />
     public override void SetText(SteamPlayer player, string text)
     {
         text ??= string.Empty;
-        base.SetText(player, text);
-
-        if (UseData)
+        if (!UseData)
         {
-            if (Dedicator.commandWindow == null)
-                return;
-
-            UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(player.playerID.steamID, this);
-            if (data == null)
-                UnturnedUIDataSource.AddData(new UnturnedTextBoxData(player.playerID.steamID, this, text));
-            else data.Text = text;
+            base.SetText(player, text);
+            return;
         }
-    }
 
-    public override object Clone()
-    {
-        return new UnturnedTextBox(this);
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            SetTextIntl(player, text);
+        }
+        else
+        {
+            if (player is null)
+                throw new ArgumentNullException(nameof(player));
+
+            SteamPlayer p2 = player;
+            string txt2 = text;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                SetTextIntl(p2, txt2);
+            });
+        }
     }
 
     /// <summary>
@@ -149,10 +167,24 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable
     /// <remarks>Thread Safe</remarks>
     public void UpdateFromData(Player player, string defaultValue = "", bool callEvent = false)
     {
-        if (ThreadQueue.Queue.IsMainThread)
+        if (Thread.CurrentThread.IsGameThread())
+        {
             UpdateFromDataMainThread(player, defaultValue, callEvent);
+        }
         else
-            ThreadQueue.Queue.RunOnMainThread(() => UpdateFromDataMainThread(player, defaultValue, callEvent));
+        {
+            if (player is null)
+                throw new ArgumentNullException(nameof(player));
+
+            Player p2 = player;
+            string dv2 = defaultValue;
+            bool call2 = callEvent;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                UpdateFromDataMainThread(p2, dv2, call2);
+            });
+        }
     }
 
     /// <summary>
@@ -177,10 +209,91 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable
         }
         
         if (callEvent)
+        {
             InvokeOnTextCommitted(player, val);
+        }
         else if (Owner.DebugLogging)
-            Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Text updated from data for {player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture)}, text: {val} (event not invoked).");
+        {
+            Logger.LogInformation("[{0}] [{1}] {{{2}}} Text updated from data for {3}, text: \"{4}\" (event not invoked).", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), val);
+        }
 
         return val;
     }
+    private void SetTextIntl(SteamPlayer player, string text)
+    {
+        base.SetText(player, text);
+
+        if (player?.playerID is null)
+            return;
+
+        UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(player.playerID.steamID, this);
+        if (data == null)
+        {
+            UnturnedUIDataSource.AddData(new UnturnedTextBoxData(player.playerID.steamID, this, text));
+        }
+        else
+        {
+            data.Text = text;
+        }
+    }
+    private void SetTextIntl(Player player, string text)
+    {
+        base.SetText(player, text);
+
+        if (player.channel?.owner?.playerID is null)
+            return;
+
+        UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(player.channel.owner.playerID.steamID, this);
+        if (data == null)
+        {
+            UnturnedUIDataSource.AddData(new UnturnedTextBoxData(player.channel.owner.playerID.steamID, this, text));
+        }
+        else
+        {
+            data.Text = text;
+        }
+    }
+    private void SetTextIntl(ITransportConnection connection, string text)
+    {
+        base.SetText(connection, text);
+        if (Provider.clients == null)
+            return;
+
+        SteamPlayer? sp = null;
+        for (int i = 0; i < Provider.clients.Count; ++i)
+        {
+            if (!Equals(Provider.clients[i].transportConnection, connection))
+                continue;
+
+            sp = Provider.clients[i];
+            break;
+        }
+
+        if (sp == null)
+            return;
+
+        UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(sp.playerID.steamID, this);
+        if (data == null)
+        {
+            UnturnedUIDataSource.AddData(new UnturnedTextBoxData(sp.playerID.steamID, this, text));
+        }
+        else
+        {
+            data.Text = text;
+        }
+    }
+
+    /// <inheritdoc />
+    void IDisposable.Dispose()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
+        EffectManagerListener.DeregisterTextBox(Name);
+    }
 }
+
+/// <summary>
+/// Handles text being updated in a <see cref="UnturnedTextBox"/>.
+/// </summary>
+public delegate void TextUpdated(UnturnedTextBox textBox, Player player, string text);

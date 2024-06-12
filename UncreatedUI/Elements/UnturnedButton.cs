@@ -1,57 +1,62 @@
-﻿using SDG.Unturned;
+﻿using Microsoft.Extensions.Logging;
+using SDG.Unturned;
 using System;
 using System.Globalization;
-using Uncreated.Networking;
+using System.Threading;
 
 namespace Uncreated.Framework.UI;
-public delegate void ButtonClicked(UnturnedButton button, Player player);
+
 /// <summary>
 /// Represents a clickable button in a Unity UI.
 /// </summary>
 public class UnturnedButton : UnturnedUIElement, IDisposable
 {
-    private bool _disposed;
+    private int _disposed;
+
     /// <summary>
     /// Called when the button is clicked.
     /// </summary>
     public event ButtonClicked? OnClicked;
-    public UnturnedButton(string name) : base(name)
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public UnturnedButton(string name) : this(GlobalLogger.Instance, name) { }
+    public UnturnedButton(ILogger logger, string name) : base(logger, name)
     {
         EffectManagerListener.RegisterButton(name, this);
     }
-    internal UnturnedButton(UnturnedButton original) : base(original)
+    public UnturnedButton(ILoggerFactory factory, string name) : base(factory, name)
     {
-        EffectManagerListener.RegisterButton(original.Name, this);
-    }
-    ~UnturnedButton()
-    {
-        if (_disposed) return;
-        Dispose(false);
-    }
-    private void Dispose(bool disposing)
-    {
-        _disposed = true;
-        EffectManagerListener.DeregisterButton(Name);
-
-        if (disposing)
-            GC.SuppressFinalize(this);
-    }
-    public void Dispose()
-    {
-        if (_disposed) return;
-        Dispose(true);
+        EffectManagerListener.RegisterButton(name, this);
     }
 
     internal void InvokeOnClicked(Player player)
     {
         if (Owner.DebugLogging)
         {
-            Logging.LogInfo($"[{Owner.Name.ToUpperInvariant()}] [{Name.ToUpperInvariant()}] {{{Owner.Key}}} Clicked by {player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture)}.");
+            Logger.LogInformation("[{0}] [{1}] {{{2}}} Clicked by {3}.", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture));
         }
-        OnClicked?.Invoke(this, player);
+
+        try
+        {
+            OnClicked?.Invoke(this, player);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "[{0}] [{1}] Error invoking {2}.", Owner.Name, Name, nameof(OnClicked));
+        }
     }
-    public override object Clone()
+
+    /// <inheritdoc />
+    void IDisposable.Dispose()
     {
-        return new UnturnedButton(this);
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
+        EffectManagerListener.DeregisterButton(Name);
     }
 }
+
+/// <summary>
+/// Handles a <see cref="UnturnedButton"/> being clicked.
+/// </summary>
+public delegate void ButtonClicked(UnturnedButton button, Player player);

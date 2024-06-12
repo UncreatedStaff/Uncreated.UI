@@ -1,18 +1,27 @@
-﻿using System;
+﻿using DanielWillett.ReflectionTools;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using DanielWillett.ReflectionTools;
-using JetBrains.Annotations;
-using Uncreated.Networking;
+using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI;
-public static class UnturnedUIPatterns
+
+/// <summary>
+/// Create arrays of elements based on a pattern.
+/// </summary>
+public static class ElementPatterns
 {
     private static readonly ConcurrentDictionary<Type, PatternTypeInfo> TypeInfo = new ConcurrentDictionary<Type, PatternTypeInfo>();
+
+    /// <summary>
+    /// Create an array of elements using a factory.
+    /// </summary>
     public static T[] CreateArray<T>(Func<int, T> factory, int start, int length = -1, int to = -1)
     {
         length = ResolveLength(start, length, to);
@@ -27,7 +36,17 @@ public static class UnturnedUIPatterns
         
         return elems;
     }
+
+    /// <summary>
+    /// Create an array of elements from a format string.
+    /// </summary>
     public static T[] CreateArray<T>(string format, int start, int length = -1, int to = -1)
+        => CreateArray<T>(GlobalLogger.Instance, format, start, length, to);
+
+    /// <summary>
+    /// Create an array of elements from a format string.
+    /// </summary>
+    public static T[] CreateArray<T>(ILogger logger, string format, int start, int length = -1, int to = -1)
     {
         length = ResolveLength(start, length, to);
 
@@ -37,13 +56,156 @@ public static class UnturnedUIPatterns
         T[] elems = new T[length];
         Type type = typeof(T);
 
-        if (!TryInitializePrimitives(type, elems, format, start))
-        {
-            PatternTypeInfo info = PatternTypeInfo.GetTypeInfo(typeof(T));
-            info.InitializeMany(elems, start, format);
-        }
+        if (TryInitializePrimitives(logger, type, elems, format, start))
+            return elems;
 
+        PatternTypeInfo info = PatternTypeInfo.GetTypeInfo(typeof(T));
+        info.InitializeMany(logger, elems, start, format);
         return elems;
+    }
+
+    /// <summary>
+    /// Add <paramref name="handler"/> to all <see cref="UnturnedButton.OnClicked"/> events in <paramref name="buttons"/>.
+    /// </summary>
+    public static void SubscribeAll(IEnumerable<UnturnedButton> buttons, ButtonClicked handler)
+    {
+        foreach (UnturnedButton button in buttons)
+            button.OnClicked += handler;
+    }
+
+    /// <summary>
+    /// Remove <paramref name="handler"/> from all <see cref="UnturnedButton.OnClicked"/> events in <paramref name="buttons"/>.
+    /// </summary>
+    public static void UnsubscribeAll(IEnumerable<UnturnedButton> buttons, ButtonClicked handler)
+    {
+        foreach (UnturnedButton button in buttons)
+            button.OnClicked -= handler;
+    }
+
+    /// <summary>
+    /// Add <paramref name="handler"/> to all <see cref="UnturnedTextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/>.
+    /// </summary>
+    public static void SubscribeAll(IEnumerable<UnturnedTextBox> textBoxes, TextUpdated handler)
+    {
+        foreach (UnturnedTextBox textBox in textBoxes)
+            textBox.OnTextUpdated += handler;
+    }
+
+    /// <summary>
+    /// Remove <paramref name="handler"/> from all <see cref="UnturnedTextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/>.
+    /// </summary>
+    public static void UnsubscribeAll(IEnumerable<UnturnedTextBox> textBoxes, TextUpdated handler)
+    {
+        foreach (UnturnedTextBox textBox in textBoxes)
+            textBox.OnTextUpdated -= handler;
+    }
+
+    /// <summary>
+    /// Add <paramref name="handler"/> to all <see cref="UnturnedButton.OnClicked"/> events in <paramref name="buttons"/> after being transformed by a <paramref name="selector"/>.
+    /// </summary>
+    public static void SubscribeAll<T>(IEnumerable<T> buttons, Func<T, UnturnedButton> selector, ButtonClicked handler)
+    {
+        foreach (T button in buttons)
+            selector(button).OnClicked += handler;
+    }
+
+    /// <summary>
+    /// Remove <paramref name="handler"/> from all <see cref="UnturnedButton.OnClicked"/> events in <paramref name="buttons"/> after being transformed by a <paramref name="selector"/>.
+    /// </summary>
+    public static void UnsubscribeAll<T>(IEnumerable<T> buttons, Func<T, UnturnedButton> selector, ButtonClicked handler)
+    {
+        foreach (T button in buttons)
+            selector(button).OnClicked -= handler;
+    }
+
+    /// <summary>
+    /// Add <paramref name="handler"/> to all <see cref="UnturnedTextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/> after being transformed by a <paramref name="selector"/>.
+    /// </summary>
+    public static void SubscribeAll<T>(IEnumerable<T> textBoxes, Func<T, UnturnedTextBox> selector, TextUpdated handler)
+    {
+        foreach (T textBox in textBoxes)
+            selector(textBox).OnTextUpdated += handler;
+    }
+
+    /// <summary>
+    /// Remove <paramref name="handler"/> from all <see cref="UnturnedTextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/> after being transformed by a <paramref name="selector"/>.
+    /// </summary>
+    public static void UnsubscribeAll<T>(IEnumerable<T> textBoxes, Func<T, UnturnedTextBox> selector, TextUpdated handler)
+    {
+        foreach (T textBox in textBoxes)
+            selector(textBox).OnTextUpdated -= handler;
+    }
+
+    /// <summary>
+    /// Add <paramref name="handler"/> to all <see cref="IButton.OnClicked"/> events in <paramref name="buttons"/>.
+    /// </summary>
+    public static void SubscribeAll<T>(IEnumerable<T> buttons, ButtonClicked handler) where T : IButton
+    {
+        foreach (T button in buttons)
+            button.OnClicked += handler;
+    }
+
+    /// <summary>
+    /// Remove <paramref name="handler"/> from all <see cref="IButton.OnClicked"/> events in <paramref name="buttons"/>.
+    /// </summary>
+    public static void UnsubscribeAll<T>(IEnumerable<T> buttons, ButtonClicked handler) where T : IButton
+    {
+        foreach (T button in buttons)
+            button.OnClicked -= handler;
+    }
+
+    /// <summary>
+    /// Add <paramref name="handler"/> to all <see cref="ITextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/>.
+    /// </summary>
+    public static void SubscribeAll<T>(IEnumerable<T> textBoxes, TextUpdated handler) where T : ITextBox
+    {
+        foreach (T textBox in textBoxes)
+            textBox.OnTextUpdated += handler;
+    }
+
+    /// <summary>
+    /// Remove <paramref name="handler"/> from all <see cref="ITextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/>.
+    /// </summary>
+    public static void UnsubscribeAll<T>(IEnumerable<T> textBoxes, TextUpdated handler) where T : ITextBox
+    {
+        foreach (T textBox in textBoxes)
+            textBox.OnTextUpdated -= handler;
+    }
+
+    /// <summary>
+    /// Add <paramref name="handler"/> to all <see cref="IButton.OnClicked"/> events in <paramref name="buttons"/> after being transformed by a <paramref name="selector"/>.
+    /// </summary>
+    public static void SubscribeAll<T, TButton>(IEnumerable<T> buttons, Func<T, TButton> selector, ButtonClicked handler) where TButton : IButton
+    {
+        foreach (T button in buttons)
+            selector(button).OnClicked += handler;
+    }
+
+    /// <summary>
+    /// Remove <paramref name="handler"/> from all <see cref="IButton.OnClicked"/> events in <paramref name="buttons"/> after being transformed by a <paramref name="selector"/>.
+    /// </summary>
+    public static void UnsubscribeAll<T, TButton>(IEnumerable<T> buttons, Func<T, TButton> selector, ButtonClicked handler) where TButton : IButton
+    {
+        foreach (T button in buttons)
+            selector(button).OnClicked -= handler;
+    }
+
+    /// <summary>
+    /// Add <paramref name="handler"/> to all <see cref="ITextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/> after being transformed by a <paramref name="selector"/>.
+    /// </summary>
+    public static void SubscribeAll<T, TTextBox>(IEnumerable<T> textBoxes, Func<T, TTextBox> selector, TextUpdated handler) where TTextBox : ITextBox
+    {
+        foreach (T textBox in textBoxes)
+            selector(textBox).OnTextUpdated += handler;
+    }
+
+    /// <summary>
+    /// Remove <paramref name="handler"/> from all <see cref="ITextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/> after being transformed by a <paramref name="selector"/>.
+    /// </summary>
+    public static void UnsubscribeAll<T, TTextBox>(IEnumerable<T> textBoxes, Func<T, TTextBox> selector, TextUpdated handler) where TTextBox : ITextBox
+    {
+        foreach (T textBox in textBoxes)
+            selector(textBox).OnTextUpdated -= handler;
     }
     private static int ResolveLength(int start, int length, int to)
     {
@@ -62,18 +224,18 @@ public static class UnturnedUIPatterns
 
         return length;
     }
-    private static bool TryInitializePrimitives(Type type, Array array, string format, int start)
+    private static bool TryInitializePrimitives(ILogger logger, Type type, Array array, string format, int start)
     {
         if (typeof(UnturnedUIElement).IsAssignableFrom(type))
         {
             for (int i = 0; i < array.Length; ++i)
-                array.SetValue(Activator.CreateInstance(type, Util.QuickFormat(format, (i + start).ToString(CultureInfo.InvariantCulture), 0, repeat: true)), i);
+                array.SetValue(Activator.CreateInstance(type, UnturnedUIUtility.QuickFormat(format, (i + start).ToString(CultureInfo.InvariantCulture), 0)), i);
 
             return true;
         }
         if (typeof(ICollection).IsAssignableFrom(type))
         {
-            Logging.LogError($"Invalid type (nested enumerables) when creating pattern array: {type}.");
+            logger.LogError("Invalid type (nested enumerables) when creating pattern array: {0}.", type);
             return true;
         }
 
@@ -81,11 +243,11 @@ public static class UnturnedUIPatterns
     }
     private class PatternTypeInfo
     {
-        public readonly Type Type;
-        public readonly PatternFieldInfo[] Fields;
+        private readonly Type _type;
+        private readonly PatternFieldInfo[] _fields;
         private PatternTypeInfo(Type type)
         {
-            Type = type;
+            _type = type;
             TypeInfo[type] = this;
             FieldInfo[] fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
             PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
@@ -102,9 +264,9 @@ public static class UnturnedUIPatterns
                     RecursiveProcess(property, list);
             }
 
-            Fields = list.ToArray();
+            _fields = list.ToArray();
         }
-        private static void RecursiveProcess(MemberInfo member, List<PatternFieldInfo> list)
+        private static void RecursiveProcess(MemberInfo member, ICollection<PatternFieldInfo> list)
         {
             if (member.IsIgnored()) return;
             Type fieldType = member.GetMemberType()!;
@@ -128,7 +290,7 @@ public static class UnturnedUIPatterns
                         return;
 
                     PatternTypeInfo typeInfo = GetTypeInfo(elementType);
-                    if (typeInfo.Fields.Length > 0)
+                    if (typeInfo._fields.Length > 0)
                         list.Add(new PatternFieldInfo(member, elementType, typeInfo, attr, array));
                 }
 
@@ -142,40 +304,40 @@ public static class UnturnedUIPatterns
                 list.Add(new PatternFieldInfo(member, fieldType, null, attr2, null));
 
             PatternTypeInfo type = GetTypeInfo(fieldType);
-            if (type.Fields.Length > 0)
+            if (type._fields.Length > 0)
                 list.Add(new PatternFieldInfo(member, fieldType, type, attr2, null));
         }
         public static PatternTypeInfo GetTypeInfo(Type type)
         {
-            if (TypeInfo.TryGetValue(type, out PatternTypeInfo info))
-                return info;
-            return new PatternTypeInfo(type);
+            return TypeInfo.TryGetValue(type, out PatternTypeInfo info)
+                ? info
+                : new PatternTypeInfo(type);
         }
-        public void InitializeMany(Array elements, int start, string baseName)
+        public void InitializeMany(ILogger logger, Array elements, int start, string baseName)
         {
             for (int i = 0; i < elements.Length; i++)
             {
-                elements.SetValue(Initialize(Util.QuickFormat(baseName, (i + start).ToString(CultureInfo.InvariantCulture), 0, repeat: true)), i);
+                elements.SetValue(Initialize(logger, UnturnedUIUtility.QuickFormat(baseName, (i + start).ToString(CultureInfo.InvariantCulture), 0)), i);
             }
         }
-        public object Initialize(string baseName)
+        private object Initialize(ILogger logger, string baseName)
         {
-            object obj = Activator.CreateInstance(Type);
-            FillObject(baseName, obj);
+            object obj = Activator.CreateInstance(_type);
+            FillObject(logger, baseName, obj);
             return obj;
         }
-        public void FillObject(string baseName, object obj)
+        private void FillObject(ILogger logger, string baseName, object obj)
         {
-            for (int i = 0; i < Fields.Length; ++i)
+            for (int i = 0; i < _fields.Length; ++i)
             {
-                PatternFieldInfo patternField = Fields[i];
+                PatternFieldInfo patternField = _fields[i];
                 if (patternField.ArrayAttribute != null)
                 {
                     Array arr = Array.CreateInstance(patternField.MemberType, patternField.ArrayAttribute.Length);
                     if (patternField.ArrayAttribute.Length > 0)
                     {
-                        if (!TryInitializePrimitives(patternField.MemberType, arr, patternField.ResolveName(baseName), patternField.ArrayAttribute.Start))
-                            patternField.PatternTypeInfo!.InitializeMany(arr, patternField.ArrayAttribute.Start, patternField.ResolveName(baseName));
+                        if (!TryInitializePrimitives(logger, patternField.MemberType, arr, patternField.ResolveName(baseName), patternField.ArrayAttribute.Start))
+                            patternField.PatternTypeInfo!.InitializeMany(logger, arr, patternField.ArrayAttribute.Start, patternField.ResolveName(baseName));
                     }
 
                     patternField.SetValue(obj, arr);
@@ -184,7 +346,7 @@ public static class UnturnedUIPatterns
 
                 if (patternField.PatternTypeInfo != null)
                 {
-                    object val = patternField.PatternTypeInfo.Initialize(patternField.ResolveName(baseName));
+                    object val = patternField.PatternTypeInfo.Initialize(logger, patternField.ResolveName(baseName));
                     patternField.SetValue(obj, val);
                 }
                 else if (typeof(UnturnedUIElement).IsAssignableFrom(patternField.MemberType))
@@ -194,44 +356,44 @@ public static class UnturnedUIPatterns
                 }
             }
         }
-        public class PatternFieldInfo
+    }
+    private class PatternFieldInfo
+    {
+        private readonly MemberInfo _member;
+        private readonly UIPatternAttribute? _attribute;
+        public readonly Type MemberType;
+        public readonly PatternTypeInfo? PatternTypeInfo;
+        public readonly UIPatternArrayAttribute? ArrayAttribute;
+        public PatternFieldInfo(MemberInfo member, Type memberType, PatternTypeInfo? patternTypeInfo, UIPatternAttribute? attribute, UIPatternArrayAttribute? arrayAttribute)
         {
-            public readonly MemberInfo Member;
-            public readonly Type MemberType;
-            public readonly PatternTypeInfo? PatternTypeInfo;
-            public readonly UIPatternAttribute Attribute;
-            public readonly UIPatternArrayAttribute? ArrayAttribute;
-            public PatternFieldInfo(MemberInfo member, Type memberType, PatternTypeInfo? patternTypeInfo, UIPatternAttribute? attribute, UIPatternArrayAttribute? arrayAttribute)
-            {
-                Member = member;
-                MemberType = memberType;
-                PatternTypeInfo = patternTypeInfo;
-                Attribute = attribute;
-                ArrayAttribute = arrayAttribute;
-            }
+            _member = member;
+            MemberType = memberType;
+            PatternTypeInfo = patternTypeInfo;
+            _attribute = attribute;
+            ArrayAttribute = arrayAttribute;
+        }
 
-            public string ResolveName(string baseName, int? index = null)
+        public string ResolveName(string baseName, int? index = null)
+        {
+            if (_attribute == null || _attribute.Mode == FormatMode.None)
+                return baseName;
+            string pattern = _attribute.Pattern;
+            if (index.HasValue)
+                pattern = UnturnedUIUtility.QuickFormat(pattern, index.Value.ToString(CultureInfo.InvariantCulture), 0);
+            return _attribute.Mode switch
             {
-                if (Attribute == null || Attribute.Mode == FormatMode.None)
-                    return baseName;
-                string pattern = Attribute.Pattern;
-                if (index.HasValue)
-                    pattern = Util.QuickFormat(pattern, index.Value.ToString(CultureInfo.InvariantCulture));
-                return Attribute.Mode switch
-                {
-                    FormatMode.Prefix => pattern + baseName,
-                    FormatMode.Replace => pattern,
-                    FormatMode.Format => Util.QuickFormat(baseName, pattern, Attribute is not { Mode: FormatMode.Format } ? 0 : Attribute.FormatIndex, repeat: true),
-                    _ => baseName + pattern
-                };
-            }
-            public void SetValue(object instance, object val)
-            {
-                if (Member is PropertyInfo prop)
-                    prop.GetSetMethod(true).Invoke(instance, new object[] { val });
-                else
-                    ((FieldInfo)Member).SetValue(instance, val);
-            }
+                FormatMode.Prefix => pattern + baseName,
+                FormatMode.Replace => pattern,
+                FormatMode.Format => UnturnedUIUtility.QuickFormat(baseName, pattern, _attribute is not { Mode: FormatMode.Format } ? 0 : _attribute.FormatIndex),
+                _ => baseName + pattern
+            };
+        }
+        public void SetValue(object instance, object val)
+        {
+            if (_member is PropertyInfo prop)
+                prop.GetSetMethod(true).Invoke(instance, new object[] { val });
+            else
+                ((FieldInfo)_member).SetValue(instance, val);
         }
     }
     private static Type GetElementType(Type enumerable)
@@ -241,46 +403,6 @@ public static class UnturnedUIPatterns
 
         Type? genEnumerable = enumerable.GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>));
         return genEnumerable?.GenericTypeArguments[0] ?? typeof(object);
-    }
-    public static void SubscribeAll(UnturnedButton[] buttons, ButtonClicked handler)
-    {
-        for (int i = 0; i < buttons.Length; ++i)
-            buttons[i].OnClicked += handler;
-    }
-    public static void UnsubscribeAll(UnturnedButton[] buttons, ButtonClicked handler)
-    {
-        for (int i = 0; i < buttons.Length; ++i)
-            buttons[i].OnClicked -= handler;
-    }
-    public static void SubscribeAll(UnturnedTextBox[] textBoxes, TextUpdated handler)
-    {
-        for (int i = 0; i < textBoxes.Length; ++i)
-            textBoxes[i].OnTextUpdated += handler;
-    }
-    public static void UnsubscribeAll(UnturnedTextBox[] textBoxes, TextUpdated handler)
-    {
-        for (int i = 0; i < textBoxes.Length; ++i)
-            textBoxes[i].OnTextUpdated -= handler;
-    }
-    public static void SubscribeAll<T>(T[] buttons, Func<T, UnturnedButton> selector, ButtonClicked handler)
-    {
-        for (int i = 0; i < buttons.Length; ++i)
-            selector(buttons[i]).OnClicked += handler;
-    }
-    public static void UnsubscribeAll<T>(T[] buttons, Func<T, UnturnedButton> selector, ButtonClicked handler)
-    {
-        for (int i = 0; i < buttons.Length; ++i)
-            selector(buttons[i]).OnClicked -= handler;
-    }
-    public static void SubscribeAll<T>(T[] textBoxes, Func<T, UnturnedTextBox> selector, TextUpdated handler)
-    {
-        for (int i = 0; i < textBoxes.Length; ++i)
-            selector(textBoxes[i]).OnTextUpdated += handler;
-    }
-    public static void UnsubscribeAll<T>(T[] textBoxes, Func<T, UnturnedTextBox> selector, TextUpdated handler)
-    {
-        for (int i = 0; i < textBoxes.Length; ++i)
-            selector(textBoxes[i]).OnTextUpdated -= handler;
     }
 }
 public enum FormatMode
