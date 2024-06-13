@@ -32,10 +32,10 @@ jobs:
         dotnet-version: '5.0.x'
         
     - name: Build
-      run: dotnet build "./Uncreated.UI/Uncreated.UI.csproj" --configuration Release "/p:VersionPrefix=${{ inputs.version_prefix }};VersionSuffix=${{ inputs.version_suffix }};PackageReleaseNotes=${{ inputs.change_notes }};IsInGitHubActions=True"
+      run: dotnet build "./UncreatedUI/Uncreated.UI.csproj" --configuration Release "/p:VersionPrefix=${{ inputs.version_prefix }};VersionSuffix=${{ inputs.version_suffix }};PackageReleaseNotes=${{ inputs.change_notes }};IsInGitHubActions=True"
     
     - name: Pack
-      run: dotnet pack "./Uncreated.UI/Uncreated.UI.csproj" --configuration Release "/p:VersionPrefix=${{ inputs.version_prefix }};VersionSuffix=${{ inputs.version_suffix }};PackageReleaseNotes=${{ inputs.change_notes }};IsInGitHubActions=True" --no-build --output .
+      run: dotnet pack "./UncreatedUI/Uncreated.UI.csproj" --configuration Release "/p:VersionPrefix=${{ inputs.version_prefix }};VersionSuffix=${{ inputs.version_suffix }};PackageReleaseNotes=${{ inputs.change_notes }};IsInGitHubActions=True" --no-build --output .
     
     - name: Push Packages
       run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key ${UNCREATED_ORG_NUGET}
