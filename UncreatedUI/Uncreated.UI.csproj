@@ -45,8 +45,8 @@
 
   <!-- Package Embedded Files -->
   <ItemGroup>
-    <None Include="$(SolutionDir)icon.png" Pack="true" PackagePath="\" />
-    <None Include="$(SolutionDir)README.md" Pack="true" PackagePath="\" />
+    <None Include="$(SolutionDir)icon.png" Pack="true" PackagePath="/" />
+    <None Include="$(SolutionDir)README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <!-- Build Settings -->
@@ -61,7 +61,6 @@
     <LangVersion>preview</LangVersion>
 
     <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
-
   </PropertyGroup>
 
   <!-- Build Configurations -->
@@ -78,7 +77,9 @@
 
   <!-- Installation | CONFIGURE YOUR INSTALLATION PATH HERE -->
   <PropertyGroup>
-    <U3DSPath>C:\SteamCMD\steamapps\common\U3DS</U3DSPath>
+    <U3DSPath>C:/SteamCMD/steamapps/common/U3DS</U3DSPath>
+
+    <OutputLibrariesPath>$(SolutionDir)Libraries</OutputLibrariesPath>
   </PropertyGroup>
 
   <!-- Packages -->
@@ -88,28 +89,44 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[3.1.0,)" />
   </ItemGroup>
 
+  <Choose>
+    <When Condition=" '$(IsInGitHubActions)' == '' ">
+      <PropertyGroup>
+        <SharedManagedPath>$(U3DSPath)/Unturned_Data/Managed</SharedManagedPath>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <SharedManagedPath>$(SolutionDir)Libraries</SharedManagedPath>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
   <!-- Assemblies -->
   <ItemGroup>
     <!-- Unturned -->
     <Reference Include="Assembly-CSharp">
-      <HintPath>$(U3DSPath)\Unturned_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>$(SharedManagedPath)/Assembly-CSharp.dll</HintPath>
       <Private>true</Private>
     </Reference>
     <Reference Include="SDG.NetTransport">
-      <HintPath>$(U3DSPath)\Unturned_Data\Managed\SDG.NetTransport.dll</HintPath>
+      <HintPath>$(SharedManagedPath)/SDG.NetTransport.dll</HintPath>
       <Private>true</Private>
     </Reference>
 
     <!-- Third Party -->
     <Reference Include="com.rlabrecque.steamworks.net">
-      <HintPath>$(U3DSPath)\Unturned_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
+      <HintPath>$(SharedManagedPath)/com.rlabrecque.steamworks.net.dll</HintPath>
       <Private>true</Private>
     </Reference>
 
     <!-- Unity -->
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(U3DSPath)\Unturned_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(SharedManagedPath)/UnityEngine.CoreModule.dll</HintPath>
       <Private>true</Private>
     </Reference>
   </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(IsInGitHubActions)' == '' ">
+    <Exec Command="XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),Assembly-CSharp.dll))*&quot; &quot;$([System.IO.Path]::Combine($(SolutionDir)Libraries,Assembly-CSharp.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),SDG.NetTransport.dll))*&quot; &quot;$([System.IO.Path]::Combine($(SolutionDir)Libraries,SDG.NetTransport.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),com.rlabrecque.steamworks.net.dll))*&quot; &quot;$([System.IO.Path]::Combine($(SolutionDir)Libraries,com.rlabrecque.steamworks.net.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnityEngine.CoreModule.dll))*&quot; &quot;$([System.IO.Path]::Combine($(SolutionDir)Libraries,UnityEngine.CoreModule.dll))*&quot;" />
+  </Target>
 </Project>
