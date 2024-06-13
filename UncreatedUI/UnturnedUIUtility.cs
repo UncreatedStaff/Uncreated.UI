@@ -117,4 +117,24 @@ public static class UnturnedUIUtility
         return c;
     }
 
+    /// <summary>
+    /// Parse the last value of a path to get the actual element name.
+    /// </summary>
+    public static ReadOnlyMemory<char> GetNameFromPathOrName(ReadOnlyMemory<char> path)
+    {
+        switch (path.Length)
+        {
+            case 0:
+                return default;
+        }
+
+        int ind = path.Span.LastIndexOf('/');
+
+        if (ind == -1)
+            return path;
+
+        return ind == path.Length - 1
+            ? default
+            : path.Slice(ind + 1, path.Length - ind - 1);
+    }
 }

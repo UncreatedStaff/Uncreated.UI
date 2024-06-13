@@ -32,21 +32,21 @@ public class PlaceholderTextBox : IPlaceholderTextBox
     }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public PlaceholderTextBox(string textBox) : this(GlobalLogger.Instance, textBox, textBox + "Placeholder") { }
-    public PlaceholderTextBox(ILogger logger, string textBox) : this(logger, textBox, textBox + "Placeholder") { }
-    public PlaceholderTextBox(ILoggerFactory factory, string textBox) : this(factory, textBox, textBox + "Placeholder") { }
+    public PlaceholderTextBox(string path) : this(GlobalLogger.Instance, path, path + "Placeholder") { }
+    public PlaceholderTextBox(ILogger logger, string path) : this(logger, path, path + "Placeholder") { }
+    public PlaceholderTextBox(ILoggerFactory factory, string path) : this(factory, path, path + "Placeholder") { }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public PlaceholderTextBox(string textBox, string? placeholder) : this(GlobalLogger.Instance, textBox, placeholder) { }
-    public PlaceholderTextBox(ILogger logger, string textBox, string? placeholder)
+    public PlaceholderTextBox(string path, string? placeholderPath) : this(GlobalLogger.Instance, path, placeholderPath) { }
+    public PlaceholderTextBox(ILogger logger, string path, string? placeholderPath)
     {
-        TextBox = new UnturnedTextBox(logger, textBox);
-        Placeholder = new UnturnedLabel(logger, placeholder ?? (textBox + "Placeholder"));
+        TextBox = new UnturnedTextBox(logger, path);
+        Placeholder = new UnturnedLabel(logger, placeholderPath ?? (path + "Placeholder"));
     }
-    public PlaceholderTextBox(ILoggerFactory factory, string textBox, string? placeholder)
+    public PlaceholderTextBox(ILoggerFactory factory, string path, string? placeholderPath)
     {
-        TextBox = new UnturnedTextBox(factory, textBox);
-        Placeholder = new UnturnedLabel(factory, placeholder ?? (textBox + "Placeholder"));
+        TextBox = new UnturnedTextBox(factory, path);
+        Placeholder = new UnturnedLabel(factory, placeholderPath ?? (path + "Placeholder"));
     }
 
     [Ignore]
@@ -84,21 +84,21 @@ public class StateTextBox : IStateElement, ITextBox
     }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public StateTextBox(string textBox) : this(GlobalLogger.Instance, textBox, textBox + "State") { }
-    public StateTextBox(ILogger logger, string textBox) : this(logger, textBox, textBox + "State") { }
-    public StateTextBox(ILoggerFactory factory, string textBox) : this(factory, textBox, textBox + "State") { }
+    public StateTextBox(string path) : this(GlobalLogger.Instance, path, path + "State") { }
+    public StateTextBox(ILogger logger, string path) : this(logger, path, path + "State") { }
+    public StateTextBox(ILoggerFactory factory, string path) : this(factory, path, path + "State") { }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public StateTextBox(string textBox, string? state) : this(GlobalLogger.Instance, textBox, state) { }
-    public StateTextBox(ILogger logger, string textBox, string? state)
+    public StateTextBox(string path, string? statePath) : this(GlobalLogger.Instance, path, statePath) { }
+    public StateTextBox(ILogger logger, string path, string? statePath)
     {
-        TextBox = new UnturnedTextBox(logger, textBox);
-        State = new UnturnedUIElement(logger, state ?? (textBox + "State"));
+        TextBox = new UnturnedTextBox(logger, path);
+        State = new UnturnedUIElement(logger, statePath ?? (path + "State"));
     }
-    public StateTextBox(ILoggerFactory factory, string textBox, string? state)
+    public StateTextBox(ILoggerFactory factory, string path, string? statePath)
     {
-        TextBox = new UnturnedTextBox(factory, textBox);
-        State = new UnturnedUIElement(factory, state ?? (textBox + "State"));
+        TextBox = new UnturnedTextBox(factory, path);
+        State = new UnturnedUIElement(factory, statePath ?? (path + "State"));
     }
 
     [Ignore]
@@ -118,24 +118,24 @@ public class StatePlaceholderTextBox : PlaceholderTextBox, IStateElement
     public UnturnedUIElement State { get; }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public StatePlaceholderTextBox(string textBox) : this(GlobalLogger.Instance, textBox) { }
-    public StatePlaceholderTextBox(ILogger logger, string textBox) : base(logger, textBox)
+    public StatePlaceholderTextBox(string path) : this(GlobalLogger.Instance, path) { }
+    public StatePlaceholderTextBox(ILogger logger, string path) : base(logger, path)
     {
-        State = new UnturnedLabel(logger, textBox + "State");
+        State = new UnturnedLabel(logger, path + "State");
     }
-    public StatePlaceholderTextBox(ILoggerFactory factory, string textBox) : base(factory, textBox)
+    public StatePlaceholderTextBox(ILoggerFactory factory, string path) : base(factory, path)
     {
-        State = new UnturnedLabel(factory, textBox + "State");
+        State = new UnturnedLabel(factory, path + "State");
     }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public StatePlaceholderTextBox(string textBox, string? placeholder, string? state) : this(GlobalLogger.Instance, textBox, placeholder, state) { }
-    public StatePlaceholderTextBox(ILogger logger, string textBox, string? placeholder, string? state) : base(logger, textBox, placeholder ?? (textBox + "Placeholder"))
+    public StatePlaceholderTextBox(string path, string? placeholderPath, string? statePath) : this(GlobalLogger.Instance, path, placeholderPath, statePath) { }
+    public StatePlaceholderTextBox(ILogger logger, string path, string? placeholderPath, string? statePath) : base(logger, path, placeholderPath ?? (path + "Placeholder"))
     {
-        State = new UnturnedLabel(logger, state ?? (textBox + "State"));
+        State = new UnturnedLabel(logger, statePath ?? (path + "State"));
     }
-    public StatePlaceholderTextBox(ILoggerFactory factory, string textBox, string? placeholder, string? state) : base(factory, textBox, placeholder ?? (textBox + "Placeholder"))
+    public StatePlaceholderTextBox(ILoggerFactory factory, string path, string? placeholderPath, string? statePath) : base(factory, path, placeholderPath ?? (path + "Placeholder"))
     {
-        State = new UnturnedLabel(factory, state ?? (textBox + "State"));
+        State = new UnturnedLabel(factory, statePath ?? (path + "State"));
     }
 }

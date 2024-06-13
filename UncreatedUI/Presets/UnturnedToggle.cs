@@ -59,25 +59,25 @@ public class UnturnedToggle : IDisposable, IButton, IStateElement
         remove => ToggleButton.OnClicked -= value;
     }
 
-    public UnturnedToggle(bool defaultValue, string rootButtonName) : this(GlobalLogger.Instance, defaultValue, rootButtonName, rootButtonName + "ToggleState") { }
-    public UnturnedToggle(ILogger logger, bool defaultValue, string rootButtonName) : this(logger, defaultValue, rootButtonName, rootButtonName + "ToggleState") { }
-    public UnturnedToggle(ILoggerFactory factory, bool defaultValue, string rootButtonName) : this(factory, defaultValue, rootButtonName, rootButtonName + "ToggleState") { }
-    public UnturnedToggle(bool defaultValue, string rootButtonName, string toggleStateName, string? disableState = null) : this(GlobalLogger.Instance, defaultValue, rootButtonName, toggleStateName, disableState) { }
-    public UnturnedToggle(ILogger logger, bool defaultValue, string rootButtonName, string toggleStateName, string? disableState = null)
+    public UnturnedToggle(bool defaultValue, string buttonPath) : this(GlobalLogger.Instance, defaultValue, buttonPath, buttonPath + "ToggleState") { }
+    public UnturnedToggle(ILogger logger, bool defaultValue, string buttonPath) : this(logger, defaultValue, buttonPath, buttonPath + "ToggleState") { }
+    public UnturnedToggle(ILoggerFactory factory, bool defaultValue, string buttonPath) : this(factory, defaultValue, buttonPath, buttonPath + "ToggleState") { }
+    public UnturnedToggle(bool defaultValue, string buttonPath, string imagePath, string? statePath = null) : this(GlobalLogger.Instance, defaultValue, buttonPath, imagePath, statePath) { }
+    public UnturnedToggle(ILogger logger, bool defaultValue, string buttonPath, string imagePath, string? statePath = null)
     {
-        ToggleButton = new UnturnedButton(logger, rootButtonName);
-        ToggleState = new UnturnedImage(logger, toggleStateName);
-        if (disableState != null)
-            DisableState = new UnturnedUIElement(logger, disableState);
+        ToggleButton = new UnturnedButton(logger, buttonPath);
+        ToggleState = new UnturnedImage(logger, imagePath);
+        if (statePath != null)
+            DisableState = new UnturnedUIElement(logger, statePath);
         DefaultValue = defaultValue;
         ToggleButton.OnClicked += OnButtonClicked;
     }
-    public UnturnedToggle(ILoggerFactory factory, bool defaultValue, string rootButtonName, string toggleStateName, string? disableState = null)
+    public UnturnedToggle(ILoggerFactory factory, bool defaultValue, string buttonPath, string imagePath, string? statePath = null)
     {
-        ToggleButton = new UnturnedButton(factory, rootButtonName);
-        ToggleState = new UnturnedImage(factory, toggleStateName);
-        if (disableState != null)
-            DisableState = new UnturnedUIElement(factory, disableState);
+        ToggleButton = new UnturnedButton(factory, buttonPath);
+        ToggleState = new UnturnedImage(factory, imagePath);
+        if (statePath != null)
+            DisableState = new UnturnedUIElement(factory, statePath);
         DefaultValue = defaultValue;
         ToggleButton.OnClicked += OnButtonClicked;
     }
@@ -194,28 +194,28 @@ public class LabeledUnturnedToggle : UnturnedToggle, ILabel
 {
     /// <inheritdoc />
     public UnturnedLabel Label { get; }
-    public LabeledUnturnedToggle(bool defaultValue, string rootButtonName) : this(GlobalLogger.Instance, defaultValue, rootButtonName, rootButtonName + "Label") { }
-    public LabeledUnturnedToggle(ILogger logger, bool defaultValue, string rootButtonName) : this(logger, defaultValue, rootButtonName, rootButtonName + "Label") { }
-    public LabeledUnturnedToggle(ILoggerFactory factory, bool defaultValue, string rootButtonName) : this(factory, defaultValue, rootButtonName, rootButtonName + "Label") { }
-    public LabeledUnturnedToggle(bool defaultValue, string rootButtonName, string labelName) : this(GlobalLogger.Instance, defaultValue, rootButtonName, labelName) { }
-    public LabeledUnturnedToggle(ILogger logger, bool defaultValue, string rootButtonName, string labelName) : base(logger, defaultValue, rootButtonName)
+    public LabeledUnturnedToggle(bool defaultValue, string buttonPath) : this(GlobalLogger.Instance, defaultValue, buttonPath, buttonPath + "Label") { }
+    public LabeledUnturnedToggle(ILogger logger, bool defaultValue, string buttonPath) : this(logger, defaultValue, buttonPath, buttonPath + "Label") { }
+    public LabeledUnturnedToggle(ILoggerFactory factory, bool defaultValue, string buttonPath) : this(factory, defaultValue, buttonPath, buttonPath + "Label") { }
+    public LabeledUnturnedToggle(bool defaultValue, string buttonPath, string labelName) : this(GlobalLogger.Instance, defaultValue, buttonPath, labelName) { }
+    public LabeledUnturnedToggle(ILogger logger, bool defaultValue, string buttonPath, string labelName) : base(logger, defaultValue, buttonPath)
     {
         Label = new UnturnedLabel(logger, labelName);
     }
-    public LabeledUnturnedToggle(ILoggerFactory factory, bool defaultValue, string rootButtonName, string labelName) : base(factory, defaultValue, rootButtonName)
+    public LabeledUnturnedToggle(ILoggerFactory factory, bool defaultValue, string buttonPath, string labelName) : base(factory, defaultValue, buttonPath)
     {
         Label = new UnturnedLabel(factory, labelName);
     }
-    public LabeledUnturnedToggle(bool defaultValue, string rootButtonName, string toggleStateName, string? labelName, string? disableState) : this(GlobalLogger.Instance, defaultValue, rootButtonName, toggleStateName, labelName, disableState) { }
-    public LabeledUnturnedToggle(ILogger logger, bool defaultValue, string rootButtonName, string toggleStateName, string? labelName, string? disableState)
-        : base(logger, defaultValue, rootButtonName, toggleStateName, disableState)
+    public LabeledUnturnedToggle(bool defaultValue, string buttonPath, string imagePath, string? labelName, string? statePath) : this(GlobalLogger.Instance, defaultValue, buttonPath, imagePath, labelName, statePath) { }
+    public LabeledUnturnedToggle(ILogger logger, bool defaultValue, string buttonPath, string imagePath, string? labelName, string? statePath)
+        : base(logger, defaultValue, buttonPath, imagePath, statePath)
     {
-        Label = new UnturnedLabel(logger, labelName ?? (rootButtonName + "Label"));
+        Label = new UnturnedLabel(logger, labelName ?? (buttonPath + "Label"));
     }
-    public LabeledUnturnedToggle(ILoggerFactory factory, bool defaultValue, string rootButtonName, string toggleStateName, string? labelName, string? disableState)
-        : base(factory, defaultValue, rootButtonName, toggleStateName, disableState)
+    public LabeledUnturnedToggle(ILoggerFactory factory, bool defaultValue, string buttonPath, string imagePath, string? labelName, string? statePath)
+        : base(factory, defaultValue, buttonPath, imagePath, statePath)
     {
-        Label = new UnturnedLabel(factory, labelName ?? (rootButtonName + "Label"));
+        Label = new UnturnedLabel(factory, labelName ?? (buttonPath + "Label"));
     }
 
     /// <summary>

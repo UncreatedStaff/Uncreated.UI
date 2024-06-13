@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using SDG.Unturned;
 using System;
 using System.Collections.Generic;
@@ -109,7 +110,15 @@ internal static class EffectManagerListener
             _btnSubbed = true;
         }
 
-        Buttons[name] = button;
+        if (Buttons.TryGetValue(name, out UnturnedButton? oldButton))
+        {
+            button.Logger.LogWarning("There is already a button with name \"{0}\": {1} of {2}.", name, oldButton.Path, oldButton.Owner.Name);
+            Buttons[name] = button;
+        }
+        else
+        {
+            Buttons.Add(name, button);
+        }
     }
     private static void RegisterInputIntl(string name, UnturnedTextBox textBox)
     {
@@ -119,7 +128,15 @@ internal static class EffectManagerListener
             _inpSubbed = true;
         }
 
-        TextBoxes[name] = textBox;
+        if (TextBoxes.TryGetValue(name, out UnturnedTextBox? oldTextBox))
+        {
+            textBox.Logger.LogWarning("There is already a text box with name \"{0}\": {1} of {2}.", name, oldTextBox.Path, oldTextBox.Owner.Name);
+            TextBoxes[name] = textBox;
+        }
+        else
+        {
+            TextBoxes.Add(name, textBox);
+        }
     }
     private static void OnEffectTextCommitted(Player player, string inputName, string input)
     {

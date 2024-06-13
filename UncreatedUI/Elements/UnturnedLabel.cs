@@ -13,9 +13,9 @@ namespace Uncreated.Framework.UI;
 public class UnturnedLabel : UnturnedUIElement, ILabel
 {
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public UnturnedLabel(string name) : this(GlobalLogger.Instance, name) { }
-    public UnturnedLabel(ILogger logger, string name) : base(logger, name) { }
-    public UnturnedLabel(ILoggerFactory factory, string name) : base(factory, name) { }
+    public UnturnedLabel(string path) : this(GlobalLogger.Instance, path) { }
+    public UnturnedLabel(ILogger logger, string path) : base(logger, path) { }
+    public UnturnedLabel(ILoggerFactory factory, string path) : base(factory, path) { }
 
     /// <summary>
     /// Set the text to be displayed on this label.
@@ -69,7 +69,7 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
 
         if (Thread.CurrentThread.IsGameThread())
         {
-            EffectManager.sendUIEffectText(Owner!.Key, connection, Owner.IsReliable, Name, text);
+            EffectManager.sendUIEffectText(Owner.Key, connection, Owner.IsReliable, Path, text);
         }
         else
         {
@@ -78,7 +78,7 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffectText(Owner!.Key, c2, Owner.IsReliable, Name, txt2);
+                EffectManager.sendUIEffectText(Owner.Key, c2, Owner.IsReliable, Path, txt2);
             });
         }
 

@@ -19,9 +19,9 @@ public class UnturnedImage : UnturnedUIElement, IImage
     public bool ShouldCache { get; set; } = true;
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public UnturnedImage(string name) : this(GlobalLogger.Instance, name) { }
-    public UnturnedImage(ILogger logger, string name) : base(logger, name) { }
-    public UnturnedImage(ILoggerFactory factory, string name) : base(factory, name) { }
+    public UnturnedImage(string path) : this(GlobalLogger.Instance, path) { }
+    public UnturnedImage(ILogger logger, string path) : base(logger, path) { }
+    public UnturnedImage(ILoggerFactory factory, string path) : base(factory, path) { }
 
     /// <summary>
     /// Set the URL to the image displayed.
@@ -78,7 +78,7 @@ public class UnturnedImage : UnturnedUIElement, IImage
 
         if (Thread.CurrentThread.IsGameThread())
         {
-            EffectManager.sendUIEffectImageURL(Owner!.Key, connection, Owner.IsReliable, Name, url, ShouldCache, forceRefresh);
+            EffectManager.sendUIEffectImageURL(Owner.Key, connection, Owner.IsReliable, Path, url, ShouldCache, forceRefresh);
         }
         else
         {
@@ -88,7 +88,7 @@ public class UnturnedImage : UnturnedUIElement, IImage
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffectImageURL(Owner!.Key, c2, Owner.IsReliable, Name, url2, ShouldCache, fr2);
+                EffectManager.sendUIEffectImageURL(Owner.Key, c2, Owner.IsReliable, Path, url2, ShouldCache, fr2);
             });
         }
 

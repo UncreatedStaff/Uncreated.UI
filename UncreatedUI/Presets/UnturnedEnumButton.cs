@@ -19,36 +19,36 @@ public delegate string TextFormatter<in TEnum>(TEnum value, Player player) where
 /// </summary>
 public class UnturnedEnumButton<TEnum> : UnturnedEnumButtonTracker<TEnum> where TEnum : unmanaged, Enum
 {
-    public UnturnedEnumButton(TEnum defaultValue, string button, string label) :
-        this(GlobalLogger.Instance, defaultValue, button, label) { }
-    public UnturnedEnumButton(ILogger logger, TEnum defaultValue, string button, string label) :
-        base(defaultValue, new UnturnedButton(logger, button), new UnturnedLabel(logger, label)) { }
-    public UnturnedEnumButton(ILoggerFactory factory, TEnum defaultValue, string button, string label) :
-        base(defaultValue, new UnturnedButton(factory, button), new UnturnedLabel(factory, label)) { }
-    public UnturnedEnumButton(TEnum defaultValue, string button, string label, string? disableState, string? rightClickListener) :
-        this(GlobalLogger.Instance, defaultValue, button, label, disableState, rightClickListener) { }
-    public UnturnedEnumButton(ILogger logger, TEnum defaultValue, string button, string label, string? disableState, string? rightClickListener) :
-        base(defaultValue, new UnturnedButton(logger, button), new UnturnedLabel(logger, label),
-            disableState == null ? null : new UnturnedUIElement(logger, disableState),
-            rightClickListener == null ? null : new UnturnedButton(logger, rightClickListener)) { }
-    public UnturnedEnumButton(ILoggerFactory factory, TEnum defaultValue, string button, string label, string? disableState, string? rightClickListener) :
-        base(defaultValue, new UnturnedButton(factory, button), new UnturnedLabel(factory, label),
-            disableState == null ? null : new UnturnedUIElement(factory, disableState),
-            rightClickListener == null ? null : new UnturnedButton(factory, rightClickListener)) { }
-    public UnturnedEnumButton(TEnum[] valueSet, TEnum defaultValue, string button, string label) :
-        this(GlobalLogger.Instance, valueSet, defaultValue, button, label) { }
-    public UnturnedEnumButton(ILogger logger, TEnum[] valueSet, TEnum defaultValue, string button, string label) :
-        base(valueSet, defaultValue, new UnturnedButton(logger, button), new UnturnedLabel(logger, label)) { }
-    public UnturnedEnumButton(ILoggerFactory factory, TEnum[] valueSet, TEnum defaultValue, string button, string label) :
-        base(valueSet, defaultValue, new UnturnedButton(factory, button), new UnturnedLabel(factory, label)) { }
-    public UnturnedEnumButton(TEnum[] valueSet, TEnum defaultValue, string button, string label, string? disableState, string? rightClickListener) :
-        this(GlobalLogger.Instance, valueSet, defaultValue, button, label, disableState, rightClickListener) { }
-    public UnturnedEnumButton(ILogger logger, TEnum[] valueSet, TEnum defaultValue, string button, string label, string? disableState, string? rightClickListener) :
-        base(valueSet, defaultValue, new UnturnedButton(logger, button), new UnturnedLabel(logger, label),
-            disableState == null ? null : new UnturnedUIElement(logger, disableState),
-            rightClickListener == null ? null : new UnturnedButton(logger, rightClickListener)) { }
-    public UnturnedEnumButton(ILoggerFactory factory, TEnum[] valueSet, TEnum defaultValue, string button, string label, string? disableState, string? rightClickListener) :
-        base(valueSet, defaultValue, new UnturnedButton(factory, button), new UnturnedLabel(factory, label),
-            disableState == null ? null : new UnturnedUIElement(factory, disableState),
-            rightClickListener == null ? null : new UnturnedButton(factory, rightClickListener)) { }
+    public UnturnedEnumButton(TEnum defaultValue, string buttonPath, string labelPath) :
+        this(GlobalLogger.Instance, defaultValue, buttonPath, labelPath) { }
+    public UnturnedEnumButton(ILogger logger, TEnum defaultValue, string buttonPath, string labelPath) :
+        base(defaultValue, new UnturnedButton(logger, buttonPath), new UnturnedLabel(logger, labelPath)) { }
+    public UnturnedEnumButton(ILoggerFactory factory, TEnum defaultValue, string buttonPath, string labelPath) :
+        base(defaultValue, new UnturnedButton(factory, buttonPath), new UnturnedLabel(factory, labelPath)) { }
+    public UnturnedEnumButton(TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
+        this(GlobalLogger.Instance, defaultValue, buttonPath, labelPath, statePath, rightClickListenerButtonPath) { }
+    public UnturnedEnumButton(ILogger logger, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
+        base(defaultValue, new UnturnedButton(logger, buttonPath), new UnturnedLabel(logger, labelPath),
+            statePath == null ? null : new UnturnedUIElement(logger, statePath),
+            rightClickListenerButtonPath == null ? null : new UnturnedButton(logger, rightClickListenerButtonPath)) { }
+    public UnturnedEnumButton(ILoggerFactory factory, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
+        base(defaultValue, new UnturnedButton(factory, buttonPath), new UnturnedLabel(factory, labelPath),
+            statePath == null ? null : new UnturnedUIElement(factory, statePath),
+            rightClickListenerButtonPath == null ? null : new UnturnedButton(factory, rightClickListenerButtonPath)) { }
+    public UnturnedEnumButton(TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath) :
+        this(GlobalLogger.Instance, valueSet, defaultValue, buttonPath, labelPath) { }
+    public UnturnedEnumButton(ILogger logger, TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath) :
+        base(valueSet, defaultValue, new UnturnedButton(logger, buttonPath), new UnturnedLabel(logger, labelPath)) { }
+    public UnturnedEnumButton(ILoggerFactory factory, TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath) :
+        base(valueSet, defaultValue, new UnturnedButton(factory, buttonPath), new UnturnedLabel(factory, labelPath)) { }
+    public UnturnedEnumButton(TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
+        this(GlobalLogger.Instance, valueSet, defaultValue, buttonPath, labelPath, statePath, rightClickListenerButtonPath) { }
+    public UnturnedEnumButton(ILogger logger, TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
+        base(valueSet, defaultValue, new UnturnedButton(logger, buttonPath), new UnturnedLabel(logger, labelPath),
+            statePath == null ? null : new UnturnedUIElement(logger, statePath),
+            rightClickListenerButtonPath == null ? null : new UnturnedButton(logger, rightClickListenerButtonPath)) { }
+    public UnturnedEnumButton(ILoggerFactory factory, TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
+        base(valueSet, defaultValue, new UnturnedButton(factory, buttonPath), new UnturnedLabel(factory, labelPath),
+            statePath == null ? null : new UnturnedUIElement(factory, statePath),
+            rightClickListenerButtonPath == null ? null : new UnturnedButton(factory, rightClickListenerButtonPath)) { }
 }

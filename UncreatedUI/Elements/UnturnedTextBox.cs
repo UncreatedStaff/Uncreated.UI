@@ -29,14 +29,14 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
     public bool UseData { get; set; } = false;
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public UnturnedTextBox(string name) : base(GlobalLogger.Instance, name) { }
-    public UnturnedTextBox(ILogger logger, string name) : base(logger, name)
+    public UnturnedTextBox(string path) : base(GlobalLogger.Instance, path) { }
+    public UnturnedTextBox(ILogger logger, string path) : base(logger, path)
     {
-        EffectManagerListener.RegisterTextBox(Name, this);
+        EffectManagerListener.RegisterTextBox(Name.ToString(), this);
     }
-    public UnturnedTextBox(ILoggerFactory factory, string name) : base(factory, name)
+    public UnturnedTextBox(ILoggerFactory factory, string path) : base(factory, path)
     {
-        EffectManagerListener.RegisterTextBox(Name, this);
+        EffectManagerListener.RegisterTextBox(Name.ToString(), this);
     }
     internal void InvokeOnTextCommitted(Player player, string text)
     {
@@ -290,7 +290,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
             return;
 
-        EffectManagerListener.DeregisterTextBox(Name);
+        EffectManagerListener.DeregisterTextBox(Name.ToString());
     }
 
     UnturnedTextBox ITextBox.TextBox => this;

@@ -20,14 +20,14 @@ public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
     public event ButtonClicked? OnClicked;
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public UnturnedButton(string name) : this(GlobalLogger.Instance, name) { }
-    public UnturnedButton(ILogger logger, string name) : base(logger, name)
+    public UnturnedButton(string path) : this(GlobalLogger.Instance, path) { }
+    public UnturnedButton(ILogger logger, string path) : base(logger, path)
     {
-        EffectManagerListener.RegisterButton(name, this);
+        EffectManagerListener.RegisterButton(Name.ToString(), this);
     }
-    public UnturnedButton(ILoggerFactory factory, string name) : base(factory, name)
+    public UnturnedButton(ILoggerFactory factory, string path) : base(factory, path)
     {
-        EffectManagerListener.RegisterButton(name, this);
+        EffectManagerListener.RegisterButton(Name.ToString(), this);
     }
 
     internal void InvokeOnClicked(Player player)
@@ -53,7 +53,7 @@ public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
             return;
 
-        EffectManagerListener.DeregisterButton(Name);
+        EffectManagerListener.DeregisterButton(Name.ToString());
     }
     UnturnedButton IButton.Button => this;
 }

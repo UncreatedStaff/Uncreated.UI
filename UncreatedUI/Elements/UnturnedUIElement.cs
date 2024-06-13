@@ -25,12 +25,12 @@ public class UnturnedUIElement : IElement
     /// <summary>
     /// Name in Unity of this UI element.
     /// </summary>
-    public string Name { get; }
+    public ReadOnlyMemory<char> Name { get; }
 
     /// <summary>
     /// Hierarchical path to this UI element in Unity.
     /// </summary>
-    public string Path { get; private set; }
+    public string Path { get; }
 
     /// <exception cref="InvalidOperationException">Thrown when the owner has yet to be set.</exception>
     public UnturnedUI Owner
@@ -46,25 +46,25 @@ public class UnturnedUIElement : IElement
     /// Create a new <see cref="UnturnedUIElement"/> with the given name.
     /// </summary>
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public UnturnedUIElement(string name) : this(GlobalLogger.Instance, name) { }
+    public UnturnedUIElement(string path) : this(GlobalLogger.Instance, path) { }
     
     /// <summary>
     /// Create a new <see cref="UnturnedUIElement"/> with the given display name and logger factory.
     /// </summary>
-    public UnturnedUIElement(ILoggerFactory logFactory, string name)
+    public UnturnedUIElement(ILoggerFactory logFactory, string path)
     {
-        Name = name;
-        Path = name;
-        Logger = logFactory.CreateLogger(name);
+        Path = path;
+        Name = UnturnedUIUtility.GetNameFromPathOrName(path.AsMemory());
+        Logger = logFactory.CreateLogger(path);
     }
 
     /// <summary>
     /// Create a new <see cref="UnturnedUIElement"/> with the given display name and logger.
     /// </summary>
-    public UnturnedUIElement(ILogger logger, string name)
+    public UnturnedUIElement(ILogger logger, string path)
     {
-        Name = name;
-        Path = name;
+        Path = path;
+        Name = UnturnedUIUtility.GetNameFromPathOrName(path.AsMemory());
         Logger = logger;
     }
 
@@ -139,7 +139,7 @@ public class UnturnedUIElement : IElement
 
         if (Thread.CurrentThread.IsGameThread())
         {
-            EffectManager.sendUIEffectVisibility(_owner!.Key, connection, _owner.IsReliable, Name, isEnabled);
+            EffectManager.sendUIEffectVisibility(Owner.Key, connection, Owner.IsReliable, Path, isEnabled);
         }
         else
         {
@@ -148,7 +148,7 @@ public class UnturnedUIElement : IElement
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffectVisibility(_owner!.Key, c2, _owner.IsReliable, Name, state2);
+                EffectManager.sendUIEffectVisibility(Owner.Key, c2, Owner.IsReliable, Path, state2);
             });
         }
 
