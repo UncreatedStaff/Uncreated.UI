@@ -4,8 +4,19 @@ using System;
 
 namespace Uncreated.Framework.UI.Presets;
 
+/// <summary>
+/// Handles when an enum button updates.
+/// </summary>
 public delegate void ValueUpdated<TEnum>(UnturnedEnumButtonTracker<TEnum> button, Player player, TEnum value) where TEnum : unmanaged, Enum;
+
+/// <summary>
+/// Converts an enum value to text.
+/// </summary>
 public delegate string TextFormatter<in TEnum>(TEnum value, Player player) where TEnum : unmanaged, Enum;
+
+/// <summary>
+/// A button that can switch between values of an enum on click.
+/// </summary>
 public class UnturnedEnumButton<TEnum> : UnturnedEnumButtonTracker<TEnum> where TEnum : unmanaged, Enum
 {
     public UnturnedEnumButton(TEnum defaultValue, string button, string label) :

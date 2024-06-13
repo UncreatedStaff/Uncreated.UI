@@ -4,6 +4,7 @@ using SDG.NetTransport;
 using SDG.Unturned;
 using System;
 using System.Threading;
+using Uncreated.Framework.UI.Presets;
 using UnityEngine;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
@@ -12,11 +13,14 @@ namespace Uncreated.Framework.UI;
 /// <summary>
 /// Any <see cref="GameObject"/> in a Unity UI.
 /// </summary>
-public class UnturnedUIElement
+public class UnturnedUIElement : IElement
 {
+    private UnturnedUI? _owner;
+
+    /// <summary>
+    /// Logger used for debug or error logging for this element.
+    /// </summary>
     protected internal ILogger Logger;
-    protected UnturnedUI? _owner;
-    protected UnturnedUIElement? _parent;
 
     /// <summary>
     /// Name in Unity of this UI element.
@@ -63,6 +67,12 @@ public class UnturnedUIElement
         Path = name;
         Logger = logger;
     }
+
+    /// <summary>
+    /// Throw an error if the owner of this element isn't set.
+    /// </summary>
+    /// <param name="checkKey">Also throw an error if the key of the owner is -1.</param>
+    /// <exception cref="InvalidOperationException"/>
     protected void AssertOwnerSet(bool checkKey = true)
     {
         if (_owner is null)
@@ -70,6 +80,10 @@ public class UnturnedUIElement
         if (_owner.Key == -1 && checkKey)
             throw new InvalidOperationException("Owner's key is set to -1.");
     }
+
+    /// <summary>
+    /// Register the owner of this element.
+    /// </summary>
     protected internal virtual void RegisterOwner(UnturnedUI? owner)
     {
         _owner = owner;
@@ -143,4 +157,6 @@ public class UnturnedUIElement
             Logger.LogInformation("[{0}] [{1}] {{{2}}} Set visibility for {3}, visibility: {4}.", Owner.Name, Name, Owner.Key, connection.GetAddressString(true), isEnabled);
         }
     }
+
+    UnturnedUIElement IElement.Element => this;
 }

@@ -4,17 +4,25 @@ using SDG.NetTransport;
 using SDG.Unturned;
 using System;
 using System.Threading;
+using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI;
 /// <summary>
 /// Represents a text component in a Unity UI.
 /// </summary>
-public class UnturnedLabel : UnturnedUIElement
+public class UnturnedLabel : UnturnedUIElement, ILabel
 {
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public UnturnedLabel(string name) : this(GlobalLogger.Instance, name) { }
     public UnturnedLabel(ILogger logger, string name) : base(logger, name) { }
     public UnturnedLabel(ILoggerFactory factory, string name) : base(factory, name) { }
+
+    /// <summary>
+    /// Set the text to be displayed on this label.
+    /// </summary>
+    /// <param name="player">Player to send the image to.</param>
+    /// <param name="text">Text to set on the label.</param>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SetText(SteamPlayer player, string text)
     {
         if (player is null)
@@ -61,7 +69,7 @@ public class UnturnedLabel : UnturnedUIElement
 
         if (Thread.CurrentThread.IsGameThread())
         {
-            EffectManager.sendUIEffectText(_owner!.Key, connection, _owner.IsReliable, Name, text);
+            EffectManager.sendUIEffectText(Owner!.Key, connection, Owner.IsReliable, Name, text);
         }
         else
         {
@@ -70,7 +78,7 @@ public class UnturnedLabel : UnturnedUIElement
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffectText(_owner!.Key, c2, _owner.IsReliable, Name, txt2);
+                EffectManager.sendUIEffectText(Owner!.Key, c2, Owner.IsReliable, Name, txt2);
             });
         }
 
@@ -79,4 +87,6 @@ public class UnturnedLabel : UnturnedUIElement
             Logger.LogInformation("[{0}] [{1}] {{{2}}} Set label text: \"{3}\".", Owner.Name, Name, Owner.Key, text);
         }
     }
+
+    UnturnedLabel ILabel.Label => this;
 }

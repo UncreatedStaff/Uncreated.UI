@@ -9,17 +9,22 @@ namespace Uncreated.Framework.UI.Presets;
 /// </summary>
 public class PlaceholderTextBox : IPlaceholderTextBox
 {
+    /// <inheritdoc />
     [UIPattern("", Mode = FormatMode.Format)]
     public UnturnedTextBox TextBox { get; }
 
+    /// <inheritdoc />
     [UIPattern("Placeholder", Mode = FormatMode.Format)]
     public UnturnedLabel Placeholder { get; }
 
+    /// <inheritdoc />
     public event TextUpdated OnTextUpdated
     {
         add => TextBox.OnTextUpdated += value;
         remove => TextBox.OnTextUpdated -= value;
     }
+
+    /// <inheritdoc />
     public bool UseData
     {
         get => TextBox.UseData;
@@ -56,17 +61,22 @@ public class PlaceholderTextBox : IPlaceholderTextBox
 /// </summary>
 public class StateTextBox : IStateElement, ITextBox
 {
+    /// <inheritdoc />
     [UIPattern("", Mode = FormatMode.Format)]
     public UnturnedTextBox TextBox { get; }
 
+    /// <inheritdoc />
     [UIPattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
+    /// <inheritdoc />
     public event TextUpdated OnTextUpdated
     {
         add => TextBox.OnTextUpdated += value;
         remove => TextBox.OnTextUpdated -= value;
     }
+
+    /// <inheritdoc />
     public bool UseData
     {
         get => TextBox.UseData;
@@ -103,6 +113,7 @@ public class StateTextBox : IStateElement, ITextBox
 /// </summary>
 public class StatePlaceholderTextBox : PlaceholderTextBox, IStateElement
 {
+    /// <inheritdoc />
     [UIPattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 

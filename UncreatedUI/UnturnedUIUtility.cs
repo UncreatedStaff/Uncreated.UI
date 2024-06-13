@@ -3,13 +3,16 @@ using System.Globalization;
 
 namespace Uncreated.Framework.UI;
 
+/// <summary>
+/// Utility methods for working with UIs.
+/// </summary>
 public static class UnturnedUIUtility
 {
     /// <summary>
-    /// Quickly replace a {n} format position with a value. No special formatting is done unlike <see cref="string.Format(string,object)"/>.
+    /// Quickly replace a {n} format placeholder with a value. No special formatting is done unlike <see cref="string.Format(string,object)"/>.
     /// </summary>
     /// <param name="input">The text to be formatted.</param>
-    /// <param name="value">The value to insert in the position, can be empty.</param>
+    /// <param name="value">The value to insert in the placeholder, can be empty.</param>
     /// <param name="index">The number, 'n', to look for.</param>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is less than zero.</exception>
     public static unsafe string QuickFormat(ReadOnlySpan<char> input, ReadOnlySpan<char> value, int index)

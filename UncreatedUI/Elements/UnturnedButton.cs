@@ -3,13 +3,14 @@ using SDG.Unturned;
 using System;
 using System.Globalization;
 using System.Threading;
+using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI;
 
 /// <summary>
 /// Represents a clickable button in a Unity UI.
 /// </summary>
-public class UnturnedButton : UnturnedUIElement, IDisposable
+public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
 {
     private int _disposed;
 
@@ -54,6 +55,7 @@ public class UnturnedButton : UnturnedUIElement, IDisposable
 
         EffectManagerListener.DeregisterButton(Name);
     }
+    UnturnedButton IButton.Button => this;
 }
 
 /// <summary>

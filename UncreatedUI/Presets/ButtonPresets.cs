@@ -3,11 +3,19 @@ using Microsoft.Extensions.Logging;
 using System;
 
 namespace Uncreated.Framework.UI.Presets;
+
+/// <summary>
+/// A button with a label.
+/// </summary>
 public class LabeledButton : ILabeledButton
 {
+    /// <inheritdoc />
     public UnturnedButton Button { get; }
+
+    /// <inheritdoc />
     public UnturnedLabel Label { get; }
 
+    /// <inheritdoc />
     public event ButtonClicked OnClicked
     {
         add => Button.OnClicked += value;
@@ -36,11 +44,18 @@ public class LabeledButton : ILabeledButton
     UnturnedUIElement IElement.Element => Button;
 }
 
+/// <summary>
+/// A button with a enabled/disabled state.
+/// </summary>
 public class StateButton : IButton, IStateElement
 {
+    /// <inheritdoc />
     public UnturnedButton Button { get; }
+
+    /// <inheritdoc />
     public UnturnedUIElement State { get; }
 
+    /// <inheritdoc />
     public event ButtonClicked OnClicked
     {
         add => Button.OnClicked += value;
@@ -69,16 +84,25 @@ public class StateButton : IButton, IStateElement
     UnturnedUIElement IElement.Element => Button;
 }
 
+/// <summary>
+/// A button with a right click listener.
+/// </summary>
 public class RightClickableButton : IRightClickableButton
 {
+    /// <inheritdoc />
     public UnturnedButton Button { get; }
+
+    /// <inheritdoc />
     public UnturnedButton RightClickListener { get; }
 
+    /// <inheritdoc />
     public event ButtonClicked OnClicked
     {
         add => Button.OnClicked += value;
         remove => Button.OnClicked -= value;
     }
+
+    /// <inheritdoc />
     public event ButtonClicked OnRightClicked
     {
         add => RightClickListener.OnClicked += value;
@@ -107,8 +131,12 @@ public class RightClickableButton : IRightClickableButton
     UnturnedUIElement IElement.Element => Button;
 }
 
+/// <summary>
+/// Labeled button who's intractability can be enabled and disabled.
+/// </summary>
 public class LabeledStateButton : LabeledButton, IStateElement
 {
+    /// <inheritdoc />
     public UnturnedUIElement State { get; }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
@@ -134,8 +162,12 @@ public class LabeledStateButton : LabeledButton, IStateElement
     }
 }
 
+/// <summary>
+/// Right-clickable button who's intractability can be enabled and disabled.
+/// </summary>
 public class RightClickableStateButton : RightClickableButton, IStateElement
 {
+    /// <inheritdoc />
     public UnturnedUIElement State { get; }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
@@ -161,8 +193,12 @@ public class RightClickableStateButton : RightClickableButton, IStateElement
     }
 }
 
+/// <summary>
+/// A button with a label and right click listener.
+/// </summary>
 public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
 {
+    /// <inheritdoc />
     public UnturnedLabel Label { get; }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
@@ -188,8 +224,12 @@ public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
     }
 }
 
+/// <summary>
+/// A button with a label and right click listener, who's intractability can be enabled and disabled.
+/// </summary>
 public class LabeledRightClickableStateButton : LabeledRightClickableButton, IStateElement
 {
+    /// <inheritdoc />
     public UnturnedUIElement State { get; }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>

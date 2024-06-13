@@ -9,6 +9,10 @@ using System.Threading;
 using Uncreated.Framework.UI.Reflection;
 
 namespace Uncreated.Framework.UI;
+
+/// <summary>
+/// Container serving as a in-code representation of a Unity UI Effect.
+/// </summary>
 public class UnturnedUI : IDisposable
 {
     private string _name;
@@ -55,8 +59,20 @@ public class UnturnedUI : IDisposable
     /// Is debug logging enabled on this object?
     /// </summary>
     public bool DebugLogging { get; }
+
+    /// <summary>
+    /// All elements in this UI.
+    /// </summary>
     public IReadOnlyList<UnturnedUIElement> Elements { get; }
+
+    /// <summary>
+    /// If the name has been changed from the default (asset name).
+    /// </summary>
     public bool HasDefaultName { get; private set; } = true;
+
+    /// <summary>
+    /// Display name of the UI.
+    /// </summary>
     public string Name
     {
         get => _name;
@@ -66,6 +82,10 @@ public class UnturnedUI : IDisposable
             HasDefaultName = false;
         }
     }
+
+    /// <summary>
+    /// Key used to identify a single instance of this UI. -1 if this UI is keyless.
+    /// </summary>
     public short Key { get; set; }
     private UnturnedUI(object logger, bool hasElements, bool keyless, bool reliable, bool debugLogging)
     {
@@ -110,6 +130,10 @@ public class UnturnedUI : IDisposable
             element.RegisterOwner(this);
         }
     }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public UnturnedUI(ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(GlobalLogger.Instance, defaultId, hasElements, keyless, reliable, debugLogging) { }
     public UnturnedUI(ILogger logger, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
         : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
     {
@@ -120,6 +144,10 @@ public class UnturnedUI : IDisposable
     {
         LoadFromConfig(defaultId);
     }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public UnturnedUI(Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(GlobalLogger.Instance, defaultGuid, hasElements, keyless, reliable, debugLogging) { }
     public UnturnedUI(ILogger logger, Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
         : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
     {
@@ -130,6 +158,10 @@ public class UnturnedUI : IDisposable
     {
         LoadFromConfig(defaultGuid);
     }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public UnturnedUI(EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(GlobalLogger.Instance, asset, hasElements, keyless, reliable, debugLogging) { }
     public UnturnedUI(ILogger logger, EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
         : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
     {
@@ -140,83 +172,64 @@ public class UnturnedUI : IDisposable
     {
         LoadFromConfig(asset);
     }
-    ~UnturnedUI()
-    {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
-            return;
-        Dispose(false);
-    }
-    private void Dispose(bool disposing)
-    {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
-            return;
 
-        IUnturnedUIDataSource? src = UnturnedUIDataSource.Instance;
-
-        if (src != null)
-        {
-            if (src.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
-            {
-                IUnturnedUIDataSource src2 = src;
-                List<UnturnedUIElement> elements = Elements.ToList();
-                UniTask.Create(async () =>
-                {
-                    await UniTask.SwitchToMainThread();
-                    IntlDispose(elements, src2);
-                });
-            }
-            else
-                IntlDispose(Elements, src);
-        }
-
-        if (disposing)
-            GC.SuppressFinalize(this);
-    }
-    private void IntlDispose(IReadOnlyList<UnturnedUIElement> elements, IUnturnedUIDataSource src)
-    {
-        if (DebugLogging)
-            Logger.LogInformation("[{0}] Deregistering {1} elements.", Name, elements.Count);
-
-        src.RemoveOwner(this);
-        for (int i = 0; i < elements.Count; ++i)
-        {
-            UnturnedUIElement element = elements[i];
-            src.RemoveElement(element);
-            element.RegisterOwner(null);
-            if (element is IDisposable disp)
-                disp.Dispose();
-        }
-    }
-    public void Dispose()
-    {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
-            return;
-
-        Dispose(true);
-    }
-
+    /// <summary>
+    /// Set the asset's GUID to <paramref name="guid"/>.
+    /// </summary>
     public void LoadFromConfig(Guid guid)
     {
-        ThreadUtil.assertIsGameThread();
-
-        Guid = guid;
-        Id = 0;
-        Asset = Assets.find(guid) as EffectAsset;
-        LoadFromConfigIntl();
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            Guid = guid;
+            Id = 0;
+            Asset = Assets.find(guid) as EffectAsset;
+            LoadFromConfigIntl();
+        }
+        else
+        {
+            Guid guid2 = guid;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                Guid = guid2;
+                Id = 0;
+                Asset = Assets.find(guid2) as EffectAsset;
+                LoadFromConfigIntl();
+            });
+        }
     }
+
+    /// <summary>
+    /// Set the asset's ID to <paramref name="id"/>.
+    /// </summary>
     public void LoadFromConfig(ushort id)
     {
-        ThreadUtil.assertIsGameThread();
-
-        Guid = default;
-        Id = id;
-        Asset = Assets.find(EAssetType.EFFECT, id) as EffectAsset;
-        LoadFromConfigIntl();
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            Guid = default;
+            Id = id;
+            Asset = Assets.find(EAssetType.EFFECT, id) as EffectAsset;
+            LoadFromConfigIntl();
+        }
+        else
+        {
+            ushort id2 = id;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                Guid = default;
+                Id = id2;
+                Asset = Assets.find(EAssetType.EFFECT, id2) as EffectAsset;
+                LoadFromConfigIntl();
+            });
+        }
     }
+
+    /// <summary>
+    /// Set the asset to <paramref name="asset"/>.
+    /// </summary>
     public void LoadFromConfig(EffectAsset? asset)
     {
-        ThreadUtil.assertIsGameThread();
-
         Asset = asset;
         if (asset == null)
         {
@@ -228,14 +241,31 @@ public class UnturnedUI : IDisposable
             Guid = asset.GUID;
             Id = asset.id;
         }
-        LoadFromConfigIntl();
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            LoadFromConfigIntl();
+        }
+        else
+        {
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                LoadFromConfigIntl();
+            });
+        }
     }
-    public void LoadFromConfigIntl()
+    private void LoadFromConfigIntl()
     {
         if (Asset != null)
         {
             if (HasDefaultName)
                 _name = Asset.FriendlyName;
+            Id = Asset.id;
+            Guid = Asset.GUID;
+            if (Id == 0)
+            {
+                Logger.LogWarning("No id available, asset: {0}.", Asset.FriendlyName);
+            }
         }
         else if (Id != 0)
         {
@@ -261,6 +291,11 @@ public class UnturnedUI : IDisposable
 
         HasAssetOrId = true;
     }
+
+    /// <summary>
+    /// Send this UI to a single player with no formatting arguments.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(SteamPlayer player)
     {
         if (player is null)
@@ -269,6 +304,11 @@ public class UnturnedUI : IDisposable
         if (player.player.isActiveAndEnabled)
             SendToPlayerIntl(player.transportConnection);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with no formatting arguments.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(Player player)
     {
         if (player is null)
@@ -277,6 +317,11 @@ public class UnturnedUI : IDisposable
         if (player.isActiveAndEnabled)
             SendToPlayerIntl(player.channel.owner.transportConnection);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with no formatting arguments.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(ITransportConnection connection)
     {
         if (connection == null)
@@ -284,6 +329,11 @@ public class UnturnedUI : IDisposable
 
         SendToPlayerIntl(connection);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 1 formatting argument which replaces any <c>{0}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(SteamPlayer player, string arg0)
     {
         if (player is null)
@@ -292,6 +342,11 @@ public class UnturnedUI : IDisposable
         if (player.player.isActiveAndEnabled)
             SendToPlayerIntl(player.transportConnection, arg0);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 1 formatting argument which replaces any <c>{0}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(Player player, string arg0)
     {
         if (player is null)
@@ -300,6 +355,11 @@ public class UnturnedUI : IDisposable
         if (player.isActiveAndEnabled)
             SendToPlayerIntl(player.channel.owner.transportConnection, arg0);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 1 formatting argument which replaces any <c>{0}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(ITransportConnection connection, string arg0)
     {
         if (connection == null)
@@ -307,6 +367,11 @@ public class UnturnedUI : IDisposable
 
         SendToPlayerIntl(connection, arg0);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 2 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(SteamPlayer player, string arg0, string arg1)
     {
         if (player is null)
@@ -315,6 +380,11 @@ public class UnturnedUI : IDisposable
         if (player.player.isActiveAndEnabled)
             SendToPlayerIntl(player.transportConnection, arg0, arg1);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 2 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(Player player, string arg0, string arg1)
     {
         if (player is null)
@@ -323,6 +393,11 @@ public class UnturnedUI : IDisposable
         if (player.isActiveAndEnabled)
             SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 2 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(ITransportConnection connection, string arg0, string arg1)
     {
         if (connection == null)
@@ -330,6 +405,11 @@ public class UnturnedUI : IDisposable
 
         SendToPlayerIntl(connection, arg0, arg1);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 3 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(SteamPlayer player, string arg0, string arg1, string arg2)
     {
         if (player is null)
@@ -338,6 +418,11 @@ public class UnturnedUI : IDisposable
         if (player.player.isActiveAndEnabled)
             SendToPlayerIntl(player.transportConnection, arg0, arg1, arg2);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 3 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(Player player, string arg0, string arg1, string arg2)
     {
         if (player is null)
@@ -346,6 +431,11 @@ public class UnturnedUI : IDisposable
         if (player.isActiveAndEnabled)
             SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1, arg2);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 3 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(ITransportConnection connection, string arg0, string arg1, string arg2)
     {
         if (connection == null)
@@ -353,6 +443,11 @@ public class UnturnedUI : IDisposable
 
         SendToPlayerIntl(connection, arg0, arg1, arg2);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 4 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(SteamPlayer player, string arg0, string arg1, string arg2, string arg3)
     {
         if (player is null)
@@ -361,6 +456,11 @@ public class UnturnedUI : IDisposable
         if (player.player.isActiveAndEnabled)
             SendToPlayerIntl(player.transportConnection, arg0, arg1, arg2, arg3);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 4 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(Player player, string arg0, string arg1, string arg2, string arg3)
     {
         if (player is null)
@@ -369,6 +469,11 @@ public class UnturnedUI : IDisposable
         if (player.isActiveAndEnabled)
             SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1, arg2, arg3);
     }
+
+    /// <summary>
+    /// Send this UI to a single player with 4 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void SendToPlayer(ITransportConnection connection, string arg0, string arg1, string arg2, string arg3)
     {
         if (connection == null)
@@ -376,6 +481,11 @@ public class UnturnedUI : IDisposable
 
         SendToPlayerIntl(connection, arg0, arg1, arg2, arg3);
     }
+
+    /// <summary>
+    /// Clear this UI from a single player.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void ClearFromPlayer(SteamPlayer player)
     {
         if (player is null)
@@ -384,6 +494,11 @@ public class UnturnedUI : IDisposable
         if (player.player.isActiveAndEnabled)
             ClearFromPlayerIntl(player.transportConnection);
     }
+
+    /// <summary>
+    /// Clear this UI from a single player.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void ClearFromPlayer(Player player)
     {
         if (player is null)
@@ -392,6 +507,11 @@ public class UnturnedUI : IDisposable
         if (player.isActiveAndEnabled)
             ClearFromPlayerIntl(player.channel.owner.transportConnection);
     }
+
+    /// <summary>
+    /// Clear this UI from a single player.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
     public virtual void ClearFromPlayer(ITransportConnection connection)
     {
         if (connection == null)
@@ -399,6 +519,10 @@ public class UnturnedUI : IDisposable
 
         ClearFromPlayerIntl(connection);
     }
+
+    /// <summary>
+    /// Sends this UI to all online players.
+    /// </summary>
     public virtual void SendToAllPlayers()
     {
         if (!HasAssetOrId)
@@ -423,6 +547,10 @@ public class UnturnedUI : IDisposable
         if (DebugLogging)
             Logger.LogInformation("[{0}] Sent to all players.", Name);
     }
+
+    /// <summary>
+    /// Clears this UI from all online players.
+    /// </summary>
     public virtual void ClearFromAllPlayers()
     {
         if (!HasAssetOrId)
@@ -606,5 +734,58 @@ public class UnturnedUI : IDisposable
 
         if (DebugLogging)
             Logger.LogInformation("[{0}] Cleared from {1}.", Name, connection.GetAddressString(true));
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Dispose(true);
+    }
+    private void Dispose(bool disposing)
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
+        IUnturnedUIDataSource? src = UnturnedUIDataSource.Instance;
+
+        if (src != null)
+        {
+            if (src.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
+            {
+                IUnturnedUIDataSource src2 = src;
+                List<UnturnedUIElement> elements = Elements.ToList();
+                UniTask.Create(async () =>
+                {
+                    await UniTask.SwitchToMainThread();
+                    IntlDispose(elements, src2);
+                });
+            }
+            else
+            {
+                IntlDispose(Elements, src);
+            }
+        }
+
+        if (disposing)
+            GC.SuppressFinalize(this);
+    }
+    private void IntlDispose(IReadOnlyList<UnturnedUIElement> elements, IUnturnedUIDataSource src)
+    {
+        if (DebugLogging)
+            Logger.LogInformation("[{0}] Deregistering {1} elements.", Name, elements.Count);
+
+        src.RemoveOwner(this);
+        for (int i = 0; i < elements.Count; ++i)
+        {
+            UnturnedUIElement element = elements[i];
+            src.RemoveElement(element);
+            element.RegisterOwner(null);
+            if (element is IDisposable disp)
+                disp.Dispose();
+        }
+    }
+    ~UnturnedUI()
+    {
+        Dispose(false);
     }
 }

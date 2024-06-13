@@ -1,46 +1,115 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Publish Settings -->
   <PropertyGroup>
+
+    <VersionPrefix>4.0.0</VersionPrefix>
+    <VersionSuffix>prerelease1</VersionSuffix>
+
+    <PackageReleaseNotes>Cleaned up a lot of messy code and added more thread-safety.</PackageReleaseNotes>
+
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyTitle>Uncreated.UI</AssemblyTitle>
-    <Product>Uncreated.UI</Product>
-    <Copyright></Copyright>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
+
+  </PropertyGroup>
+
+  <!-- Package Configuration -->
+  <PropertyGroup>
+    <PackageId>Uncreated.UI</PackageId>
+    <Title>Uncreated UI</Title>
     <RootNamespace>Uncreated.Framework.UI</RootNamespace>
-    <Nullable>enable</Nullable>
-    <LangVersion>preview</LangVersion>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <Title>Uncreated.UI</Title>
-    <AssemblyName>Uncreated.UI</AssemblyName>
+
+    <Description>Object-oriented wrapper for Unturned's effect-based server-side UI system.</Description>
+
+    <Company>Uncreated</Company>
     <Authors>DanielWillett</Authors>
-    <Company>Uncreated Network</Company>
-    <Version>1.0.0</Version>
-    <Description>UI utilities for abstracting EffectManager UI methods.</Description>
-    <RepositoryUrl>https://github.com/UncreatedStaff/Uncreated.UI.git</RepositoryUrl>
-    <AssemblyVersion>$(Version).0</AssemblyVersion>
-    <FileVersion>$(Version).0</FileVersion>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <NeutralLanguage>en-US</NeutralLanguage>
+
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/UncreatedStaff/Uncreated.UI</PackageProjectUrl>
+    <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
+
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <PackageTags>UI;Unturned;EffectManager;Sleek;Glazier</PackageTags>
+
+    <FileVersion>$(VersionPrefix).0</FileVersion>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <NeutralLanguage>en-US</NeutralLanguage>
+    <NoWarn>CS1591</NoWarn>
+
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugType>full</DebugType>
-    <NoWarn>1701;1702;CS1591</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
-    <NoWarn>1701;1702;CS1591</NoWarn>
-  </PropertyGroup>
+
+  <!-- Package Embedded Files -->
   <ItemGroup>
-    <None Include="..\icon.png" Pack="true" PackagePath="\" />
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="$(SolutionDir)icon.png" Pack="true" PackagePath="\" />
+    <None Include="$(SolutionDir)README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <!-- Build Settings -->
+  <PropertyGroup>
+
+    <AssemblyTitle>$(Title)</AssemblyTitle>
+    <Product>$(PackageId)</Product>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+
+    <GenerateRuntimeConfigurationFiles>false</GenerateRuntimeConfigurationFiles>
+
+  </PropertyGroup>
+
+  <!-- Build Configurations -->
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugType>portable</DebugType>
+    <Optimize>true</Optimize>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <!-- Installation | CONFIGURE YOUR INSTALLATION PATH HERE -->
+  <PropertyGroup>
+    <U3DSPath>C:\SteamCMD\steamapps\common\U3DS</U3DSPath>
+  </PropertyGroup>
+
+  <!-- Packages -->
   <ItemGroup>
     <PackageReference Include="UniTask" Version="[2.5.0,)" />
-    <PackageReference Include="DanielWillett.ReflectionTools" Version="[2.0.2,)" />
-    <PackageReference Include="OpenMod.UnityEngine.Redist" Version="[2021.3.29.1,)" />
-    <PackageReference Include="OpenMod.Unturned.Redist" Version="[3.23.12.3,)" NoWarn="NU1701" />
+    <PackageReference Include="DanielWillett.ReflectionTools" Version="[2.0.0,)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[3.1.0,)" />
+  </ItemGroup>
+
+  <!-- Assemblies -->
+  <ItemGroup>
+    <!-- Unturned -->
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(U3DSPath)\Unturned_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="SDG.NetTransport">
+      <HintPath>$(U3DSPath)\Unturned_Data\Managed\SDG.NetTransport.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+
+    <!-- Third Party -->
+    <Reference Include="com.rlabrecque.steamworks.net">
+      <HintPath>$(U3DSPath)\Unturned_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+
+    <!-- Unity -->
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(U3DSPath)\Unturned_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 </Project>

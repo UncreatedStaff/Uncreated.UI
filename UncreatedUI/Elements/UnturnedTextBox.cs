@@ -6,13 +6,14 @@ using System;
 using System.Globalization;
 using System.Threading;
 using Uncreated.Framework.UI.Data;
+using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI;
 
 /// <summary>
 /// Represents an input component in a Unity UI.
 /// </summary>
-public class UnturnedTextBox : UnturnedLabel, IDisposable
+public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
 {
     private int _disposed;
 
@@ -291,6 +292,8 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable
 
         EffectManagerListener.DeregisterTextBox(Name);
     }
+
+    UnturnedTextBox ITextBox.TextBox => this;
 }
 
 /// <summary>

@@ -63,43 +63,7 @@ public static class ElementPatterns
         info.InitializeMany(logger, elems, start, format);
         return elems;
     }
-
-    /// <summary>
-    /// Add <paramref name="handler"/> to all <see cref="UnturnedButton.OnClicked"/> events in <paramref name="buttons"/>.
-    /// </summary>
-    public static void SubscribeAll(IEnumerable<UnturnedButton> buttons, ButtonClicked handler)
-    {
-        foreach (UnturnedButton button in buttons)
-            button.OnClicked += handler;
-    }
-
-    /// <summary>
-    /// Remove <paramref name="handler"/> from all <see cref="UnturnedButton.OnClicked"/> events in <paramref name="buttons"/>.
-    /// </summary>
-    public static void UnsubscribeAll(IEnumerable<UnturnedButton> buttons, ButtonClicked handler)
-    {
-        foreach (UnturnedButton button in buttons)
-            button.OnClicked -= handler;
-    }
-
-    /// <summary>
-    /// Add <paramref name="handler"/> to all <see cref="UnturnedTextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/>.
-    /// </summary>
-    public static void SubscribeAll(IEnumerable<UnturnedTextBox> textBoxes, TextUpdated handler)
-    {
-        foreach (UnturnedTextBox textBox in textBoxes)
-            textBox.OnTextUpdated += handler;
-    }
-
-    /// <summary>
-    /// Remove <paramref name="handler"/> from all <see cref="UnturnedTextBox.OnTextUpdated"/> events in <paramref name="textBoxes"/>.
-    /// </summary>
-    public static void UnsubscribeAll(IEnumerable<UnturnedTextBox> textBoxes, TextUpdated handler)
-    {
-        foreach (UnturnedTextBox textBox in textBoxes)
-            textBox.OnTextUpdated -= handler;
-    }
-
+    
     /// <summary>
     /// Add <paramref name="handler"/> to all <see cref="UnturnedButton.OnClicked"/> events in <paramref name="buttons"/> after being transformed by a <paramref name="selector"/>.
     /// </summary>
@@ -309,9 +273,7 @@ public static class ElementPatterns
         }
         public static PatternTypeInfo GetTypeInfo(Type type)
         {
-            return TypeInfo.TryGetValue(type, out PatternTypeInfo info)
-                ? info
-                : new PatternTypeInfo(type);
+            return TypeInfo.GetOrAdd(type, type => new PatternTypeInfo(type));
         }
         public void InitializeMany(ILogger logger, Array elements, int start, string baseName)
         {
@@ -405,22 +367,59 @@ public static class ElementPatterns
         return genEnumerable?.GenericTypeArguments[0] ?? typeof(object);
     }
 }
+
+/// <summary>
+/// Defines how a formatted name is treated.
+/// </summary>
 public enum FormatMode
 {
+    /// <summary>
+    /// Value is inserted after the parent's name.
+    /// </summary>
+    /// <remarks>This is the default value.</remarks>
     Suffix,
+
+    /// <summary>
+    /// Value is inserted before the parent's name.
+    /// </summary>
     Prefix,
+
+    /// <summary>
+    /// Value replaces the parent's name.
+    /// </summary>
     Replace,
+
+    /// <summary>
+    /// Value is formatted into the parent's name using <c>{n}</c> placeholders.
+    /// </summary>
     Format,
+
+    /// <summary>
+    /// No changes are made to the parent's name.
+    /// </summary>
     None
 }
 
+/// <summary>
+/// Defines the pattern the element name follows in a nested type.
+/// </summary>
 [MeansImplicitUse]
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class UIPatternAttribute : Attribute
 {
+    /// <summary>
+    /// The pattern the element name follows.
+    /// </summary>
     public string Pattern { get; }
-    public int Offset { get; set; }
+
+    /// <summary>
+    /// How pattern is formatted. Defaults to <see cref="FormatMode.Suffix"/>.
+    /// </summary>
     public FormatMode Mode { get; set; } = FormatMode.Suffix;
+
+    /// <summary>
+    /// Formatting index of the placeholder when <see cref="Mode"/> is <see cref="FormatMode.Format"/>.
+    /// </summary>
     public int FormatIndex { get; set; } = 1;
     public UIPatternAttribute(string pattern)
     {
@@ -428,12 +427,28 @@ public sealed class UIPatternAttribute : Attribute
     }
 }
 
+/// <summary>
+/// Defines how many times an array pattern is repeated in a nested type.
+/// </summary>
 [MeansImplicitUse]
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public sealed class UIPatternArrayAttribute : Attribute
 {
+    /// <summary>
+    /// First number.
+    /// </summary>
     public int Start { get; }
+
+    /// <summary>
+    /// Optional length of the array.
+    /// </summary>
+    /// <remarks>Must either supply this or <see cref="To"/>.</remarks>
     public int Length { get; set; }
+
+    /// <summary>
+    /// End number.
+    /// </summary>
+    /// <remarks>Must either supply this or <see cref="Length"/>.</remarks>
     public int To
     {
         get => Length + Start - 1;

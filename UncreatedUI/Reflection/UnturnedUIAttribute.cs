@@ -2,6 +2,9 @@
 
 namespace Uncreated.Framework.UI.Reflection;
 
+/// <summary>
+/// Add extra metadata to this UI.
+/// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property, Inherited = false)]
 public sealed class UnturnedUIAttribute : Attribute
 {

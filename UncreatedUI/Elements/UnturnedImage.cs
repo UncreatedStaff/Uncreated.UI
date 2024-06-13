@@ -4,13 +4,14 @@ using SDG.NetTransport;
 using SDG.Unturned;
 using System;
 using System.Threading;
+using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI;
 
 /// <summary>
 /// Represents a web image in a Unity UI.
 /// </summary>
-public class UnturnedImage : UnturnedUIElement
+public class UnturnedImage : UnturnedUIElement, IImage
 {
     /// <summary>
     /// If the image should be cached on the client in the first place.
@@ -77,7 +78,7 @@ public class UnturnedImage : UnturnedUIElement
 
         if (Thread.CurrentThread.IsGameThread())
         {
-            EffectManager.sendUIEffectImageURL(_owner!.Key, connection, _owner.IsReliable, Name, url, ShouldCache, forceRefresh);
+            EffectManager.sendUIEffectImageURL(Owner!.Key, connection, Owner.IsReliable, Name, url, ShouldCache, forceRefresh);
         }
         else
         {
@@ -87,7 +88,7 @@ public class UnturnedImage : UnturnedUIElement
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffectImageURL(_owner!.Key, c2, _owner.IsReliable, Name, url2, ShouldCache, fr2);
+                EffectManager.sendUIEffectImageURL(Owner!.Key, c2, Owner.IsReliable, Name, url2, ShouldCache, fr2);
             });
         }
 
@@ -96,4 +97,6 @@ public class UnturnedImage : UnturnedUIElement
             Logger.LogInformation("[{0}] [{1}] {{{2}}} Set image URL, link: {3}, force refresh: {4}.", Owner.Name, Name, Owner.Key, url, forceRefresh);
         }
     }
+
+    UnturnedImage IImage.Image => this;
 }
