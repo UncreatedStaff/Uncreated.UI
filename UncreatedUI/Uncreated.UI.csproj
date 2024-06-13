@@ -41,8 +41,6 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <NoWarn>CS1591</NoWarn>
 
-    <IsInGitHubActions>True</IsInGitHubActions>
-
   </PropertyGroup>
 
   <!-- Package Embedded Files -->
@@ -86,7 +84,6 @@
 
   <!-- Packages -->
   <ItemGroup>
-    <PackageReference Include="UniTask" Version="[2.5.0,)" />
     <PackageReference Include="DanielWillett.ReflectionTools" Version="[2.0.0,)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[3.1.0,)" />
   </ItemGroup>
@@ -121,6 +118,10 @@
       <HintPath>$(SharedManagedPath)/com.rlabrecque.steamworks.net.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Reference Include="UniTask">
+      <HintPath>../Libraries/UniTask.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
 
     <!-- Unity -->
     <Reference Include="UnityEngine.CoreModule">
@@ -128,7 +129,7 @@
       <Private>true</Private>
     </Reference>
   </ItemGroup>
-  <Target Name="PostBuild2" AfterTargets="PostBuildEvent">
+  <Target Name="PostBuild2" AfterTargets="PreBuildEvent">
     <Message Importance="High" Text="Assembly-CSharp: $(SharedManagedPath)/Assembly-CSharp.dll"/>
     <Message Importance="High" Text="SDG.NetTransport: $(SharedManagedPath)/SDG.NetTransport.dll"/>
     <Message Importance="High" Text="Steamworks.NET: $(SharedManagedPath)/com.rlabrecque.steamworks.net.dll"/>
