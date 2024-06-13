@@ -48,7 +48,7 @@ public class UnturnedUI : IDisposable
     /// <summary>
     /// Is the initial sending of the UI reliable?
     /// </summary>
-    public bool IsSendReliable { get; }
+    public bool IsSendReliable { get; set; }
 
     /// <summary>
     /// Does this UI support elements defined in fields and properties?
@@ -113,10 +113,10 @@ public class UnturnedUI : IDisposable
         {
             if (!string.IsNullOrEmpty(attr.DisplayName))
                 Name = attr.DisplayName;
-            if (attr.Reliable.HasValue)
-                IsReliable = attr.Reliable.Value;
-            if (attr.HasElements.HasValue)
-                HasElements = attr.HasElements.Value;
+            if (attr.HasReliable)
+                IsReliable = attr.Reliable;
+            if (attr.HasHasElements)
+                HasElements = attr.HasElements;
         }
 
         if (!hasElements)

@@ -4,7 +4,7 @@
   <PropertyGroup>
 
     <VersionPrefix>4.0.0</VersionPrefix>
-    <VersionSuffix>prerelease1</VersionSuffix>
+    <VersionSuffix>prerelease2</VersionSuffix>
 
     <PackageReleaseNotes>Cleaned up a lot of messy code and added more thread-safety.</PackageReleaseNotes>
 

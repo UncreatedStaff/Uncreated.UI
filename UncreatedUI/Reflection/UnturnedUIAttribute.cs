@@ -8,6 +8,11 @@ namespace Uncreated.Framework.UI.Reflection;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property, Inherited = false)]
 public sealed class UnturnedUIAttribute : Attribute
 {
+    private bool _reliable = true;
+    private bool _hasElements = true;
+    internal bool HasReliable;
+    internal bool HasHasElements;
+
     /// <summary>
     /// Name displayed in warning messages, etc.
     /// </summary>
@@ -17,13 +22,30 @@ public sealed class UnturnedUIAttribute : Attribute
     /// Should scan the UI for elements.
     /// </summary>
     /// <remarks>Default: <see langword="true"/></remarks>
-    public bool? HasElements { get; set; } = true;
+    public bool HasElements
+    {
+        get => _hasElements;
+        set
+        {
+            _hasElements = value;
+            HasHasElements = true;
+        }
+    }
 
     /// <summary>
     /// Should send the UI reliably.
     /// </summary>
     /// <remarks>Default: <see langword="true"/></remarks>
-    public bool? Reliable { get; set; } = true;
+    public bool Reliable
+    {
+        get => _reliable;
+        set
+        {
+            _reliable = value;
+            HasReliable = true;
+        }
+    }
+
     public UnturnedUIAttribute(string displayName)
     {
         DisplayName = displayName;
