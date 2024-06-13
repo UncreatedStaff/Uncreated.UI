@@ -41,12 +41,14 @@
     <NeutralLanguage>en-US</NeutralLanguage>
     <NoWarn>CS1591</NoWarn>
 
+    <IsInGitHubActions>True</IsInGitHubActions>
+
   </PropertyGroup>
 
   <!-- Package Embedded Files -->
   <ItemGroup>
-    <None Include="$(SolutionDir)icon.png" Pack="true" PackagePath="/" />
-    <None Include="$(SolutionDir)README.md" Pack="true" PackagePath="/" />
+    <None Include="../icon.png" Pack="true" PackagePath="/" />
+    <None Include="../README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <!-- Build Settings -->
@@ -79,7 +81,7 @@
   <PropertyGroup>
     <U3DSPath>C:/SteamCMD/steamapps/common/U3DS</U3DSPath>
 
-    <OutputLibrariesPath>$(SolutionDir)Libraries</OutputLibrariesPath>
+    <OutputLibrariesPath>../Libraries</OutputLibrariesPath>
   </PropertyGroup>
 
   <!-- Packages -->
@@ -97,7 +99,7 @@
     </When>
     <Otherwise>
       <PropertyGroup>
-        <SharedManagedPath>$(SolutionDir)Libraries</SharedManagedPath>
+        <SharedManagedPath>../Libraries</SharedManagedPath>
       </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -126,7 +128,13 @@
       <Private>true</Private>
     </Reference>
   </ItemGroup>
+  <Target Name="PostBuild2" AfterTargets="PostBuildEvent">
+    <Message Importance="High" Text="Assembly-CSharp: $(SharedManagedPath)/Assembly-CSharp.dll"/>
+    <Message Importance="High" Text="SDG.NetTransport: $(SharedManagedPath)/SDG.NetTransport.dll"/>
+    <Message Importance="High" Text="Steamworks.NET: $(SharedManagedPath)/com.rlabrecque.steamworks.net.dll"/>
+    <Message Importance="High" Text="UnityEngine.CoreModule: $(SharedManagedPath)/UnityEngine.CoreModule.dll"/>
+  </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(IsInGitHubActions)' == '' ">
-    <Exec Command="XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),Assembly-CSharp.dll))*&quot; &quot;$([System.IO.Path]::Combine($(SolutionDir)Libraries,Assembly-CSharp.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),SDG.NetTransport.dll))*&quot; &quot;$([System.IO.Path]::Combine($(SolutionDir)Libraries,SDG.NetTransport.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),com.rlabrecque.steamworks.net.dll))*&quot; &quot;$([System.IO.Path]::Combine($(SolutionDir)Libraries,com.rlabrecque.steamworks.net.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnityEngine.CoreModule.dll))*&quot; &quot;$([System.IO.Path]::Combine($(SolutionDir)Libraries,UnityEngine.CoreModule.dll))*&quot;" />
+    <Exec Command="XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),Assembly-CSharp.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,Assembly-CSharp.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),SDG.NetTransport.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,SDG.NetTransport.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),com.rlabrecque.steamworks.net.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,com.rlabrecque.steamworks.net.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnityEngine.CoreModule.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,UnityEngine.CoreModule.dll))*&quot;" />
   </Target>
 </Project>
