@@ -18,6 +18,9 @@ public class UnturnedImage : UnturnedUIElement, IImage
     /// </summary>
     public bool ShouldCache { get; set; } = true;
 
+    /// <inheritdoc />
+    protected override string ElementTypeDisplayName => "Image";
+
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public UnturnedImage(string path) : this(GlobalLogger.Instance, path) { }
     public UnturnedImage(ILogger logger, string path) : base(logger, path) { }

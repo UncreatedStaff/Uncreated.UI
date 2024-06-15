@@ -1,0 +1,85 @@
+﻿using SDG.Unturned;
+using Uncreated.Framework.UI;
+using Uncreated.Framework.UI.Patterns;
+
+namespace Uncreated.UI.Tests;
+
+public class TestUI : UnturnedUI
+{
+    public readonly UnturnedLabel Label = new UnturnedLabel("test/with/path");
+    public readonly TestGroup SingleGroup = ElementPatterns.Create<TestGroup>("single/group/name");
+    public readonly TestGroup[] MultipleGroups = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}_group_{0}", 1, to: 3);
+    public readonly NestedArray[] NestedArrayGroup = ElementPatterns.CreateArray<NestedArray>("no_path_{0}", 1, to: 8);
+#nullable disable
+    public class TestGroup
+    {
+        [Pattern("", Mode = FormatMode.Format, CleanJoin = '_')]
+        public UnturnedButton Root { get; set; }
+
+        [Pattern("Type", Mode = FormatMode.Format)]
+        public UnturnedLabel Type { get; set; }
+
+        [Pattern("Reputation", Mode = FormatMode.Format)]
+        public UnturnedLabel Reputation { get; set; }
+
+        [Pattern("Duration", Mode = FormatMode.Format)]
+        public UnturnedLabel Duration { get; set; }
+
+        [Pattern("Icon", Mode = FormatMode.Format)]
+        public UnturnedLabel Icon { get; set; }
+
+        [Pattern("Message", Mode = FormatMode.Format)]
+        public UnturnedLabel Message { get; set; }
+
+        [Pattern("AdminPfp", Mode = FormatMode.Format)]
+        public UnturnedImage AdminProfilePicture { get; set; }
+
+        [Pattern("Admin", Mode = FormatMode.Format)]
+        public UnturnedLabel Admin { get; set; }
+
+        [Pattern("Timestamp", Mode = FormatMode.Format)]
+        public UnturnedLabel Timestamp { get; set; }
+
+        [Pattern("Group", Mode = FormatMode.Format)]
+        public NestedGroup Group2 { get; set; }
+
+        [Pattern("Group", AdditionalPath = "Empty", Mode = FormatMode.Format)]
+        public NestedGroup GroupUnder { get; set; }
+
+        [ArrayPattern(1, To = 4)]
+        [Pattern("Item_{1}_{0}", AdditionalPath = "NestGroup", Mode = FormatMode.Replace)]
+        public NestedArray[] NestedArrayGroup { get; set; }
+    }
+    public class NestedGroup
+    {
+        [Pattern("", Mode = FormatMode.Format, CleanJoin = '_')]
+        public UnturnedButton Root { get; set; }
+
+        [Pattern("Label", Mode = FormatMode.Format)]
+        public UnturnedLabel Label { get; set; }
+    }
+    public class NestedArray
+    {
+        [Pattern("", Mode = FormatMode.Format, CleanJoin = '_')]
+        public UnturnedButton Root { get; set; }
+
+        [Pattern("Label", Mode = FormatMode.Format)]
+        public UnturnedLabel Label { get; set; }
+
+        [Pattern("_ThisGoesAfter", Mode = FormatMode.Suffix)]
+        public UnturnedLabel LabelAfter { get; set; }
+
+        [Pattern("ThisGoesBefore_", Mode = FormatMode.Prefix)]
+        public UnturnedLabel LabelPrefix { get; set; }
+    }
+#nullable restore
+
+    public TestUI() : base(0, debugLogging: true)
+    {
+        ElementPatterns.SubscribeAll(MultipleGroups, group => group.Root, OnRootPressed);
+    }
+    private void OnRootPressed(UnturnedButton button, Player player)
+    {
+        
+    }
+}

@@ -22,6 +22,9 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
     /// </summary>
     public event TextUpdated? OnTextUpdated;
 
+    /// <inheritdoc />
+    protected override string ElementTypeDisplayName => "Text Box";
+
     /// <summary>
     /// Whether or not to save input to <see cref="UnturnedTextBoxData"/>.
     /// </summary>

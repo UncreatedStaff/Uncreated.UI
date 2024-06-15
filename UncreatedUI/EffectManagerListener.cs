@@ -112,7 +112,7 @@ internal static class EffectManagerListener
 
         if (Buttons.TryGetValue(name, out UnturnedButton? oldButton))
         {
-            button.Logger.LogWarning("There is already a button with name \"{0}\": {1} of {2}.", name, oldButton.Path, oldButton.Owner.Name);
+            button.Logger.LogWarning("There is already a button with name \"{0}\": {1}.", name, oldButton.Path);
             Buttons[name] = button;
         }
         else
@@ -130,7 +130,7 @@ internal static class EffectManagerListener
 
         if (TextBoxes.TryGetValue(name, out UnturnedTextBox? oldTextBox))
         {
-            textBox.Logger.LogWarning("There is already a text box with name \"{0}\": {1} of {2}.", name, oldTextBox.Path, oldTextBox.Owner.Name);
+            textBox.Logger.LogWarning("There is already a text box with name \"{0}\": {1}.", name, oldTextBox.Path);
             TextBoxes[name] = textBox;
         }
         else

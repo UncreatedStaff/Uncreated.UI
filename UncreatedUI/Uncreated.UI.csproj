@@ -84,7 +84,7 @@
 
   <!-- Packages -->
   <ItemGroup>
-    <PackageReference Include="DanielWillett.ReflectionTools" Version="[2.0.0,)" />
+    <PackageReference Include="DanielWillett.ReflectionTools" Version="[3.0.0,)" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="[3.1.0,)" />
   </ItemGroup>
 
@@ -130,10 +130,10 @@
     </Reference>
   </ItemGroup>
   <Target Name="PostBuild2" AfterTargets="PreBuildEvent">
-    <Message Importance="High" Text="Assembly-CSharp: $(SharedManagedPath)/Assembly-CSharp.dll"/>
-    <Message Importance="High" Text="SDG.NetTransport: $(SharedManagedPath)/SDG.NetTransport.dll"/>
-    <Message Importance="High" Text="Steamworks.NET: $(SharedManagedPath)/com.rlabrecque.steamworks.net.dll"/>
-    <Message Importance="High" Text="UnityEngine.CoreModule: $(SharedManagedPath)/UnityEngine.CoreModule.dll"/>
+    <Message Importance="High" Text="Assembly-CSharp: $(SharedManagedPath)/Assembly-CSharp.dll" />
+    <Message Importance="High" Text="SDG.NetTransport: $(SharedManagedPath)/SDG.NetTransport.dll" />
+    <Message Importance="High" Text="Steamworks.NET: $(SharedManagedPath)/com.rlabrecque.steamworks.net.dll" />
+    <Message Importance="High" Text="UnityEngine.CoreModule: $(SharedManagedPath)/UnityEngine.CoreModule.dll" />
   </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(IsInGitHubActions)' == '' ">
     <Exec Command="XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),Assembly-CSharp.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,Assembly-CSharp.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),SDG.NetTransport.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,SDG.NetTransport.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),com.rlabrecque.steamworks.net.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,com.rlabrecque.steamworks.net.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnityEngine.CoreModule.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,UnityEngine.CoreModule.dll))*&quot;" />

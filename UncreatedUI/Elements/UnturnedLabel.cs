@@ -12,6 +12,9 @@ namespace Uncreated.Framework.UI;
 /// </summary>
 public class UnturnedLabel : UnturnedUIElement, ILabel
 {
+    /// <inheritdoc />
+    protected override string ElementTypeDisplayName => "Label";
+
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public UnturnedLabel(string path) : this(GlobalLogger.Instance, path) { }
     public UnturnedLabel(ILogger logger, string path) : base(logger, path) { }

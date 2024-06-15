@@ -23,6 +23,11 @@ public class UnturnedUIElement : IElement
     protected internal ILogger Logger;
 
     /// <summary>
+    /// Display name of this element type for <see cref="ToString"/>.
+    /// </summary>
+    protected virtual string ElementTypeDisplayName => "UI Element";
+
+    /// <summary>
     /// Name in Unity of this UI element.
     /// </summary>
     public ReadOnlyMemory<char> Name { get; }
@@ -156,6 +161,14 @@ public class UnturnedUIElement : IElement
         {
             Logger.LogInformation("[{0}] [{1}] {{{2}}} Set visibility for {3}, visibility: {4}.", Owner.Name, Name, Owner.Key, connection.GetAddressString(true), isEnabled);
         }
+    }
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return _owner == null
+            ? ElementTypeDisplayName + " [" + Path + "]"
+            : ElementTypeDisplayName + " [" + Path + "] (" + _owner.Name + ")";
     }
 
     UnturnedUIElement IElement.Element => this;

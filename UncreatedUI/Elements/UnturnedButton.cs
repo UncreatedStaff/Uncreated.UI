@@ -19,6 +19,9 @@ public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
     /// </summary>
     public event ButtonClicked? OnClicked;
 
+    /// <inheritdoc />
+    protected override string ElementTypeDisplayName => "Button";
+
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public UnturnedButton(string path) : this(GlobalLogger.Instance, path) { }
     public UnturnedButton(ILogger logger, string path) : base(logger, path)

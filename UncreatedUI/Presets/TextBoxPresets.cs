@@ -1,6 +1,7 @@
 ﻿using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using System;
+using Uncreated.Framework.UI.Patterns;
 
 namespace Uncreated.Framework.UI.Presets;
 
@@ -10,11 +11,11 @@ namespace Uncreated.Framework.UI.Presets;
 public class PlaceholderTextBox : IPlaceholderTextBox
 {
     /// <inheritdoc />
-    [UIPattern("", Mode = FormatMode.Format)]
+    [Pattern("", Mode = FormatMode.Format)]
     public UnturnedTextBox TextBox { get; }
 
     /// <inheritdoc />
-    [UIPattern("Placeholder", Mode = FormatMode.Format)]
+    [Pattern("Placeholder", Mode = FormatMode.Format)]
     public UnturnedLabel Placeholder { get; }
 
     /// <inheritdoc />
@@ -62,11 +63,11 @@ public class PlaceholderTextBox : IPlaceholderTextBox
 public class StateTextBox : IStateElement, ITextBox
 {
     /// <inheritdoc />
-    [UIPattern("", Mode = FormatMode.Format)]
+    [Pattern("", Mode = FormatMode.Format)]
     public UnturnedTextBox TextBox { get; }
 
     /// <inheritdoc />
-    [UIPattern("State", Mode = FormatMode.Format)]
+    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
     /// <inheritdoc />
@@ -114,7 +115,7 @@ public class StateTextBox : IStateElement, ITextBox
 public class StatePlaceholderTextBox : PlaceholderTextBox, IStateElement
 {
     /// <inheritdoc />
-    [UIPattern("State", Mode = FormatMode.Format)]
+    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
