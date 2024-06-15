@@ -11,6 +11,18 @@ public class TestUI : UnturnedUI
     public readonly TestGroup[] MultipleGroups = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}_group_{0}", 1, to: 3);
     public readonly NestedArray[] NestedArrayGroup = ElementPatterns.CreateArray<NestedArray>("no_path_{0}", 1, to: 8);
 #nullable disable
+    public readonly FOBListElement[] FOBs = ElementPatterns.CreateArray<FOBListElement>("Canvas/{0}", 0, to: 9);
+    public struct FOBListElement
+    {
+        [Pattern("", Mode = FormatMode.Prefix)]
+        public UnturnedUIElement Root { get; set; }
+
+        [Pattern("N{0}", AdditionalPath = "{0}", Mode = FormatMode.Replace)]
+        public UnturnedLabel Name { get; set; }
+
+        [Pattern("R{0}", AdditionalPath = "{0}", Mode = FormatMode.Replace)]
+        public UnturnedLabel Resources { get; set; }
+    }
     public class TestGroup
     {
         [Pattern("", Mode = FormatMode.Format, CleanJoin = '_')]
@@ -40,10 +52,10 @@ public class TestUI : UnturnedUI
         [Pattern("Timestamp", Mode = FormatMode.Format)]
         public UnturnedLabel Timestamp { get; set; }
 
-        [Pattern("Group", Mode = FormatMode.Format)]
+        [Pattern("Group({1})", Mode = FormatMode.Format)]
         public NestedGroup Group2 { get; set; }
 
-        [Pattern("Group", AdditionalPath = "Empty", Mode = FormatMode.Format)]
+        [Pattern("Group({1})", AdditionalPath = "Empty", Mode = FormatMode.Format)]
         public NestedGroup GroupUnder { get; set; }
 
         [ArrayPattern(1, To = 4)]
@@ -76,7 +88,7 @@ public class TestUI : UnturnedUI
 
     public TestUI() : base(0, debugLogging: true)
     {
-        ElementPatterns.SubscribeAll(MultipleGroups, group => group.Root, OnRootPressed);
+        //ElementPatterns.SubscribeAll(MultipleGroups, group => group.Root, OnRootPressed);
     }
     private void OnRootPressed(UnturnedButton button, Player player)
     {

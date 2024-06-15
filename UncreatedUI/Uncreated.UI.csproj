@@ -4,7 +4,7 @@
   <PropertyGroup>
 
     <VersionPrefix>4.0.0</VersionPrefix>
-    <VersionSuffix>prerelease4</VersionSuffix>
+    <VersionSuffix>prerelease5</VersionSuffix>
 
     <PackageReleaseNotes></PackageReleaseNotes>
 

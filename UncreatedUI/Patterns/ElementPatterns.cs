@@ -175,7 +175,7 @@ public static class ElementPatterns
 
         for (int i = 0; i < length; ++i)
         {
-            rtnArray[i] = (T)InitializeTypeInfo(logger, typeof(T), typeInfo, UnturnedUIUtility.QuickFormat(basePath, i + start, 0), UnturnedUIUtility.QuickFormat(baseName, i + start, 0));
+            rtnArray[i] = (T)InitializeTypeInfo(logger, typeof(T), typeInfo, UnturnedUIUtility.QuickFormat(basePath, i + start, 0), UnturnedUIUtility.QuickFormat(baseName, i + start, 0), i + start);
         }
 
         return rtnArray;
@@ -239,22 +239,38 @@ public static class ElementPatterns
             ? null
             : Activator.CreateInstance(type, logger, path);
     }
-    private static unsafe void ResolveVariablePath(PatternVariableInfo variable, ref ReadOnlySpan<char> basePath, ref ReadOnlySpan<char> baseName)
+    private static unsafe void ResolveVariablePath(PatternVariableInfo variable, ref ReadOnlySpan<char> basePath, ref ReadOnlySpan<char> baseName, int index = -1)
     {
         if (!string.IsNullOrEmpty(variable.AdditionalPath))
         {
-            basePath = CombinePath(basePath, variable.AdditionalPath);
+            basePath = CombinePath(basePath, index == -1 ? variable.AdditionalPath : UnturnedUIUtility.QuickFormat(variable.AdditionalPath, index, 0));
         }
+
+        string pattern = variable.Pattern;
+        if (index != -1)
+        {
+            pattern = UnturnedUIUtility.QuickFormat(variable.Pattern, index, 0);
+        }
+
+        if (variable.PatternFormatMode is FormatMode.Suffix or FormatMode.Prefix)
+        {
+            if (pattern.Length == 0)
+                return;
+
+            if (baseName.Length == 0)
+                baseName = pattern;
+        }
+
         switch (variable.PatternFormatMode)
         {
             case FormatMode.Suffix:
                 CreateBaseNameState state = default;
                 state.BaseNameLen = baseName.Length;
-                state.Pattern = variable.Pattern;
+                state.Pattern = pattern;
                 fixed (char* namePtr = baseName)
                 {
                     state.BaseNamePtr = namePtr;
-                    baseName = string.Create(baseName.Length + variable.Pattern.Length, state, (span, state) =>
+                    baseName = string.Create(baseName.Length + pattern.Length, state, (span, state) =>
                     {
                         ReadOnlySpan<char> baseName = new ReadOnlySpan<char>(state.BaseNamePtr, state.BaseNameLen);
                         baseName.CopyTo(span);
@@ -266,11 +282,11 @@ public static class ElementPatterns
 
             case FormatMode.Prefix:
                 state.BaseNameLen = baseName.Length;
-                state.Pattern = variable.Pattern;
+                state.Pattern = pattern;
                 fixed (char* namePtr = baseName)
                 {
                     state.BaseNamePtr = namePtr;
-                    baseName = string.Create(baseName.Length + variable.Pattern.Length, state, (span, state) =>
+                    baseName = string.Create(baseName.Length + pattern.Length, state, (span, state) =>
                     {
                         ReadOnlySpan<char> baseName = new ReadOnlySpan<char>(state.BaseNamePtr, state.BaseNameLen);
                         state.Pattern.AsSpan().CopyTo(span);
@@ -281,12 +297,12 @@ public static class ElementPatterns
                 break;
 
             case FormatMode.Replace:
-                baseName = variable.Pattern.AsSpan();
+                baseName = pattern.Length == 0 ? string.Empty : pattern.AsSpan();
                 break;
 
             case FormatMode.Format:
-                basePath = UnturnedUIUtility.QuickFormat(basePath, variable.Pattern, variable.PatternFormatIndex, variable.PatternCleanJoin);
-                baseName = UnturnedUIUtility.QuickFormat(baseName, variable.Pattern, variable.PatternFormatIndex, variable.PatternCleanJoin);
+                basePath = UnturnedUIUtility.QuickFormat(basePath, pattern, variable.PatternFormatIndex, variable.PatternCleanJoin);
+                baseName = UnturnedUIUtility.QuickFormat(baseName, pattern, variable.PatternFormatIndex, variable.PatternCleanJoin);
                 break;
         }
     }
@@ -297,16 +313,16 @@ public static class ElementPatterns
         public string Pattern;
     }
 
-    private static object InitializeTypeInfo(ILogger logger, Type rootType, PatternTypeInfo typeInfo, ReadOnlySpan<char> basePath, ReadOnlySpan<char> baseName)
+    private static object InitializeTypeInfo(ILogger logger, Type rootType, PatternTypeInfo typeInfo, ReadOnlySpan<char> basePath, ReadOnlySpan<char> baseName, int index = -1)
     {
         object obj = Activator.CreateInstance(typeInfo.Type);
         foreach (PatternVariableInfo variable in typeInfo.Variables)
         {
             ReadOnlySpan<char> baseVarPath = basePath, baseVarName = baseName;
-            ResolveVariablePath(variable, ref baseVarPath, ref baseVarName);
-
             if (variable is { IsArray: true, ElementType: not null })
             {
+                ResolveVariablePath(variable, ref baseVarPath, ref baseVarName);
+
                 Array array = Array.CreateInstance(variable.ElementType, variable.ArrayLength);
                 if (IsPrimitive(variable.ElementType))
                 {
@@ -317,12 +333,14 @@ public static class ElementPatterns
                 {
                     for (int i = 0; i < array.Length; ++i)
                     {
-                        array.SetValue(InitializeTypeInfo(logger, rootType, variable.NestedType!, UnturnedUIUtility.QuickFormat(baseVarPath, i + variable.ArrayStart, 0), UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0)), i);
+                        array.SetValue(InitializeTypeInfo(logger, rootType, variable.NestedType!, UnturnedUIUtility.QuickFormat(baseVarPath, i + variable.ArrayStart, 0), UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0), i + variable.ArrayStart), i);
                     }
                 }
                 variable.Variable.SetValue(obj, array);
                 continue;
             }
+
+            ResolveVariablePath(variable, ref baseVarPath, ref baseVarName, index);
 
             if (variable.NestedType != null)
             {
