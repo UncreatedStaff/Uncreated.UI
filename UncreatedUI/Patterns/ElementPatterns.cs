@@ -241,15 +241,35 @@ public static class ElementPatterns
     }
     private static unsafe void ResolveVariablePath(PatternVariableInfo variable, ref ReadOnlySpan<char> basePath, ref ReadOnlySpan<char> baseName, int index = -1)
     {
+        if (variable.RootInfo != null)
+        {
+            ReadOnlySpan<char> newBasePath = basePath, newBaseName = baseName;
+            ResolveVariablePath(variable.RootInfo, ref newBasePath, ref newBaseName);
+
+            basePath = UnturnedUIUtility.CombinePath(newBasePath, newBaseName);
+        }
+
         if (!string.IsNullOrEmpty(variable.AdditionalPath))
         {
-            basePath = CombinePath(basePath, index == -1 ? variable.AdditionalPath : UnturnedUIUtility.QuickFormat(variable.AdditionalPath, index, 0));
-        }
+            string additionalPath = index == -1
+                ? variable.AdditionalPath
+                : UnturnedUIUtility.QuickFormat(variable.AdditionalPath, index, 0);
+
+            ReadOnlySpan<char> pathSpan = additionalPath.AsSpan();
+            if (pathSpan.Length > 0 && pathSpan[0] is '.' or '~')
+            {
+                basePath = UnturnedUIUtility.ResolveRelativePath(basePath, pathSpan);
+            }
+            else
+            {
+                basePath = UnturnedUIUtility.CombinePath(basePath, pathSpan);
+            }
+        } 
 
         string pattern = variable.Pattern;
         if (index != -1)
         {
-            pattern = UnturnedUIUtility.QuickFormat(variable.Pattern, index, 0);
+            pattern = UnturnedUIUtility.QuickFormat(pattern, index, 0);
         }
 
         if (variable.PatternFormatMode is FormatMode.Suffix or FormatMode.Prefix)
@@ -326,7 +346,7 @@ public static class ElementPatterns
                 Array array = Array.CreateInstance(variable.ElementType, variable.ArrayLength);
                 if (IsPrimitive(variable.ElementType))
                 {
-                    string format = CombinePath(baseVarPath, baseVarName);
+                    string format = UnturnedUIUtility.CombinePath(baseVarPath, baseVarName);
                     TryInitializePrimitives(logger, variable.ElementType, array, format, variable.ArrayStart);
                 }
                 else
@@ -348,7 +368,7 @@ public static class ElementPatterns
             }
             else
             {
-                object? prim = TryInitializePrimitive(logger, variable.MemberType, CombinePath(baseVarPath, baseVarName));
+                object? prim = TryInitializePrimitive(logger, variable.MemberType, UnturnedUIUtility.CombinePath(baseVarPath, baseVarName));
                 if (prim == null)
                     throw new InvalidOperationException($"Failed to initialize type {Accessor.ExceptionFormatter.Format(typeInfo.Type)} when creating {Accessor.ExceptionFormatter.Format(rootType)}.");
 
@@ -357,72 +377,6 @@ public static class ElementPatterns
         }
 
         return obj;
-    }
-    private static unsafe string CombinePath(ReadOnlySpan<char> path, ReadOnlySpan<char> name)
-    {
-        path = TrimSlashes(path, true, true);
-        name = TrimSlashes(name, true, true);
-
-        if (path.Length == 0)
-            return name.Length == 0 ? string.Empty : new string(name);
-
-        int len = path.Length + name.Length + 1;
-        CombinePathState state = default;
-        fixed (char* pathPtr = path)
-        fixed (char* namePtr = name)
-        {
-            state.PathPtr = pathPtr;
-            state.PathLen = path.Length;
-            state.NamePtr = namePtr;
-            state.NameLen = name.Length;
-            return string.Create(len, state, (span, state) =>
-            {
-                ReadOnlySpan<char> path = new ReadOnlySpan<char>(state.PathPtr, state.PathLen);
-                ReadOnlySpan<char> name = new ReadOnlySpan<char>(state.NamePtr, state.NameLen);
-                path.CopyTo(span);
-                span[state.PathLen] = '/';
-                name.CopyTo(span.Slice(state.PathLen + 1));
-            });
-        }
-    }
-    private unsafe struct CombinePathState
-    {
-        public char* PathPtr;
-        public char* NamePtr;
-        public int PathLen;
-        public int NameLen;
-    }
-
-    private static ReadOnlySpan<char> TrimSlashes(ReadOnlySpan<char> span, bool front, bool end)
-    {
-        if (!front && !end)
-            return span;
-
-        int startInd = 0;
-        int endInd = span.Length - 1;
-        if (endInd == -1)
-            return span;
-
-        if (startInd == endInd)
-        {
-            return span[0] == '/' ? default : span;
-        }
-
-        if (front)
-        {
-            while (startInd < span.Length && span[startInd] == '/')
-                ++startInd;
-        }
-        if (end)
-        {
-            while (endInd >= 0 && span[endInd] == '/')
-                --endInd;
-        }
-
-        if (endInd < 0 || startInd >= span.Length)
-            return default;
-
-        return span.Slice(startInd, endInd - startInd + 1);
     }
 }
 

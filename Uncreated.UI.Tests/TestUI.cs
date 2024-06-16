@@ -1,6 +1,7 @@
 ﻿using SDG.Unturned;
 using Uncreated.Framework.UI;
 using Uncreated.Framework.UI.Patterns;
+using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.UI.Tests;
 
@@ -10,17 +11,18 @@ public class TestUI : UnturnedUI
     public readonly TestGroup SingleGroup = ElementPatterns.Create<TestGroup>("single/group/name");
     public readonly TestGroup[] MultipleGroups = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}_group_{0}", 1, to: 3);
     public readonly NestedArray[] NestedArrayGroup = ElementPatterns.CreateArray<NestedArray>("no_path_{0}", 1, to: 8);
+    public readonly LabeledButton LabeledButton = new LabeledButton("test/path/1/btn", "../btn_label");
 #nullable disable
     public readonly FOBListElement[] FOBs = ElementPatterns.CreateArray<FOBListElement>("Canvas/{0}", 0, to: 9);
     public struct FOBListElement
     {
-        [Pattern("", Mode = FormatMode.Prefix)]
+        [Pattern("", AdditionalPath = "../Canvas2/c2/", Mode = FormatMode.Prefix, Root = true)]
         public UnturnedUIElement Root { get; set; }
 
-        [Pattern("N{0}", AdditionalPath = "{0}", Mode = FormatMode.Replace)]
+        [Pattern("N{0}", Mode = FormatMode.Replace)]
         public UnturnedLabel Name { get; set; }
 
-        [Pattern("R{0}", AdditionalPath = "{0}", Mode = FormatMode.Replace)]
+        [Pattern("R{0}", Mode = FormatMode.Replace)]
         public UnturnedLabel Resources { get; set; }
     }
     public class TestGroup

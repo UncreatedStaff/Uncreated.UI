@@ -12,6 +12,8 @@ internal sealed class PatternVariableInfo
     public readonly IVariable Variable;
     public readonly FormatMode PatternFormatMode;
     public readonly string Pattern;
+    public readonly bool IsRoot;
+    public readonly bool UnderRoot;
     public readonly char? PatternCleanJoin;
     public readonly string? AdditionalPath;
     public readonly int PatternFormatIndex;
@@ -19,6 +21,7 @@ internal sealed class PatternVariableInfo
     public readonly int ArrayLength;
     public readonly bool IsArray;
     public readonly PatternTypeInfo? NestedType;
+    public PatternVariableInfo? RootInfo;
     public PatternVariableInfo(IVariable variable, PatternTypeInfo? rootType, PatternTypeInfo ownerType)
     {
         Variable = variable;
@@ -29,6 +32,8 @@ internal sealed class PatternVariableInfo
             AdditionalPath = pattern.AdditionalPath;
             PatternFormatMode = pattern.Mode;
             PatternFormatIndex = pattern.FormatIndex;
+            IsRoot = pattern.Root;
+            UnderRoot = !IsRoot && pattern.UnderRoot;
         }
         else
         {
@@ -39,6 +44,9 @@ internal sealed class PatternVariableInfo
 
         if (variable.Member.TryGetAttributeSafe(out ArrayPatternAttribute arrayPattern, inherit: true))
         {
+            if (IsRoot)
+                throw new NotSupportedException($"Arrays can not be root objects (like in {ToString()}).");
+
             IsArray = true;
             ArrayStart = arrayPattern.Start;
             ArrayLength = arrayPattern.Length;

@@ -19,6 +19,11 @@ public sealed class UnturnedUIAttribute : Attribute
     public string DisplayName { get; }
 
     /// <summary>
+    /// Base path for all elements.
+    /// </summary>
+    public string? BasePath { get; set; }
+
+    /// <summary>
     /// Should scan the UI for elements.
     /// </summary>
     /// <remarks>Default: <see langword="true"/></remarks>

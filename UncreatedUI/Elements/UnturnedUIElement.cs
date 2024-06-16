@@ -35,7 +35,7 @@ public class UnturnedUIElement : IElement
     /// <summary>
     /// Hierarchical path to this UI element in Unity.
     /// </summary>
-    public string Path { get; }
+    public string Path { get; internal set; }
 
     /// <exception cref="InvalidOperationException">Thrown when the owner has yet to be set.</exception>
     public UnturnedUI Owner

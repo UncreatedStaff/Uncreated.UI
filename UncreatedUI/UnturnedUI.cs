@@ -109,6 +109,7 @@ public class UnturnedUI : IDisposable
             Logger = (ILogger)logger;
         }
 
+        string? basePath = null;
         if (Attribute.GetCustomAttribute(type, typeof(UnturnedUIAttribute)) is UnturnedUIAttribute attr)
         {
             if (!string.IsNullOrEmpty(attr.DisplayName))
@@ -117,6 +118,7 @@ public class UnturnedUI : IDisposable
                 IsReliable = attr.Reliable;
             if (attr.HasHasElements)
                 HasElements = attr.HasElements;
+            basePath = attr.BasePath;
         }
 
         if (!hasElements)
@@ -127,6 +129,11 @@ public class UnturnedUI : IDisposable
         for (int i = 0; i < elements.Count; ++i)
         {
             UnturnedUIElement element = elements[i];
+            if (!string.IsNullOrEmpty(basePath))
+            {
+                element.Path = UnturnedUIUtility.ResolveRelativePath(basePath, element.Path);
+            }
+
             element.RegisterOwner(this);
         }
     }
