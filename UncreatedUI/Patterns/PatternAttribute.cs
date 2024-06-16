@@ -22,8 +22,8 @@ public sealed class PatternAttribute(string? pattern) : Attribute
     /// <summary>
     /// How pattern is formatted.
     /// </summary>
-    /// <remarks>Defaults to <see cref="FormatMode.Suffix"/>.</remarks>
-    public FormatMode Mode { get; set; } = FormatMode.Suffix;
+    /// <remarks>Defaults to <see cref="FormatMode.Replace"/>.</remarks>
+    public FormatMode Mode { get; set; } = FormatMode.Replace;
 
     /// <summary>
     /// Formatting index of the placeholder when <see cref="Mode"/> is <see cref="FormatMode.Format"/>.
