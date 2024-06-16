@@ -15,9 +15,11 @@ namespace Uncreated.Framework.UI;
 /// </summary>
 public class UnturnedUI : IDisposable
 {
+    private IAssetContainer? _container;
     private string _name;
     private int _disposed;
     protected internal readonly ILogger Logger;
+    private bool _waitingOnAssetLoad;
     internal readonly ILoggerFactory? Factory;
 
     /// <summary>
@@ -172,6 +174,20 @@ public class UnturnedUI : IDisposable
     }
 
     /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
+    public UnturnedUI(IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(GlobalLogger.Instance, assetContainer, hasElements, keyless, reliable, debugLogging) { }
+    public UnturnedUI(ILogger logger, IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
+    {
+        LoadFromConfig(assetContainer);
+    }
+    public UnturnedUI(ILoggerFactory factory, IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging)
+    {
+        LoadFromConfig(assetContainer);
+    }
+
+    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public UnturnedUI(EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
         : this(GlobalLogger.Instance, asset, hasElements, keyless, reliable, debugLogging) { }
     public UnturnedUI(ILogger logger, EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
@@ -195,7 +211,8 @@ public class UnturnedUI : IDisposable
             Guid = guid;
             Id = 0;
             Asset = Assets.find(guid) as EffectAsset;
-            LoadFromConfigIntl();
+            _container = null;
+            LoadFromConfigIntl(false);
         }
         else
         {
@@ -206,7 +223,36 @@ public class UnturnedUI : IDisposable
                 Guid = guid2;
                 Id = 0;
                 Asset = Assets.find(guid2) as EffectAsset;
-                LoadFromConfigIntl();
+                _container = null;
+                LoadFromConfigIntl(false);
+            });
+        }
+    }
+
+    /// <summary>
+    /// Set the asset's info to <paramref name="assetContainer"/>.
+    /// </summary>
+    public void LoadFromConfig(IAssetContainer assetContainer)
+    {
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            Guid = assetContainer.Guid;
+            Id = assetContainer.Id;
+            Asset = assetContainer.Asset as EffectAsset;
+            _container = assetContainer;
+            LoadFromConfigIntl(false);
+        }
+        else
+        {
+            IAssetContainer container2 = assetContainer;
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                Guid = container2.Guid;
+                Id = container2.Id;
+                Asset = container2.Asset as EffectAsset;
+                _container = container2;
+                LoadFromConfigIntl(false);
             });
         }
     }
@@ -221,7 +267,8 @@ public class UnturnedUI : IDisposable
             Guid = default;
             Id = id;
             Asset = Assets.find(EAssetType.EFFECT, id) as EffectAsset;
-            LoadFromConfigIntl();
+            _container = null;
+            LoadFromConfigIntl(false);
         }
         else
         {
@@ -232,7 +279,8 @@ public class UnturnedUI : IDisposable
                 Guid = default;
                 Id = id2;
                 Asset = Assets.find(EAssetType.EFFECT, id2) as EffectAsset;
-                LoadFromConfigIntl();
+                _container = null;
+                LoadFromConfigIntl(false);
             });
         }
     }
@@ -242,32 +290,53 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public void LoadFromConfig(EffectAsset? asset)
     {
-        Asset = asset;
-        if (asset == null)
-        {
-            Guid = default;
-            Id = default;
-        }
-        else
-        {
-            Guid = asset.GUID;
-            Id = asset.id;
-        }
         if (Thread.CurrentThread.IsGameThread())
         {
-            LoadFromConfigIntl();
+            Asset = asset;
+            if (asset == null)
+            {
+                Guid = default;
+                Id = default;
+            }
+            else
+            {
+                Guid = asset.GUID;
+                Id = asset.id;
+            }
+            _container = null;
+            LoadFromConfigIntl(false);
         }
         else
         {
+            EffectAsset? asset2 = asset;
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                LoadFromConfigIntl();
+                Asset = asset2;
+                if (asset2 == null)
+                {
+                    Guid = default;
+                    Id = default;
+                }
+                else
+                {
+                    Guid = asset2.GUID;
+                    Id = asset2.id;
+                }
+                _container = null;
+                LoadFromConfigIntl(false);
             });
         }
     }
-    private void LoadFromConfigIntl()
+    private void LoadFromConfigIntl(bool assetsJustLoaded)
     {
+        if (_container != null)
+        {
+            Id = _container.Id;
+            Guid = _container.Guid;
+            Asset = _container.Asset as EffectAsset;
+        }
+
         if (Asset != null)
         {
             if (HasDefaultName)
@@ -283,7 +352,18 @@ public class UnturnedUI : IDisposable
         {
             if (HasDefaultName)
                 _name = Id.ToString();
-            Logger.LogWarning("No asset available, id: {0}.", Id);
+            if (!assetsJustLoaded && Assets.isLoading)
+            {
+                if (!_waitingOnAssetLoad)
+                {
+                    Level.onPrePreLevelLoaded += OnAssetsLoaded;
+                    _waitingOnAssetLoad = true;
+                }
+            }
+            else
+            {
+                Logger.LogWarning("No asset available, id: {0}.", Id);
+            }
         }
         else if (Guid != default)
         {
@@ -291,7 +371,18 @@ public class UnturnedUI : IDisposable
                 _name = Guid.ToString("N");
 
             HasAssetOrId = false;
-            Logger.LogWarning("No asset or ID available, guid: {0}.", Guid);
+            if (!assetsJustLoaded && Assets.isLoading)
+            {
+                if (!_waitingOnAssetLoad)
+                {
+                    Level.onPrePreLevelLoaded += OnAssetsLoaded;
+                    _waitingOnAssetLoad = true;
+                }
+            }
+            else
+            {
+                Logger.LogWarning("No asset or ID available, guid: {0}.", Guid);
+            }
             return;
         }
         else
@@ -302,6 +393,17 @@ public class UnturnedUI : IDisposable
         }
 
         HasAssetOrId = true;
+    }
+
+    private void OnAssetsLoaded(int lvlId)
+    {
+        if (lvlId != Level.BUILD_INDEX_GAME)
+            return;
+
+        Level.onPrePreLevelLoaded -= OnAssetsLoaded;
+        _waitingOnAssetLoad = false;
+
+        LoadFromConfigIntl(true);
     }
 
     /// <summary>
