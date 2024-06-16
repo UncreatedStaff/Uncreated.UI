@@ -234,20 +234,25 @@ public static class UnturnedUIUtility
     }
 
     /// <summary>
-    /// Find the full path of <paramref name="path"/> if it is relative to <paramref name="relativeTo"/>. <paramref name="path"/> must start with './' or '../'.
+    /// Find the full path of <paramref name="path"/> if it is relative to <paramref name="relativeTo"/>. <paramref name="path"/> must start with './' or '../' unless <paramref name="assumeRelative"/> is <see langword="true"/>.
     /// </summary>
     /// <exception cref="ArgumentException">Invalid paths.</exception>
-    public static unsafe string ResolveRelativePath(ReadOnlySpan<char> relativeTo, ReadOnlySpan<char> path)
+    public static unsafe string ResolveRelativePath(ReadOnlySpan<char> relativeTo, ReadOnlySpan<char> path, bool assumeRelative = false)
     {
         if (path.Length == 0)
             return string.Empty;
 
-        if (path[0] != '.')
+        if (path[0] != '.' && !assumeRelative)
         {
             if (path[0] == '~')
                 path = path[1..];
 
             path = TrimSlashes(path, true, false);
+            return new string(path);
+        }
+        if (path[0] == '~')
+        {
+            path = TrimSlashes(path[1..], true, false);
             return new string(path);
         }
 
@@ -278,7 +283,7 @@ public static class UnturnedUIUtility
         {
             ReadOnlySpan<char> segment = path[pathSections[i]];
 
-            if (i == 0 && (segment.Length > 2 || segment[0] != '.' || (segment.Length == 2 && segment[1] != '.')))
+            if (!assumeRelative && i == 0 && (segment.Length > 2 || segment[0] != '.' || (segment.Length == 2 && segment[1] != '.')))
             {
                 path = TrimSlashes(path, true, false);
                 return new string(path);

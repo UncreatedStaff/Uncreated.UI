@@ -131,7 +131,7 @@ public class UnturnedUI : IDisposable
             UnturnedUIElement element = elements[i];
             if (!string.IsNullOrEmpty(basePath))
             {
-                element.Path = UnturnedUIUtility.ResolveRelativePath(basePath, element.Path);
+                element.Path = UnturnedUIUtility.ResolveRelativePath(basePath, element.Path, assumeRelative: true);
             }
 
             element.RegisterOwner(this);

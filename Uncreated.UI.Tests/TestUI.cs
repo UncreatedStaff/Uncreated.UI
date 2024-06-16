@@ -2,9 +2,11 @@
 using Uncreated.Framework.UI;
 using Uncreated.Framework.UI.Patterns;
 using Uncreated.Framework.UI.Presets;
+using Uncreated.Framework.UI.Reflection;
 
 namespace Uncreated.UI.Tests;
 
+[UnturnedUI(BasePath = "Container")]
 public class TestUI : UnturnedUI
 {
     public readonly UnturnedLabel Label = new UnturnedLabel("test/with/path");

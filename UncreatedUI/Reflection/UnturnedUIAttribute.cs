@@ -16,7 +16,7 @@ public sealed class UnturnedUIAttribute : Attribute
     /// <summary>
     /// Name displayed in warning messages, etc.
     /// </summary>
-    public string DisplayName { get; }
+    public string? DisplayName { get; }
 
     /// <summary>
     /// Base path for all elements.
@@ -51,6 +51,7 @@ public sealed class UnturnedUIAttribute : Attribute
         }
     }
 
+    public UnturnedUIAttribute() { }
     public UnturnedUIAttribute(string displayName)
     {
         DisplayName = displayName;
