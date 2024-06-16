@@ -6,11 +6,11 @@ using Uncreated.Framework.UI.Reflection;
 
 namespace Uncreated.UI.Tests;
 
-[UnturnedUI(BasePath = "Container")]
+[UnturnedUI(BasePath = "Base")]
 public class TestUI : UnturnedUI
 {
-    public readonly UnturnedLabel Label = new UnturnedLabel("test/with/path");
-    public readonly TestGroup SingleGroup = ElementPatterns.Create<TestGroup>("single/group/name");
+    public readonly UnturnedLabel Label = new UnturnedLabel("~/test/with/path");
+    public readonly TestGroup SingleGroup = ElementPatterns.Create<TestGroup>("./single/group/name");
     public readonly TestGroup[] MultipleGroups = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}_group_{0}", 1, to: 3);
     public readonly NestedArray[] NestedArrayGroup = ElementPatterns.CreateArray<NestedArray>("no_path_{0}", 1, to: 8);
     public readonly LabeledButton LabeledButton = new LabeledButton("test/path/1/btn", "../btn_label");
