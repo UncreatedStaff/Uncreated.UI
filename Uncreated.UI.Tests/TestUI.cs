@@ -13,12 +13,12 @@ public class TestUI : UnturnedUI
     public readonly TestGroup SingleGroup = ElementPatterns.Create<TestGroup>("./single/group/name");
     public readonly TestGroup[] MultipleGroups = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}_group_{0}", 1, to: 3);
     public readonly NestedArray[] NestedArrayGroup = ElementPatterns.CreateArray<NestedArray>("no_path_{0}", 1, to: 8);
-    public readonly LabeledButton LabeledButton = new LabeledButton("test/path/1/btn", "../btn_label");
+    public readonly LabeledButton LabeledButton = new LabeledButton("~/test/path/1/btn", "./lbl");
 #nullable disable
-    public readonly FOBListElement[] FOBs = ElementPatterns.CreateArray<FOBListElement>("Canvas/{0}", 0, to: 9);
+    public readonly FOBListElement[] FOBs = ElementPatterns.CreateArray<FOBListElement>("Canvas/FOB_Item_{0}", 0, to: 9);
     public struct FOBListElement
     {
-        [Pattern("", AdditionalPath = "../Canvas2/c2/", Mode = FormatMode.Prefix, Root = true)]
+        [Pattern(Root = true)]
         public UnturnedUIElement Root { get; set; }
 
         [Pattern("N{0}", Mode = FormatMode.Replace)]

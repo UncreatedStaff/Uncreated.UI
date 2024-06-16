@@ -47,4 +47,9 @@ public sealed class PatternAttribute(string? pattern) : Attribute
     /// </summary>
     /// <remarks>Defaults to <see langword="true"/>.</remarks>
     public bool UnderRoot { get; set; } = true;
+
+    public PatternAttribute() : this(null)
+    {
+        Mode = FormatMode.None;
+    }
 }
