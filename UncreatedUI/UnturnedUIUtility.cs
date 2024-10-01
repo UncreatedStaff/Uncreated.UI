@@ -119,9 +119,9 @@ public static class UnturnedUIUtility
             if (placeInd < 0)
                 break;
 
-            if (hasCleanJoin && placeInd != 0 && placeInd != slice.Length - searchTargetLength)
+            if (hasCleanJoin && placeInd <= slice.Length - searchTargetLength)
             {
-                if (slice[placeInd - 1] == cleanJoinValue && slice[placeInd + searchTargetLength] == cleanJoinValue)
+                if ((placeInd == 0 || slice[placeInd - 1] == cleanJoinValue) && (placeInd == slice.Length - searchTargetLength || slice[placeInd + searchTargetLength] == cleanJoinValue) && slice.Length != searchTargetLength)
                     --newLen;
             }
 
@@ -172,20 +172,24 @@ public static class UnturnedUIUtility
                     }
 
                     bool cleanJoin = state.HasCleanJoin
-                                     && placeInd != 0
-                                     && placeInd != slice.Length - sLen
-                                     && slice[placeInd - 1] == state.CleanJoinValue
-                                     && slice[placeInd + sLen] == state.CleanJoinValue;
+                                     && placeInd <= slice.Length - sLen
+                                     && (placeInd == 0 || slice[placeInd - 1] == state.CleanJoinValue)
+                                     && (placeInd == slice.Length - sLen || slice[placeInd + sLen] == state.CleanJoinValue)
+                                     && slice.Length != sLen;
 
                     int ct = placeInd;
                     placeInd += lastIndex;
                     if (ct != 0)
                     {
                         if (cleanJoin)
+                        {
                             --ct;
+                        }
                         input.Slice(lastIndex, ct).CopyTo(span.Slice(index, ct));
                         index += ct;
                     }
+                    else if (cleanJoin)
+                        ++placeInd;
 
                     if (vLen == 0)
                         continue;

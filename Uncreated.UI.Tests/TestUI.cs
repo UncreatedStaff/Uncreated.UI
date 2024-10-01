@@ -12,10 +12,30 @@ public class TestUI : UnturnedUI
     public readonly UnturnedLabel Label = new UnturnedLabel("~/test/with/path");
     public readonly TestGroup SingleGroup = ElementPatterns.Create<TestGroup>("./single/group/name");
     public readonly TestGroup[] MultipleGroups = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}_group_{0}", 1, to: 3);
+    public readonly TestGroup[] MultipleGroups2 = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}", 1, to: 3);
     public readonly NestedArray[] NestedArrayGroup = ElementPatterns.CreateArray<NestedArray>("no_path_{0}", 1, to: 8);
     public readonly LabeledButton LabeledButton = new LabeledButton("~/test/path/1/btn", "./lbl");
 #nullable disable
     public readonly FOBListElement[] FOBs = ElementPatterns.CreateArray<FOBListElement>("Canvas/FOB_Item_{0}", 0, to: 9);
+    public TestClass[] Elements { get; } = ElementPatterns.CreateArray<TestClass>("Test/{0}/Class_{1}", 1, to: 10);
+
+    public class TestClass
+    {
+        // marking an element as Root will put all other objects below this one. Only one object can be a root.
+
+        // actual path Test/#/Class
+        //   setting the CleanJoin character fixes the extra underscore from formatting in an empty string
+        [Pattern("", Mode = FormatMode.Format, CleanJoin = '_')]
+        public UnturnedUIElement Root { get; set; }
+
+        // actual path Test/#/Class_Name
+        [Pattern("Name", Mode = FormatMode.Format)]
+        public UnturnedLabel Name { get; set; }
+
+        // actual path Test/#/Class_SteamID
+        [Pattern("SteamID", Mode = FormatMode.Format)]
+        public UnturnedLabel SteamId { get; set; }
+    }
     public struct FOBListElement
     {
         [Pattern(Root = true)]

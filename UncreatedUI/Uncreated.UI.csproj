@@ -3,10 +3,10 @@
   <!-- Publish Settings -->
   <PropertyGroup>
 
-    <VersionPrefix>4.0.0</VersionPrefix>
-    <VersionSuffix>prerelease10</VersionSuffix>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
 
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
 

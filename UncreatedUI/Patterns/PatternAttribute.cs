@@ -6,17 +6,17 @@ namespace Uncreated.Framework.UI.Patterns;
 /// Defines the pattern the element name follows in a nested type.
 /// </summary>
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class | AttributeTargets.Struct)]
-public sealed class PatternAttribute(string? pattern) : Attribute
+public sealed class PatternAttribute : Attribute
 {
     /// <summary>
     /// The pattern the element name follows.
     /// </summary>
-    public string? Pattern { get; } = pattern;
+    public string? Pattern { get; }
 
     /// <summary>
     /// Suffixed to the existing path for this object if set.
     /// </summary>
-    /// <remarks>Defaults to <see langword="null"/>.</remarks>
+    /// <remarks>Defaults to <see langword="null"/>. This needs to be separate to accomodate format modes like <see cref="FormatMode.Prefix"/>.</remarks>
     public string? AdditionalPath { get; set; }
 
     /// <summary>
@@ -51,5 +51,23 @@ public sealed class PatternAttribute(string? pattern) : Attribute
     public PatternAttribute() : this(null)
     {
         Mode = FormatMode.None;
+    }
+
+    /// <summary>
+    /// Defines the pattern the element name follows in a nested type.
+    /// </summary>
+    public PatternAttribute(string? pattern)
+    {
+        Pattern = pattern;
+    }
+
+    /// <summary>
+    /// Defines the pattern the element name follows in a nested type with an additional path.
+    /// </summary>
+    /// <remarks>This needs to be separate to accomodate format modes like <see cref="FormatMode.Prefix"/>.</remarks>
+    public PatternAttribute(string additionalPath, string pattern)
+    {
+        AdditionalPath = additionalPath;
+        Pattern = pattern;
     }
 }
