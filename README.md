@@ -82,6 +82,59 @@ public class ExampleUI : UnturnedUI
 }
 ```
 
+
+## UI Data
+Specific data structures can be linked to UI elements and players. This is how the `UnturnedEnumButton`, `UnturnedToggle`, and `UnturnedTextBox` keep track of player data.
+
+The default UI data tracker can be accessed or changed using `UnturnedUIDataSource.Instance { get; set; }`.
+
+`UnturnedUIDataSource.RemovePlayer(Player)` should be invoked on player disconnect to avoid memory leaks if using UI data.
+
+### Creating Custom Data
+```cs
+public class CustomUIData : IUnturnedUIData
+{
+    // Required by the interface
+    public CSteamID Player { get; }
+    public UnturnedUIElement Element { get; }
+    public UnturnedUI Owner => Element.Owner;
+
+    // custom data, can be basically any type
+    public string? Data { get; set; }
+
+    public CustomUIData(CSteamID playerId, UnturnedUIElement element, string? data)
+    {
+        Player = playerId;
+        Element = element;
+        Data = data;
+    }
+}
+```
+
+### Using Custom Data
+Data can be gotten, added, or removed using the static helper functions in `UnturnedUIDataSource`.
+```cs
+// in a UI class
+public void OnSomethingHappened(Player player)
+{
+    CustomUIData? dataObject = UnturnedUIDataSource.GetData<CustomUIData>(player.channel.owner.playerID.steamID, this.SomeElement);
+    if (dataObject == null)
+    {
+        dataObject = new CustomUIData(player.channel.owner.playerID.steamID, this.SomeElement, "new data");
+        UnturnedUIDataSource.AddData(dataObject);
+    }
+    else
+    {
+        // since the data is a class theres no need to save the changes or anything
+        dataObject.Data = "something happened again";
+    }
+
+    _logger.LogInformation("Player {0}'s data value is now {1}.", player.channel.owner.playerID.playerName, dataObject.Data);
+    this.SomeElement.SetText(dataObject.Data);
+}
+```
+
+
 ## Patterns
 Create your own data types and fill lists of them automatically using patterns.
 
@@ -163,14 +216,15 @@ The library comes with some built-in primitive element types and common preset t
 
 These are concrete classes that represent individual GameObjects.
 
-| Type              | Purpose                                                                          |
-| ----------------- | -------------------------------------------------------------------------------- |
-| UnturnedUIElement | The base type for all **primitive** types, any object in a Unity UI.             |
-| UnturnedLabel     | Represents a text component in a Unity UI.                                       |
-| UnturnedButton    | Represents a clickable button in a Unity UI.                                     |
-| UnturnedTextBox   | Represents an input component in a Unity UI. It also derives from UnturnedLabel. |
-| UnturnedImage     | Represents a web image in a Unity UI.                                            |
+| Type              | Purpose                                                                            |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| UnturnedUIElement | The base type for all **primitive** types, any object in a Unity UI.               |
+| UnturnedLabel     | Represents a text component in a Unity UI.                                         |
+| UnturnedButton    | Represents a clickable button in a Unity UI.                                       |
+| UnturnedTextBox   | Represents an input component in a Unity UI. It also derives from UnturnedLabel.\* |
+| UnturnedImage     | Represents a web image in a Unity UI.                                              |
 
+\* `UnturnedTextBox` has a property, `UseData` which enables tracking text players enter so it can be retrieved at any time.
 
 ### Presets
 
