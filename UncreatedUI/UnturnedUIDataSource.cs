@@ -42,6 +42,12 @@ public interface IUnturnedUIDataSource : IDisposable
     /// </summary>
     /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="RequiresMainThread"/> is <see langword="true"/>.</exception>
     TData? GetData<TData>(CSteamID player, UnturnedUIElement element) where TData : class, IUnturnedUIData;
+    
+    /// <summary>
+    /// Get the data, if it exists, for a given <paramref name="player"/> and <paramref name="ui"/> where the element is <see langword="null"/>.
+    /// </summary>
+    /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="RequiresMainThread"/> is <see langword="true"/>.</exception>
+    TData? GetData<TData>(CSteamID player, UnturnedUI ui) where TData : class, IUnturnedUIData;
 
     /// <summary>
     /// Add new UI data.
@@ -118,12 +124,40 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     }
 
     private bool _disposed;
+    private bool _isListeningToPlayerDisconnect;
     private Dictionary<ulong, List<IUnturnedUIData>> _playerData = new Dictionary<ulong, List<IUnturnedUIData>>(96);
     private Dictionary<UnturnedUI, List<IUnturnedUIData>> _ownerData = new Dictionary<UnturnedUI, List<IUnturnedUIData>>(256);
     private Dictionary<UnturnedUIElement, List<IUnturnedUIData>> _elementData = new Dictionary<UnturnedUIElement, List<IUnturnedUIData>>(2048);
 
     /// <inheritdoc />
     bool IUnturnedUIDataSource.RequiresMainThread => true;
+
+    public UnturnedUIDataSource()
+    {
+        if (Thread.CurrentThread.IsGameThread())
+        {
+            _isListeningToPlayerDisconnect = true;
+            Provider.onServerDisconnected += OnPlayerDisconnected;
+        }
+        else
+        {
+            UniTask.Create(async () =>
+            {
+                await UniTask.SwitchToMainThread();
+                if (_isListeningToPlayerDisconnect)
+                    return;
+                
+                _isListeningToPlayerDisconnect = true;
+                Provider.onServerDisconnected += OnPlayerDisconnected;
+            });
+        }
+    }
+
+    // Provider.onServerDisconnected
+    private void OnPlayerDisconnected(CSteamID playerId)
+    {
+        ((IUnturnedUIDataSource)this).RemovePlayer(playerId);
+    }
 
     /// <summary>
     /// Add new UI data.
@@ -133,10 +167,11 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     {
         if (_instance.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
         {
+            IUnturnedUIData data2 = data;
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                _instance.AddData(data);
+                _instance.AddData(data2);
             });
         }
         else _instance.AddData(data);
@@ -150,10 +185,11 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     {
         if (_instance.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
         {
+            UnturnedUIElement element2 = element;
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                _instance.RemoveElement(element);
+                _instance.RemoveElement(element2);
             });
         }
         else _instance.RemoveElement(element);
@@ -167,10 +203,11 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     {
         if (_instance.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
         {
+            UnturnedUI owner2 = owner;
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                _instance.RemoveOwner(owner);
+                _instance.RemoveOwner(owner2);
             });
         }
         else _instance.RemoveOwner(owner);
@@ -184,10 +221,11 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     {
         if (_instance.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
         {
+            CSteamID player2 = player;
             UniTask.Create(async () =>
             {
                 await UniTask.SwitchToMainThread();
-                _instance.RemovePlayer(player);
+                _instance.RemovePlayer(player2);
             });
         }
         else _instance.RemovePlayer(player);
@@ -199,6 +237,13 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="IUnturnedUIDataSource.RequiresMainThread"/> is <see langword="true"/>.</exception>
     public static TData? GetData<TData>(CSteamID player, UnturnedUIElement element) where TData : class, IUnturnedUIData
         => _instance.GetData<TData>(player, element);
+
+    /// <summary>
+    /// Get the data, if it exists, for a given <paramref name="player"/> and <paramref name="ui"/> where the element is <see langword="null"/>.
+    /// </summary>
+    /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="IUnturnedUIDataSource.RequiresMainThread"/> is <see langword="true"/>.</exception>
+    public static TData? GetData<TData>(CSteamID player, UnturnedUI ui) where TData : class, IUnturnedUIData
+        => _instance.GetData<TData>(player, ui);
 
     /// <summary>
     /// Remove all data for a given <paramref name="player"/>.
@@ -342,6 +387,23 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     }
 
     /// <inheritdoc />
+    TData? IUnturnedUIDataSource.GetData<TData>(CSteamID player, UnturnedUI ui) where TData : class
+    {
+        ThreadUtil.assertIsGameThread();
+
+        if (!_ownerData.TryGetValue(ui, out List<IUnturnedUIData> data))
+            return null;
+
+        for (int i = data.Count - 1; i >= 0; --i)
+        {
+            if (data[i] is TData data2 && data2.Player.m_SteamID == player.m_SteamID && data2.Element == null)
+                return data2;
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc />
     IEnumerable<IUnturnedUIData> IUnturnedUIDataSource.EnumerateData(CSteamID player)
     {
         ThreadUtil.assertIsGameThread();
@@ -369,6 +431,12 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     void IDisposable.Dispose()
     {
         ThreadUtil.assertIsGameThread();
+
+        if (_isListeningToPlayerDisconnect)
+        {
+            _isListeningToPlayerDisconnect = false;
+            Provider.onServerDisconnected += OnPlayerDisconnected;
+        }
 
         if (_disposed)
             return;

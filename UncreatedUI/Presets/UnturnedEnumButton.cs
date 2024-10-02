@@ -133,49 +133,21 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
     [Ignore]
     UnturnedButton IRightClickableButton.RightClickListener => RightClickListener!;
 
-    public UnturnedEnumButton(TEnum defaultValue, string buttonPath, string labelPath) :
-        this(GlobalLogger.Instance, defaultValue, buttonPath, labelPath)
-    { }
-    public UnturnedEnumButton(ILogger logger, TEnum defaultValue, string buttonPath, string labelPath) :
-        this(defaultValue, new UnturnedButton(logger, buttonPath), new UnturnedLabel(logger, UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)))
-    { }
-    public UnturnedEnumButton(ILoggerFactory factory, TEnum defaultValue, string buttonPath, string labelPath) :
-        this(defaultValue, new UnturnedButton(factory, buttonPath), new UnturnedLabel(factory, UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)))
+    public UnturnedEnumButton(TEnum defaultValue, string buttonPath, string labelPath)
+        : this(defaultValue, new UnturnedButton(buttonPath), new UnturnedLabel(UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)))
     { }
     public UnturnedEnumButton(TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
-        this(GlobalLogger.Instance, defaultValue, buttonPath, labelPath, statePath, rightClickListenerButtonPath)
-    { }
-    public UnturnedEnumButton(ILogger logger, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
-        this(defaultValue, new UnturnedButton(logger, buttonPath), new UnturnedLabel(logger, UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)),
-            statePath == null ? null : new UnturnedUIElement(logger, UnturnedUIUtility.ResolveRelativePath(buttonPath, statePath)),
-            rightClickListenerButtonPath == null ? null : new UnturnedButton(logger, UnturnedUIUtility.ResolveRelativePath(buttonPath, rightClickListenerButtonPath)))
-    { }
-    public UnturnedEnumButton(ILoggerFactory factory, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
-        this(defaultValue, new UnturnedButton(factory, buttonPath), new UnturnedLabel(factory, UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)),
-            statePath == null ? null : new UnturnedUIElement(factory, UnturnedUIUtility.ResolveRelativePath(buttonPath, statePath)),
-            rightClickListenerButtonPath == null ? null : new UnturnedButton(factory, UnturnedUIUtility.ResolveRelativePath(buttonPath, rightClickListenerButtonPath)))
+        this(defaultValue, new UnturnedButton(buttonPath), new UnturnedLabel(UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)),
+            statePath == null ? null : new UnturnedUIElement(UnturnedUIUtility.ResolveRelativePath(buttonPath, statePath)),
+            rightClickListenerButtonPath == null ? null : new UnturnedButton(UnturnedUIUtility.ResolveRelativePath(buttonPath, rightClickListenerButtonPath)))
     { }
     public UnturnedEnumButton(TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath) :
-        this(GlobalLogger.Instance, valueSet, defaultValue, buttonPath, labelPath)
-    { }
-    public UnturnedEnumButton(ILogger logger, TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath) :
-        this(valueSet, defaultValue, new UnturnedButton(logger, buttonPath), new UnturnedLabel(logger, UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)))
-    { }
-    public UnturnedEnumButton(ILoggerFactory factory, TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath) :
-        this(valueSet, defaultValue, new UnturnedButton(factory, buttonPath), new UnturnedLabel(factory, UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)))
+        this(valueSet, defaultValue, new UnturnedButton(buttonPath), new UnturnedLabel(UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)))
     { }
     public UnturnedEnumButton(TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
-        this(GlobalLogger.Instance, valueSet, defaultValue, buttonPath, labelPath, statePath, rightClickListenerButtonPath)
-    { }
-    public UnturnedEnumButton(ILogger logger, TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
-        this(valueSet, defaultValue, new UnturnedButton(logger, buttonPath), new UnturnedLabel(logger, UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)),
-            statePath == null ? null : new UnturnedUIElement(logger, UnturnedUIUtility.ResolveRelativePath(buttonPath, statePath)),
-            rightClickListenerButtonPath == null ? null : new UnturnedButton(logger, rightClickListenerButtonPath))
-    { }
-    public UnturnedEnumButton(ILoggerFactory factory, TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
-        this(valueSet, defaultValue, new UnturnedButton(factory, buttonPath), new UnturnedLabel(factory, UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)),
-            statePath == null ? null : new UnturnedUIElement(factory, UnturnedUIUtility.ResolveRelativePath(buttonPath, statePath)),
-            rightClickListenerButtonPath == null ? null : new UnturnedButton(factory, UnturnedUIUtility.ResolveRelativePath(buttonPath, rightClickListenerButtonPath)))
+        this(valueSet, defaultValue, new UnturnedButton(buttonPath), new UnturnedLabel(UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)),
+            statePath == null ? null : new UnturnedUIElement(UnturnedUIUtility.ResolveRelativePath(buttonPath, statePath)),
+            rightClickListenerButtonPath == null ? null : new UnturnedButton(rightClickListenerButtonPath))
     { }
 
     public UnturnedEnumButton(TEnum defaultValue, ILabeledButton button)
@@ -428,6 +400,12 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
 
     [Ignore]
     UnturnedUIElement IElement.Element => Button;
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return typeof(TEnum).Name + " Enum Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+    }
 
     private class UnturnedEnumButtonData : IUnturnedUIData
     {

@@ -1,6 +1,4 @@
 ﻿using DanielWillett.ReflectionTools;
-using Microsoft.Extensions.Logging;
-using System;
 using Uncreated.Framework.UI.Patterns;
 
 namespace Uncreated.Framework.UI.Presets;
@@ -11,7 +9,7 @@ namespace Uncreated.Framework.UI.Presets;
 public class PlaceholderTextBox : IPlaceholderTextBox
 {
     /// <inheritdoc />
-    [Pattern("", Mode = FormatMode.Format)]
+    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedTextBox TextBox { get; }
 
     /// <inheritdoc />
@@ -32,22 +30,12 @@ public class PlaceholderTextBox : IPlaceholderTextBox
         set => TextBox.UseData = value;
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public PlaceholderTextBox(string path) : this(GlobalLogger.Instance, path, path + "Placeholder") { }
-    public PlaceholderTextBox(ILogger logger, string path) : this(logger, path, path + "Placeholder") { }
-    public PlaceholderTextBox(ILoggerFactory factory, string path) : this(factory, path, path + "Placeholder") { }
+    public PlaceholderTextBox(string path) : this(path, path + "Placeholder") { }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public PlaceholderTextBox(string path, string? placeholderPath) : this(GlobalLogger.Instance, path, placeholderPath) { }
-    public PlaceholderTextBox(ILogger logger, string path, string? placeholderPath)
+    public PlaceholderTextBox(string path, string? placeholderPath)
     {
-        TextBox = new UnturnedTextBox(logger, path);
-        Placeholder = new UnturnedLabel(logger, UnturnedUIUtility.GetPresetValue(path, placeholderPath, "Placeholder"));
-    }
-    public PlaceholderTextBox(ILoggerFactory factory, string path, string? placeholderPath)
-    {
-        TextBox = new UnturnedTextBox(factory, path);
-        Placeholder = new UnturnedLabel(factory, UnturnedUIUtility.GetPresetValue(path, placeholderPath, "Placeholder"));
+        TextBox = new UnturnedTextBox(path);
+        Placeholder = new UnturnedLabel(UnturnedUIUtility.GetPresetValue(path, placeholderPath, "Placeholder"));
     }
 
     [Ignore]
@@ -55,6 +43,12 @@ public class PlaceholderTextBox : IPlaceholderTextBox
 
     [Ignore]
     UnturnedUIElement IElement.Element => TextBox;
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return "Placeholder Text Box [" + TextBox.Path + "] (" + TextBox.Owner.Name + ")";
+    }
 }
 
 /// <summary>
@@ -63,7 +57,7 @@ public class PlaceholderTextBox : IPlaceholderTextBox
 public class StateTextBox : IStateElement, ITextBox
 {
     /// <inheritdoc />
-    [Pattern("", Mode = FormatMode.Format)]
+    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedTextBox TextBox { get; }
 
     /// <inheritdoc />
@@ -84,22 +78,12 @@ public class StateTextBox : IStateElement, ITextBox
         set => TextBox.UseData = value;
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public StateTextBox(string path) : this(GlobalLogger.Instance, path, path + "State") { }
-    public StateTextBox(ILogger logger, string path) : this(logger, path, path + "State") { }
-    public StateTextBox(ILoggerFactory factory, string path) : this(factory, path, path + "State") { }
+    public StateTextBox(string path) : this(path, path + "State") { }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public StateTextBox(string path, string? statePath) : this(GlobalLogger.Instance, path, statePath) { }
-    public StateTextBox(ILogger logger, string path, string? statePath)
+    public StateTextBox(string path, string? statePath)
     {
-        TextBox = new UnturnedTextBox(logger, path);
-        State = new UnturnedUIElement(logger, UnturnedUIUtility.GetPresetValue(path, statePath, "State"));
-    }
-    public StateTextBox(ILoggerFactory factory, string path, string? statePath)
-    {
-        TextBox = new UnturnedTextBox(factory, path);
-        State = new UnturnedUIElement(factory, UnturnedUIUtility.GetPresetValue(path, statePath, "State"));
+        TextBox = new UnturnedTextBox(path);
+        State = new UnturnedUIElement(UnturnedUIUtility.GetPresetValue(path, statePath, "State"));
     }
 
     [Ignore]
@@ -107,6 +91,12 @@ public class StateTextBox : IStateElement, ITextBox
 
     [Ignore]
     UnturnedLabel ILabel.Label => TextBox;
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return "State Text Box [" + TextBox.Path + "] (" + TextBox.Owner.Name + ")";
+    }
 }
 
 /// <summary>
@@ -118,28 +108,20 @@ public class StatePlaceholderTextBox : PlaceholderTextBox, IStateElement
     [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public StatePlaceholderTextBox(string path) : this(GlobalLogger.Instance, path) { }
-    public StatePlaceholderTextBox(ILogger logger, string path) : base(logger, path)
+    public StatePlaceholderTextBox(string path) : base(path)
     {
-        State = new UnturnedLabel(logger, path + "State");
-    }
-    public StatePlaceholderTextBox(ILoggerFactory factory, string path) : base(factory, path)
-    {
-        State = new UnturnedLabel(factory, path + "State");
+        State = new UnturnedLabel(path + "State");
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public StatePlaceholderTextBox(string path, string? placeholderPath, string? statePath)
-        : this(GlobalLogger.Instance, path, placeholderPath, statePath) { }
-    public StatePlaceholderTextBox(ILogger logger, string path, string? placeholderPath, string? statePath)
-        : base(logger, path, UnturnedUIUtility.GetPresetValue(path, placeholderPath, "Placeholder"))
+        : base(path, UnturnedUIUtility.GetPresetValue(path, placeholderPath, "Placeholder"))
     {
-        State = new UnturnedLabel(logger, UnturnedUIUtility.GetPresetValue(path, statePath, "State"));
+        State = new UnturnedLabel(UnturnedUIUtility.GetPresetValue(path, statePath, "State"));
     }
-    public StatePlaceholderTextBox(ILoggerFactory factory, string path, string? placeholderPath, string? statePath)
-        : base(factory, path, UnturnedUIUtility.GetPresetValue(path, placeholderPath, "Placeholder"))
+
+    /// <inheritdoc />
+    public override string ToString()
     {
-        State = new UnturnedLabel(factory, UnturnedUIUtility.GetPresetValue(path, statePath, "State"));
+        return "State Placeholder Text Box [" + TextBox.Path + "] (" + TextBox.Owner.Name + ")";
     }
 }

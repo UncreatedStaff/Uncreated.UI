@@ -1,18 +1,47 @@
 [![Latest](https://github.com/UncreatedStaff/Uncreated.UI/actions/workflows/push_validation.yml/badge.svg)](https://github.com/UncreatedStaff/Uncreated.UI/actions/workflows/push_validation.yml) [![NuGet](https://github.com/UncreatedStaff/Uncreated.UI/actions/workflows/dotnet.yml/badge.svg)](https://github.com/UncreatedStaff/Uncreated.UI/actions/workflows/dotnet.yml)
 
+Releases are available from the [NuGet package](https://www.nuget.org/packages/Uncreated.UI/).
+
+# Uncreated.UI
 Object oriented abstraction for Unturned's server-side UI API (EffectManager).
 
-You must be building using .NET Standard 2.1 to use this library.
+This library was built for [Uncreated Warfare](https://github.com/UncreatedStaff/UncreatedWarfare/) but can be used for any projects in correspondence with the GPL-3.0 license.
+
+You must be targeting .NET Standard 2.1 to use this library.
+This means the [netstandard.dll](https://github.com/UncreatedStaff/Uncreated.UI/raw/refs/heads/master/Libraries/netstandard.dll) library must be included in your Libraries folder from the correct Unity installation.
+You must also be using UniTask (do NOT download the UniTask from this repository).
+OpenMod comes with UniTask pre-installed and you can use [RocketExtensions](https://github.com/ShimmyMySherbet/RocketExtensions) by ShimmyMySherbet if you're using RocketMod.
+Alternatively you can use my [Unturned UniTask fork](https://github.com/DanielWillett/UniTaskUnturned/releases/latest) and follow the instructions in the README for that repository.
+Finally this library references [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions/3.1.0) 3.1.0 (netstandard2.0) and [DanielWillett.ReflectionTools](https://www.nuget.org/packages/DanielWillett.ReflectionTools/3.1.0) 3.1.0 (netstandard2.1) which can be downloaded from NuGet.
+
+# Creating a simple UI
+Simple UIs that use only formatting arguments can be defined without creating a new class.
+```cs
+
+public static UnturnedUI ExampleUI { get; private set; }
+
+// if you want to support reloading you should dispose it on unload.
+protected override void Load()
+{
+    ExampleUI = new UnturnedUI(new Guid("a695abdc9b0947d9ad0cd45d1b7a9931"));
+}
+protected override void Unload()
+{
+    ExampleUI.Dispose();
+}
+```
 
 
 # Creating a complex UI
-In a dependency-injection environment, this object would be registered as a singleton, otherwise a static readonly field or property would work fine.
+In a dependency-injection environment, this object would be registered as a singleton, otherwise a static field or property would work fine.
 
-All properties and fields (public and private) are registered as UI elements unless they're marked with [Ignore].
+All properties and fields (public and private) are registered as UI elements unless they're marked with [Ignore] or are compiler-generated.
 
 `UnturnedUI` implements `IDisposable` which will clean up any event handlers and should be done on plugin unload or by the service container.
 
 Int16 keys are generated automatically and simply increment for each UI created. `keyless` can be set to true to use a key of -1, which allows using `Lifetime` + `Lifetime_Spread` and prevents any further changes of the UI once it's sent. UIs will not respect their lifetime unless they are keyless.
+
+Most 'fire-and-forget' methods like sending a UI or setting text can be invoked from another thread and will be queued to run on the main thread on the next frame. Check the XML docs to be sure.
 
 ```cs
 public class ExampleUI : UnturnedUI
@@ -55,15 +84,33 @@ public class ExampleUI : UnturnedUI
 }
 ```
 
+### Late Registration
+Sometimes you may have to define an element in the constructor. Since the base constructor does all the element discovery, any other elements have to be manually registered.
+
+```cs
+public class ExampleUI : UnturnedUI
+{
+    public UnturnedLabel Label { get; }
+
+    public ExampleUI() : base(0)
+    {
+        Label = new UnturnedLabel("Path/To/Element");
+
+        // this also works with enumerables, presets, and patterns.
+        this.LateRegisterElement(Label);
+    }
+}
+```
+
 
 ## UI Paths
-You may have noticed that in the last example, UI elements are defined using paths. Most methods in Unturned allow you to pass a hierarchy path for performance reasons instead of just the name.
+You may have noticed that in the first example, UI elements are defined using paths. Most UI methods in Unturned allow you to pass a hierarchy path for performance reasons instead of just the name.
 
-Button names still must be unique across all active UIs in the server. This is an Unturned limitation.
+Button and text box names still must be unique across all active UIs in the server. This is an Unturned limitation.
 
 UI's can add a base path to which all paths are appended to.
 
-Paths in a UI with a base path can use `~` to ignore the base path.
+Paths in a UI with a base path can use `~/` to ignore the base path.
 
 Relative path symbols like `../` and `./` can be used but the destination must fall within the UI for obvious reasons.
 
@@ -72,10 +119,10 @@ Relative path symbols like `../` and `./` can be used but the destination must f
 public class ExampleUI : UnturnedUI
 {
 
-    // actual path: "[root]/Canvas/Image/TestLabel"
+    // actual path: Canvas/Image/TestLabel
     public UnturnedLabel TestLabel { get; } = new UnturnedLabel("TestLabel");
     
-    // actual path: "[root]/TestElement"
+    // actual path: TestElement
     public UnturnedUIElement TestElement { get; } = new UnturnedUIElement("~/TestElement");
     
     // implementation not shown
@@ -86,9 +133,9 @@ public class ExampleUI : UnturnedUI
 ## UI Data
 Specific data structures can be linked to UI elements and players. This is how the `UnturnedEnumButton`, `UnturnedToggle`, and `UnturnedTextBox` keep track of player data.
 
-The default UI data tracker can be accessed or changed using `UnturnedUIDataSource.Instance { get; set; }`.
+The default UI data tracker can be accessed or changed using `UnturnedUIDataSource.Instance { get; set; }`. Most of its functions are not thread-safe. Check XML comments to be sure.
 
-`UnturnedUIDataSource.RemovePlayer(Player)` should be invoked on player disconnect to avoid memory leaks if using UI data.
+The `Element` can also be `null` so the data is just linked to the UI object itself.
 
 ### Creating Custom Data
 ```cs
@@ -112,7 +159,7 @@ public class CustomUIData : IUnturnedUIData
 ```
 
 ### Using Custom Data
-Data can be gotten, added, or removed using the static helper functions in `UnturnedUIDataSource`.
+Data can be accessed, added, or removed using the static helper functions in `UnturnedUIDataSource`.
 ```cs
 // in a UI class
 public void OnSomethingHappened(Player player)
@@ -135,7 +182,7 @@ public void OnSomethingHappened(Player player)
 ```
 
 
-## Patterns
+# Patterns
 Create your own data types and fill lists of them automatically using patterns.
 
 Currently only primitive types and other patterns are supported, none of the built-in presets can be used.
@@ -166,7 +213,7 @@ public class ExampleUI : UnturnedUI
 }
 ```
 
-### PatternAttribute
+## Format Modes
 
 Different format modes can be used for defining how the names are created.
 
@@ -199,8 +246,8 @@ The others available are `Suffix` and `Prefix`.
 
 Suffix simply adds the value after the base path and prefix adds it before.
 
-### ArrayPatternAttribute
-The ArrayPattern attribute can be used to create a nested pattern in a pattern class.
+## Array Patterns
+The ArrayPattern attribute can be used to create multiple nested pattern in a pattern class.
 
 ```cs
 [ArrayPattern(1, To = 4)]
@@ -209,10 +256,22 @@ public ElementType[] Elements { get; }
 ```
 
 
-## Built in Types
+# Logging and Dependency Injection
+`ILogger` or `ILoggerFactory` instances from `Microsoft.Extensions.Logging` can also be supplied to the first argument of the constructors of all built-in element and preset types.
+
+If a logger isn't supplied, `GlobalLogger.Instance` will be used instead, which is a static property that can be set at any time (but won't be updated on already existing UIs). It defaults to `NullLogger.Instance`;
+
+All UI classes should usually be created as singleton services that will last the lifetime of the plugin.
+
+This is because they use keys that increment each time a UI is created and if they're not singletons will change their key each time.
+
+Also in this way, services can be injected into the parent class (like a configuration that stores the effect ID, a logger for debug logging, etc.) and used in the base constructor.
+
+
+# Built in Types
 The library comes with some built-in primitive element types and common preset types.
 
-### Primitives
+## Primitives
 
 These are concrete classes that represent individual GameObjects.
 
@@ -224,9 +283,9 @@ These are concrete classes that represent individual GameObjects.
 | UnturnedTextBox   | Represents an input component in a Unity UI. It also derives from UnturnedLabel.\* |
 | UnturnedImage     | Represents a web image in a Unity UI.                                              |
 
-\* `UnturnedTextBox` has a property, `UseData` which enables tracking text players enter so it can be retrieved at any time.
+\* `UnturnedTextBox` has a property, `UseData` which enables tracking the text players enter so it can be retrieved at any time.
 
-### Presets
+## Presets
 
 These are concrete classes that are made up of a few primitives.
 
@@ -234,11 +293,9 @@ Some classes are just combinations of their simpler counterparts and have no des
 
 If there are multiple elements in the constructor of the preset, all the paths of the remaining ones can be relative of the first one if `./` or `../` is added to the front of the path.
 
-> A `new LabeledButton("Canvas/ActionButton", "./Label")` will create a Button at `Canvas/ActionButton` and a label at `Canvas/ActionButton/Label`.
+* A `new LabeledButton("Canvas/ActionButton", "./Label")` will create a Button at `Canvas/ActionButton` and a label at `Canvas/ActionButton/Label`.
 
-`..` is used to go up one object.
-
-> A `new LabeledButton("Canvas/ActionButton", "../Label")` will create a Button at `Canvas/ActionButton` and a label at `Canvas/Label`.
+* A `new LabeledButton("Canvas/ActionButton", "../Label")` will create a Button at `Canvas/ActionButton` and a label at `Canvas/Label`.
 
 | Type                             | Purpose                                                                                                                                                                 |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -258,7 +315,7 @@ If there are multiple elements in the constructor of the preset, all the paths o
 \* See an example of a right-clickable button from [this package](https://github.com/DanielWillett/UnturnedUIAssets/blob/main/UI/uGUI/DarkTheme/uGUI%20Assets.unitypackage) (check the [README](https://github.com/DanielWillett/UnturnedUIAssets/blob/main/README.md)). Basically a second button acts as the right click event.
 
 
-### Interfaces
+## Interfaces
 
 All elements and most presets also implement interfaces so you can create your own presets and use abstracted extension methods (ex. to allow usage of your own player class).
 

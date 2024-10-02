@@ -9,7 +9,7 @@ namespace Uncreated.UI.Tests;
 [UnturnedUI(BasePath = "Base")]
 public class TestUI : UnturnedUI
 {
-    public readonly UnturnedLabel Label = new UnturnedLabel("~/test/with/path");
+    public readonly UnturnedLabel Label;// = new UnturnedLabel("~/test/with/path");
     public readonly TestGroup SingleGroup = ElementPatterns.Create<TestGroup>("./single/group/name");
     public readonly TestGroup[] MultipleGroups = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}_group_{0}", 1, to: 3);
     public readonly TestGroup[] MultipleGroups2 = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}", 1, to: 3);
@@ -17,7 +17,15 @@ public class TestUI : UnturnedUI
     public readonly LabeledButton LabeledButton = new LabeledButton("~/test/path/1/btn", "./lbl");
 #nullable disable
     public readonly FOBListElement[] FOBs = ElementPatterns.CreateArray<FOBListElement>("Canvas/FOB_Item_{0}", 0, to: 9);
-    public TestClass[] Elements { get; } = ElementPatterns.CreateArray<TestClass>("Test/{0}/Class_{1}", 1, to: 10);
+    public TestClass[] Elements { get; }
+
+    public TestUI() : base(0, debugLogging: true)
+    {
+        Elements = ElementPatterns.CreateArray<TestClass>("Test/{0}/Class_{1}", 1, to: 10);
+
+        LateRegisterElement(Label = new UnturnedLabel("test"));
+        LateRegisterElement(Elements);
+    }
 
     public class TestClass
     {
@@ -110,10 +118,6 @@ public class TestUI : UnturnedUI
     }
 #nullable restore
 
-    public TestUI() : base(0, debugLogging: true)
-    {
-        //ElementPatterns.SubscribeAll(MultipleGroups, group => group.Root, OnRootPressed);
-    }
     private void OnRootPressed(UnturnedButton button, Player player)
     {
         

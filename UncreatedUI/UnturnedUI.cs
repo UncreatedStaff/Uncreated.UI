@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.Extensions.Logging.Abstractions;
 using Uncreated.Framework.UI.Reflection;
 
 namespace Uncreated.Framework.UI;
@@ -18,9 +20,11 @@ public class UnturnedUI : IDisposable
     private IAssetContainer? _container;
     private string _name;
     private int _disposed;
-    protected internal readonly ILogger Logger;
     private bool _waitingOnAssetLoad;
+    protected internal readonly ILogger? Logger;
     internal readonly ILoggerFactory? Factory;
+    private readonly List<UnturnedUIElement> _elements;
+    private readonly string? _basePath;
 
     /// <summary>
     /// If the current configuration includes a valid asset or 16-bit Id.
@@ -89,30 +93,39 @@ public class UnturnedUI : IDisposable
     /// Key used to identify a single instance of this UI. -1 if this UI is keyless.
     /// </summary>
     public short Key { get; set; }
-    private UnturnedUI(object logger, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+    private UnturnedUI(object? logger, bool hasElements, bool keyless, bool reliable, bool debugLogging)
     {
         Type type = GetType();
-        DebugLogging = debugLogging;
-        HasElements = hasElements;
+
+        bool isUnturnedUIObject = type == typeof(UnturnedUI);
+
+        HasElements = hasElements && !isUnturnedUIObject;
         List<UnturnedUIElement> elements = new List<UnturnedUIElement>(hasElements ? 16 : 0);
         Elements = elements.AsReadOnly();
+        _elements = elements;
         Key = keyless ? (short)-1 : UnturnedUIKeyPool.Claim();
         IsReliable = reliable;
         IsSendReliable = reliable;
 
         _name = type.Name;
-        if (logger is ILoggerFactory factory)
+        if (logger is not null and not NullLoggerFactory and not NullLogger)
         {
-            Logger = factory.CreateLogger(_name);
-            Factory = factory;
-        }
-        else
-        {
-            Logger = (ILogger)logger;
+            DebugLogging = debugLogging;
+            if (logger is ILoggerFactory factory)
+            {
+                Logger = factory.CreateLogger(_name);
+                Factory = factory;
+            }
+            else
+            {
+                Logger = (ILogger)logger;
+            }
+
+            DebugLogging &= Logger != null;
         }
 
-        string? basePath = null;
-        if (Attribute.GetCustomAttribute(type, typeof(UnturnedUIAttribute)) is UnturnedUIAttribute attr)
+        _basePath = null;
+        if (!isUnturnedUIObject && Attribute.GetCustomAttribute(type, typeof(UnturnedUIAttribute)) is UnturnedUIAttribute attr)
         {
             if (!string.IsNullOrEmpty(attr.DisplayName))
                 Name = attr.DisplayName;
@@ -120,32 +133,20 @@ public class UnturnedUI : IDisposable
                 IsReliable = attr.Reliable;
             if (attr.HasHasElements)
                 HasElements = attr.HasElements;
-            basePath = attr.BasePath;
+            _basePath = attr.BasePath;
         }
 
-        if (!hasElements)
+        if (!HasElements)
             return;
 
-        UIElementDiscovery.LinkAllElements(Logger, this, elements);
+        UIElementDiscovery.LinkAllElements(this, elements);
 
         for (int i = 0; i < elements.Count; ++i)
         {
-            UnturnedUIElement element = elements[i];
-            ReadOnlySpan<char> pathSpan = element.Path;
-            if (!string.IsNullOrEmpty(basePath))
-            {
-                element.Path = UnturnedUIUtility.ResolveRelativePath(basePath, pathSpan, assumeRelative: true);
-            }
-            else if (pathSpan.Length > 0)
-            {
-                element.Path = UnturnedUIUtility.ResolveRelativePath(default, pathSpan);
-            }
-
-            element.RegisterOwner(this);
+            SetupRelativeElementPath(elements[i]);
         }
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public UnturnedUI(ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
         : this(GlobalLogger.Instance, defaultId, hasElements, keyless, reliable, debugLogging) { }
     public UnturnedUI(ILogger logger, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
@@ -159,7 +160,6 @@ public class UnturnedUI : IDisposable
         LoadFromConfig(defaultId);
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public UnturnedUI(Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
         : this(GlobalLogger.Instance, defaultGuid, hasElements, keyless, reliable, debugLogging) { }
     public UnturnedUI(ILogger logger, Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
@@ -173,7 +173,6 @@ public class UnturnedUI : IDisposable
         LoadFromConfig(defaultGuid);
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public UnturnedUI(IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
         : this(GlobalLogger.Instance, assetContainer, hasElements, keyless, reliable, debugLogging) { }
     public UnturnedUI(ILogger logger, IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
@@ -187,7 +186,6 @@ public class UnturnedUI : IDisposable
         LoadFromConfig(assetContainer);
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public UnturnedUI(EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
         : this(GlobalLogger.Instance, asset, hasElements, keyless, reliable, debugLogging) { }
     public UnturnedUI(ILogger logger, EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
@@ -326,6 +324,72 @@ public class UnturnedUI : IDisposable
                 _container = null;
                 LoadFromConfigIntl(false);
             });
+        }
+    }
+
+    /// <summary>
+    /// Register an element after the base constructor ran.
+    /// </summary>
+    /// <remarks>This is not thread-safe and would usually only be ran in the child's constructor.</remarks>
+    /// <exception cref="ArgumentNullException"/>
+    protected void LateRegisterElement(UnturnedUIElement element)
+    {
+        if (element == null)
+            throw new ArgumentNullException(nameof(element));
+
+        if (_elements.Contains(element))
+            return;
+
+        _elements.Add(element);
+        SetupRelativeElementPath(element);
+        element.RegisterOwnerIntl(this, Factory);
+
+        if (DebugLogging)
+            Logger.LogInformation("[{0}] Late-registered 1 element of type {1}.", Name, Accessor.Formatter.Format(element.GetType()));
+    }
+
+    /// <summary>
+    /// Register an element, pattern/preset object, or list/array of the following after the base constructor ran.
+    /// </summary>
+    /// <remarks>This is not thread-safe and would usually only be ran in the child's constructor.</remarks>
+    /// <exception cref="ArgumentException"><paramref name="obj"/> is another <see cref="UnturnedUI"/>.</exception>
+    /// <exception cref="ArgumentNullException"/>
+    protected void LateRegisterElement(object obj)
+    {
+        if (obj is UnturnedUIElement uiElement)
+        {
+            LateRegisterElement(uiElement);
+            return;
+        }
+
+        if (obj is UnturnedUI)
+            throw new ArgumentException("Can not register another UI.", nameof(obj));
+
+        if (obj == null)
+            throw new ArgumentNullException(nameof(obj));
+
+        int depth = 1;
+        int pos = _elements.Count;
+        UIElementDiscovery.DiscoverElements(Factory, Logger, obj, _elements, ref depth, DebugLogging, this);
+        for (int i = pos; i < _elements.Count; ++i)
+        {
+            SetupRelativeElementPath(_elements[i]);
+        }
+
+        if (DebugLogging && pos != _elements.Count)
+            Logger.LogInformation("[{0}] Late-registered {1} element(s) from {2}.", Name, _elements.Count - pos, Accessor.Formatter.Format(obj.GetType()));
+    }
+
+    private void SetupRelativeElementPath(UnturnedUIElement element)
+    {
+        ReadOnlySpan<char> pathSpan = element.Path;
+        if (!string.IsNullOrEmpty(_basePath))
+        {
+            element.Path = UnturnedUIUtility.ResolveRelativePath(_basePath, pathSpan, assumeRelative: true);
+        }
+        else if (pathSpan.Length > 0)
+        {
+            element.Path = UnturnedUIUtility.ResolveRelativePath(default, pathSpan);
         }
     }
     private void LoadFromConfigIntl(bool assetsJustLoaded)
@@ -893,7 +957,7 @@ public class UnturnedUI : IDisposable
         {
             UnturnedUIElement element = elements[i];
             src.RemoveElement(element);
-            element.RegisterOwner(null);
+            element.DeregisterOwnerIntl();
             if (element is IDisposable disp)
                 disp.Dispose();
         }

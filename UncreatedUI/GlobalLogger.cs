@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Uncreated.Framework.UI;
 
@@ -8,15 +8,14 @@ namespace Uncreated.Framework.UI;
 /// </summary>
 public class GlobalLogger
 {
-    private static ILogger? _logger;
+    private static ILoggerFactory? _logger;
 
     /// <summary>
     /// Global logger used by default by all UI elements.
     /// </summary>
-    /// <exception cref="InvalidOperationException"><see cref="Instance"/> not initialized.</exception>
-    public static ILogger Instance
+    public static ILoggerFactory Instance
     {
-        get => _logger ?? throw new InvalidOperationException("Global logger has not been set.");
+        get => _logger ?? NullLoggerFactory.Instance;
         set => _logger = value;
     }
 }

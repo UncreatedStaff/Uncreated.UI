@@ -20,5 +20,7 @@ public interface IUnturnedUIData
     /// <summary>
     /// The UI element that the data is linked to.
     /// </summary>
+#nullable disable
     UnturnedUIElement Element { get; }
+#nullable restore
 }

@@ -1,6 +1,5 @@
 ﻿using DanielWillett.ReflectionTools;
-using Microsoft.Extensions.Logging;
-using System;
+using Uncreated.Framework.UI.Patterns;
 
 namespace Uncreated.Framework.UI.Presets;
 
@@ -10,9 +9,11 @@ namespace Uncreated.Framework.UI.Presets;
 public class LabeledButton : ILabeledButton
 {
     /// <inheritdoc />
+    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedButton Button { get; }
 
     /// <inheritdoc />
+    [Pattern("Label", Mode = FormatMode.Format)]
     public UnturnedLabel Label { get; }
 
     /// <inheritdoc />
@@ -22,26 +23,23 @@ public class LabeledButton : ILabeledButton
         remove => Button.OnClicked -= value;
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public LabeledButton(string path) : this(GlobalLogger.Instance, path, path + "Label") { }
-    public LabeledButton(ILoggerFactory factory, string path) : this(factory, path, path + "Label") { }
-    public LabeledButton(ILogger logger, string path) : this(logger, path, path + "Label") { }
+    public LabeledButton(string path) : this(path, path + "Label") { }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public LabeledButton(string buttonPath, string? labelPath) : this(GlobalLogger.Instance, buttonPath, labelPath) { }
-    public LabeledButton(ILoggerFactory factory, string buttonPath, string? labelPath)
+    public LabeledButton(string buttonPath, string? labelPath)
     {
-        Button = new UnturnedButton(factory, buttonPath);
-        Label = new UnturnedLabel(factory, UnturnedUIUtility.GetPresetValue(buttonPath, labelPath, "Label"));
-    }
-    public LabeledButton(ILogger logger, string buttonPath, string? labelPath)
-    {
-        Button = new UnturnedButton(logger, buttonPath);
-        Label = new UnturnedLabel(logger, UnturnedUIUtility.GetPresetValue(buttonPath, labelPath, "Label"));
+        Button = new UnturnedButton(buttonPath);
+        Label = new UnturnedLabel(UnturnedUIUtility.GetPresetValue(buttonPath, labelPath, "Label"));
     }
 
     [Ignore]
     UnturnedUIElement IElement.Element => Button;
+
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return "Labeled Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+    }
 }
 
 /// <summary>
@@ -50,9 +48,11 @@ public class LabeledButton : ILabeledButton
 public class StateButton : IButton, IStateElement
 {
     /// <inheritdoc />
+    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedButton Button { get; }
 
     /// <inheritdoc />
+    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
     /// <inheritdoc />
@@ -62,26 +62,22 @@ public class StateButton : IButton, IStateElement
         remove => Button.OnClicked -= value;
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public StateButton(string path) : this(GlobalLogger.Instance, path, path + "State") { }
-    public StateButton(ILogger logger, string path) : this(logger, path, path + "State") { }
-    public StateButton(ILoggerFactory factory, string path) : this(factory, path, path + "State") { }
+    public StateButton(string path) : this(path, path + "State") { }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public StateButton(string buttonPath, string? statePath) : this(GlobalLogger.Instance, buttonPath, statePath) { }
-    public StateButton(ILogger logger, string buttonPath, string? statePath)
+    public StateButton(string buttonPath, string? statePath)
     {
-        Button = new UnturnedButton(logger, buttonPath);
-        State = new UnturnedUIElement(logger, UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
-    }
-    public StateButton(ILoggerFactory factory, string buttonPath, string? statePath)
-    {
-        Button = new UnturnedButton(factory, buttonPath);
-        State = new UnturnedUIElement(factory, UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
+        Button = new UnturnedButton(buttonPath);
+        State = new UnturnedUIElement(UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
     }
 
     [Ignore]
     UnturnedUIElement IElement.Element => Button;
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return "State Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+    }
 }
 
 /// <summary>
@@ -90,9 +86,11 @@ public class StateButton : IButton, IStateElement
 public class RightClickableButton : IRightClickableButton
 {
     /// <inheritdoc />
+    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedButton Button { get; }
 
     /// <inheritdoc />
+    [Pattern("RightClickListener", Mode = FormatMode.Format)]
     public UnturnedButton RightClickListener { get; }
 
     /// <inheritdoc />
@@ -109,27 +107,23 @@ public class RightClickableButton : IRightClickableButton
         remove => RightClickListener.OnClicked -= value;
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public RightClickableButton(string path) : this(GlobalLogger.Instance, path, path + "RightClickListener") { }
-    public RightClickableButton(ILogger logger, string path) : this(logger, path, path + "RightClickListener") { }
-    public RightClickableButton(ILoggerFactory factory, string path) : this(factory, path, path + "RightClickListener") { }
+    public RightClickableButton(string path) : this(path, path + "RightClickListener") { }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public RightClickableButton(string buttonPath, string? rightClickListenerButtonPath)
-        : this(GlobalLogger.Instance, buttonPath, rightClickListenerButtonPath) { }
-    public RightClickableButton(ILogger logger, string buttonPath, string? rightClickListenerButtonPath)
     {
-        Button = new UnturnedButton(logger, buttonPath);
-        RightClickListener = new UnturnedButton(logger, UnturnedUIUtility.GetPresetValue(buttonPath, rightClickListenerButtonPath, "RightClickListener"));
-    }
-    public RightClickableButton(ILoggerFactory factory, string buttonPath, string? rightClickListenerButtonPath)
-    {
-        Button = new UnturnedButton(factory, buttonPath);
-        RightClickListener = new UnturnedButton(factory, UnturnedUIUtility.GetPresetValue(buttonPath, rightClickListenerButtonPath, "RightClickListener"));
+        Button = new UnturnedButton(buttonPath);
+        RightClickListener = new UnturnedButton(UnturnedUIUtility.GetPresetValue(buttonPath, rightClickListenerButtonPath, "RightClickListener"));
     }
 
     [Ignore]
     UnturnedUIElement IElement.Element => Button;
+
+
+    /// <inheritdoc />
+    public override string ToString()
+    {
+        return "Right-Clickable Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+    }
 }
 
 /// <summary>
@@ -138,31 +132,24 @@ public class RightClickableButton : IRightClickableButton
 public class LabeledStateButton : LabeledButton, IStateElement
 {
     /// <inheritdoc />
+    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public LabeledStateButton(string path) : this(GlobalLogger.Instance, path) { }
-    public LabeledStateButton(ILogger logger, string path) : base(logger, path)
+    public LabeledStateButton(string path) : base(path)
     {
-        State = new UnturnedUIElement(logger, path + "State");
-    }
-    public LabeledStateButton(ILoggerFactory factory, string path) : base(factory, path)
-    {
-        State = new UnturnedUIElement(factory, path + "State");
+        State = new UnturnedUIElement(path + "State");
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public LabeledStateButton(string buttonPath, string? labelPath, string? statePath)
-        : this(GlobalLogger.Instance, buttonPath, labelPath, statePath) { }
-    public LabeledStateButton(ILogger logger, string buttonPath, string? labelPath, string? statePath)
-        : base(logger, buttonPath, labelPath)
+        : base(buttonPath, labelPath)
     {
-        State = new UnturnedUIElement(logger, UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
+        State = new UnturnedUIElement(UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
     }
-    public LabeledStateButton(ILoggerFactory factory, string buttonPath, string? labelPath, string? statePath)
-        : base(factory, buttonPath, labelPath)
+
+    /// <inheritdoc />
+    public override string ToString()
     {
-        State = new UnturnedUIElement(factory, UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
+        return "Labeled State Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
     }
 }
 
@@ -172,31 +159,23 @@ public class LabeledStateButton : LabeledButton, IStateElement
 public class RightClickableStateButton : RightClickableButton, IStateElement
 {
     /// <inheritdoc />
+    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public RightClickableStateButton(string path) : this(GlobalLogger.Instance, path) { }
-    public RightClickableStateButton(ILogger logger, string path) : base(logger, path)
+    public RightClickableStateButton(string path) : base(path)
     {
-        State = new UnturnedUIElement(logger, path + "State");
-    }
-    public RightClickableStateButton(ILoggerFactory factory, string path) : base(factory, path)
-    {
-        State = new UnturnedUIElement(factory, path + "State");
+        State = new UnturnedUIElement(path + "State");
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public RightClickableStateButton(string buttonPath, string? rightClickListenerButtonPath, string? statePath)
-        : this(GlobalLogger.Instance, buttonPath, rightClickListenerButtonPath, statePath) { }
-    public RightClickableStateButton(ILogger logger, string buttonPath, string? rightClickListenerButtonPath, string? statePath)
-        : base(logger, buttonPath, rightClickListenerButtonPath)
+    public RightClickableStateButton(string buttonPath, string? rightClickListenerButtonPath, string? statePath) : base(buttonPath, rightClickListenerButtonPath)
     {
-        State = new UnturnedUIElement(logger, UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
+        State = new UnturnedUIElement(UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
     }
-    public RightClickableStateButton(ILoggerFactory factory, string buttonPath, string? rightClickListenerButtonPath, string? statePath)
-        : base(factory, buttonPath, rightClickListenerButtonPath)
+
+    /// <inheritdoc />
+    public override string ToString()
     {
-        State = new UnturnedUIElement(factory, UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
+        return "Right-Clickable State Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
     }
 }
 
@@ -206,31 +185,23 @@ public class RightClickableStateButton : RightClickableButton, IStateElement
 public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
 {
     /// <inheritdoc />
+    [Pattern("Label", Mode = FormatMode.Format)]
     public UnturnedLabel Label { get; }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public LabeledRightClickableButton(string path) : this(GlobalLogger.Instance, path) { }
-    public LabeledRightClickableButton(ILogger logger, string path) : base(logger, path)
+    public LabeledRightClickableButton(string path) : base(path)
     {
-        Label = new UnturnedLabel(logger, path + "Label");
-    }
-    public LabeledRightClickableButton(ILoggerFactory factory, string path) : base(factory, path)
-    {
-        Label = new UnturnedLabel(factory, path + "Label");
+        Label = new UnturnedLabel(path + "Label");
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public LabeledRightClickableButton(string buttonPath, string? labelPath, string? rightClickListenerButtonPath)
-        : this(GlobalLogger.Instance, buttonPath, labelPath, rightClickListenerButtonPath) { }
-    public LabeledRightClickableButton(ILogger logger, string buttonPath, string? labelPath, string? rightClickListenerButtonPath)
-        : base(logger, buttonPath, rightClickListenerButtonPath)
+    public LabeledRightClickableButton(string buttonPath, string? labelPath, string? rightClickListenerButtonPath) : base(buttonPath, rightClickListenerButtonPath)
     {
-        Label = new UnturnedLabel(logger, UnturnedUIUtility.GetPresetValue(buttonPath, labelPath, "Label"));
+        Label = new UnturnedLabel(UnturnedUIUtility.GetPresetValue(buttonPath, labelPath, "Label"));
     }
-    public LabeledRightClickableButton(ILoggerFactory factory, string buttonPath, string? labelPath, string? rightClickListenerButtonPath)
-        : base(factory, buttonPath, rightClickListenerButtonPath)
+
+    /// <inheritdoc />
+    public override string ToString()
     {
-        Label = new UnturnedLabel(factory, UnturnedUIUtility.GetPresetValue(buttonPath, labelPath, "Label"));
+        return "Labeled Right-Clickable Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
     }
 }
 
@@ -240,30 +211,23 @@ public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
 public class LabeledRightClickableStateButton : LabeledRightClickableButton, IStateElement
 {
     /// <inheritdoc />
+    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public LabeledRightClickableStateButton(string path) : this(GlobalLogger.Instance, path) { }
-    public LabeledRightClickableStateButton(ILogger logger, string path) : base(logger, path)
+    public LabeledRightClickableStateButton(string path) : base(path)
     {
-        State = new UnturnedUIElement(logger, path + "State");
-    }
-    public LabeledRightClickableStateButton(ILoggerFactory factory, string path) : base(factory, path)
-    {
-        State = new UnturnedUIElement(factory, path + "State");
+        State = new UnturnedUIElement(path + "State");
     }
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
     public LabeledRightClickableStateButton(string buttonPath, string? labelPath, string? rightClickListenerButtonPath, string? statePath)
-        : this(GlobalLogger.Instance, buttonPath, labelPath, rightClickListenerButtonPath, statePath) { }
-    public LabeledRightClickableStateButton(ILogger logger, string buttonPath, string? labelPath, string? rightClickListenerButtonPath, string? statePath)
-        : base(logger, buttonPath, labelPath, rightClickListenerButtonPath)
+        : base(buttonPath, labelPath, rightClickListenerButtonPath)
     {
-        State = new UnturnedUIElement(logger, UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
+        State = new UnturnedUIElement(UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
     }
-    public LabeledRightClickableStateButton(ILoggerFactory factory, string buttonPath, string? labelPath, string? rightClickListenerButtonPath, string? statePath)
-        : base(factory, buttonPath, labelPath, rightClickListenerButtonPath)
+
+    /// <inheritdoc />
+    public override string ToString()
     {
-        State = new UnturnedUIElement(factory, UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
+        return "Labeled Right-Clickable State Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
     }
 }

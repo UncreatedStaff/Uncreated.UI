@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -16,12 +17,8 @@ namespace Uncreated.Framework.UI;
 public class UnturnedUIElement : IElement
 {
     private UnturnedUI? _owner;
-
-    /// <summary>
-    /// Logger used for debug or error logging for this element.
-    /// </summary>
-    protected internal ILogger Logger;
-
+    protected internal ILogger? Logger;
+    
     /// <summary>
     /// Display name of this element type for <see cref="ToString"/>.
     /// </summary>
@@ -50,28 +47,12 @@ public class UnturnedUIElement : IElement
     /// <summary>
     /// Create a new <see cref="UnturnedUIElement"/> with the given name.
     /// </summary>
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public UnturnedUIElement(string path) : this(GlobalLogger.Instance, path) { }
+    public UnturnedUIElement(string path)
+    {
+        Path = path;
+        Name = UnturnedUIUtility.GetNameFromPathOrName(path.AsMemory());
+    }
     
-    /// <summary>
-    /// Create a new <see cref="UnturnedUIElement"/> with the given display name and logger factory.
-    /// </summary>
-    public UnturnedUIElement(ILoggerFactory logFactory, string path)
-    {
-        Path = path;
-        Name = UnturnedUIUtility.GetNameFromPathOrName(path.AsMemory());
-        Logger = logFactory.CreateLogger(path);
-    }
-
-    /// <summary>
-    /// Create a new <see cref="UnturnedUIElement"/> with the given display name and logger.
-    /// </summary>
-    public UnturnedUIElement(ILogger logger, string path)
-    {
-        Path = path;
-        Name = UnturnedUIUtility.GetNameFromPathOrName(path.AsMemory());
-        Logger = logger;
-    }
 
     /// <summary>
     /// Throw an error if the owner of this element isn't set.
@@ -86,12 +67,27 @@ public class UnturnedUIElement : IElement
             throw new InvalidOperationException("Owner's key is set to -1.");
     }
 
+    internal void RegisterOwnerIntl(UnturnedUI? owner, ILoggerFactory? loggerFactory) => RegisterOwner(owner, loggerFactory);
+
     /// <summary>
     /// Register the owner of this element.
     /// </summary>
-    protected internal virtual void RegisterOwner(UnturnedUI? owner)
+    protected virtual void RegisterOwner(UnturnedUI? owner, ILoggerFactory? loggerFactory)
     {
         _owner = owner;
+        if (owner is { DebugLogging: true })
+            Logger = loggerFactory?.CreateLogger(Path) ?? owner.Logger;
+    }
+
+    internal void DeregisterOwnerIntl() => DeregisterOwner();
+
+    /// <summary>
+    /// Deregister the owner of this element.
+    /// </summary>
+    protected virtual void DeregisterOwner()
+    {
+        _owner = null;
+        Logger = null;
     }
 
     /// <summary>
@@ -171,5 +167,6 @@ public class UnturnedUIElement : IElement
             : ElementTypeDisplayName + " [" + Path + "] (" + _owner.Name + ")";
     }
 
+    [Ignore]
     UnturnedUIElement IElement.Element => this;
 }

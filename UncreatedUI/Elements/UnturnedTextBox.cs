@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -16,6 +17,7 @@ namespace Uncreated.Framework.UI;
 public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
 {
     private int _disposed;
+    internal UnturnedTextBox? Duplicate;
 
     /// <summary>
     /// Called when text is committed by the user.
@@ -31,16 +33,11 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
     /// <remarks>Default: <see langword="false"/>.</remarks>
     public bool UseData { get; set; } = false;
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public UnturnedTextBox(string path) : base(GlobalLogger.Instance, path) { }
-    public UnturnedTextBox(ILogger logger, string path) : base(logger, path)
+    public UnturnedTextBox(string path) : base(path)
     {
         EffectManagerListener.RegisterTextBox(Name.ToString(), this);
     }
-    public UnturnedTextBox(ILoggerFactory factory, string path) : base(factory, path)
-    {
-        EffectManagerListener.RegisterTextBox(Name.ToString(), this);
-    }
+
     internal void InvokeOnTextCommitted(Player player, string text)
     {
         if (UseData)
@@ -286,6 +283,16 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
             data.Text = text;
         }
     }
+    protected override void RegisterOwner(UnturnedUI? owner, ILoggerFactory? loggerFactory)
+    {
+        base.RegisterOwner(owner, loggerFactory);
+
+        if (Duplicate == null)
+            return;
+
+        Logger?.LogWarning("[{0}] [{1}] {{{2}}} There is already a text box with name \"{3}\", replacing. Multiple text boxes can not listen to events with the same name. Old text box: \"{4}\". This text box: \"{5}\".", Owner.Name, Name, Owner.Key, Name, Duplicate.Path, Path);
+        Duplicate = null;
+    }
 
     /// <inheritdoc />
     void IDisposable.Dispose()
@@ -296,6 +303,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
         EffectManagerListener.DeregisterTextBox(Name.ToString());
     }
 
+    [Ignore]
     UnturnedTextBox ITextBox.TextBox => this;
 }
 

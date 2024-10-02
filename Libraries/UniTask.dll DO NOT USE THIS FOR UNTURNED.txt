@@ -1,0 +1,5 @@
+This is a very old version of UniTask built so this library has no issues referencing newer versions.
+
+It also has no way to be set up for Unity so it won't work.
+
+Don't use it.

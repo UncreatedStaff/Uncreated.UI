@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -15,10 +16,7 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
     /// <inheritdoc />
     protected override string ElementTypeDisplayName => "Label";
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public UnturnedLabel(string path) : this(GlobalLogger.Instance, path) { }
-    public UnturnedLabel(ILogger logger, string path) : base(logger, path) { }
-    public UnturnedLabel(ILoggerFactory factory, string path) : base(factory, path) { }
+    public UnturnedLabel(string path) : base(path) { }
 
     /// <summary>
     /// Set the text to be displayed on this label.
@@ -91,5 +89,6 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
         }
     }
 
+    [Ignore]
     UnturnedLabel ILabel.Label => this;
 }

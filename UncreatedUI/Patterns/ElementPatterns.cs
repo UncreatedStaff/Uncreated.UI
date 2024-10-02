@@ -1,5 +1,4 @@
 ﻿using DanielWillett.ReflectionTools;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using Uncreated.Framework.UI.Presets;
@@ -141,13 +140,7 @@ public static class ElementPatterns
     /// <summary>
     /// Create an array of elements from a format string.
     /// </summary>
-    public static T[] CreateArray<T>(string format, int start, int length = -1, int to = -1)
-        => CreateArray<T>(GlobalLogger.Instance, format, start, length, to);
-
-    /// <summary>
-    /// Create an array of elements from a format string.
-    /// </summary>
-    public static T[] CreateArray<T>(ILogger logger, string pathFormat, int start, int length = -1, int to = -1)
+    public static T[] CreateArray<T>(string pathFormat, int start, int length = -1, int to = -1)
     {
         length = UnturnedUIUtility.ResolveLength(start, length, to);
 
@@ -157,7 +150,7 @@ public static class ElementPatterns
         T[] rtnArray = new T[length];
         Type type = typeof(T);
 
-        if (TryInitializePrimitives(logger, type, rtnArray, pathFormat, start))
+        if (TryInitializePrimitives(type, rtnArray, pathFormat, start))
             return rtnArray;
 
         ReadOnlyMemory<char> fullName = pathFormat.AsMemory();
@@ -175,7 +168,7 @@ public static class ElementPatterns
 
         for (int i = 0; i < length; ++i)
         {
-            rtnArray[i] = (T)InitializeTypeInfo(logger, typeof(T), typeInfo, UnturnedUIUtility.QuickFormat(basePath, i + start, 0), UnturnedUIUtility.QuickFormat(baseName, i + start, 0), i + start);
+            rtnArray[i] = (T)InitializeTypeInfo(typeof(T), typeInfo, UnturnedUIUtility.QuickFormat(basePath, i + start, 0), UnturnedUIUtility.QuickFormat(baseName, i + start, 0), i + start);
         }
 
         return rtnArray;
@@ -186,17 +179,9 @@ public static class ElementPatterns
     /// </summary>
     public static T Create<T>(string path)
     {
-        return Create<T>(GlobalLogger.Instance, path);
-    }
-
-    /// <summary>
-    /// Create an array of elements from a format string.
-    /// </summary>
-    public static T Create<T>(ILogger logger, string path)
-    {
         Type type = typeof(T);
 
-        object? obj = TryInitializePrimitive(logger, type, path);
+        object? obj = TryInitializePrimitive(type, path);
         if (obj != null)
         {
             return (T)obj;
@@ -215,29 +200,29 @@ public static class ElementPatterns
             }
         }
 
-        return (T)InitializeTypeInfo(logger, typeof(T), typeInfo, basePath.Span, baseName.Span);
+        return (T)InitializeTypeInfo(typeof(T), typeInfo, basePath.Span, baseName.Span);
     }
     internal static bool IsPrimitive(Type checkedType)
     {
         return typeof(UnturnedUIElement) == checkedType || checkedType.IsSubclassOf(typeof(UnturnedUIElement));
     }
-    private static bool TryInitializePrimitives(ILogger logger, Type type, Array array, string format, int start)
+    private static bool TryInitializePrimitives(Type type, Array array, string format, int start)
     {
         if (!IsPrimitive(type))
             return false;
 
         for (int i = 0; i < array.Length; ++i)
         {
-            array.SetValue(Activator.CreateInstance(type, logger, UnturnedUIUtility.QuickFormat(format, i + start, 0)), i);
+            array.SetValue(Activator.CreateInstance(type, UnturnedUIUtility.QuickFormat(format, i + start, 0)), i);
         }
 
         return true;
     }
-    private static object? TryInitializePrimitive(ILogger logger, Type type, string path)
+    private static object? TryInitializePrimitive(Type type, string path)
     {
         return !IsPrimitive(type)
             ? null
-            : Activator.CreateInstance(type, logger, path);
+            : Activator.CreateInstance(type, path);
     }
     private static unsafe void ResolveVariablePath(PatternVariableInfo variable, ref ReadOnlySpan<char> basePath, ref ReadOnlySpan<char> baseName, int index = -1)
     {
@@ -333,7 +318,7 @@ public static class ElementPatterns
         public string Pattern;
     }
 
-    private static object InitializeTypeInfo(ILogger logger, Type rootType, PatternTypeInfo typeInfo, ReadOnlySpan<char> basePath, ReadOnlySpan<char> baseName, int index = -1)
+    private static object InitializeTypeInfo(Type rootType, PatternTypeInfo typeInfo, ReadOnlySpan<char> basePath, ReadOnlySpan<char> baseName, int index = -1)
     {
         object obj = Activator.CreateInstance(typeInfo.Type);
         foreach (PatternVariableInfo variable in typeInfo.Variables)
@@ -347,13 +332,13 @@ public static class ElementPatterns
                 if (IsPrimitive(variable.ElementType))
                 {
                     string format = UnturnedUIUtility.CombinePath(baseVarPath, baseVarName);
-                    TryInitializePrimitives(logger, variable.ElementType, array, format, variable.ArrayStart);
+                    TryInitializePrimitives(variable.ElementType, array, format, variable.ArrayStart);
                 }
                 else
                 {
                     for (int i = 0; i < array.Length; ++i)
                     {
-                        array.SetValue(InitializeTypeInfo(logger, rootType, variable.NestedType!, UnturnedUIUtility.QuickFormat(baseVarPath, i + variable.ArrayStart, 0), UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0), i + variable.ArrayStart), i);
+                        array.SetValue(InitializeTypeInfo(rootType, variable.NestedType!, UnturnedUIUtility.QuickFormat(baseVarPath, i + variable.ArrayStart, 0), UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0), i + variable.ArrayStart), i);
                     }
                 }
                 variable.Variable.SetValue(obj, array);
@@ -364,11 +349,11 @@ public static class ElementPatterns
 
             if (variable.NestedType != null)
             {
-                variable.Variable.SetValue(obj, InitializeTypeInfo(logger, rootType, variable.NestedType, baseVarPath, baseVarName));
+                variable.Variable.SetValue(obj, InitializeTypeInfo(rootType, variable.NestedType, baseVarPath, baseVarName));
             }
             else
             {
-                object? prim = TryInitializePrimitive(logger, variable.MemberType, UnturnedUIUtility.CombinePath(baseVarPath, baseVarName));
+                object? prim = TryInitializePrimitive(variable.MemberType, UnturnedUIUtility.CombinePath(baseVarPath, baseVarName));
                 if (prim == null)
                     throw new InvalidOperationException($"Failed to initialize type {Accessor.ExceptionFormatter.Format(typeInfo.Type)} when creating {Accessor.ExceptionFormatter.Format(rootType)}.");
 

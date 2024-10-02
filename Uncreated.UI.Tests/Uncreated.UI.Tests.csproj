@@ -26,6 +26,9 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>C:\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="com.rlabrecque.steamworks.net">
+      <HintPath>C:\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
+    </Reference>
     <Reference Include="SDG.NetTransport">
       <HintPath>C:\SteamCMD\steamapps\common\U3DS\Unturned_Data\Managed\SDG.NetTransport.dll</HintPath>
     </Reference>

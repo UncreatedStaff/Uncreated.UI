@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using SDG.Unturned;
 using System;
 using System.Collections.Generic;
@@ -112,7 +111,7 @@ internal static class EffectManagerListener
 
         if (Buttons.TryGetValue(name, out UnturnedButton? oldButton))
         {
-            button.Logger.LogWarning("There is already a button with name \"{0}\": {1}.", name, oldButton.Path);
+            button.Duplicate = oldButton;
             Buttons[name] = button;
         }
         else
@@ -130,7 +129,7 @@ internal static class EffectManagerListener
 
         if (TextBoxes.TryGetValue(name, out UnturnedTextBox? oldTextBox))
         {
-            textBox.Logger.LogWarning("There is already a text box with name \"{0}\": {1}.", name, oldTextBox.Path);
+            textBox.Duplicate = oldTextBox;
             TextBoxes[name] = textBox;
         }
         else

@@ -2,8 +2,9 @@
 using SDG.Unturned;
 using System;
 using System.Security;
+using Steamworks;
 using Uncreated.Framework.UI;
-using Uncreated.Framework.UI.Patterns;
+using Uncreated.Framework.UI.Data;
 
 namespace Uncreated.UI.Tests;
 
@@ -28,11 +29,32 @@ internal class Program
         }
 
         ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
-        GlobalLogger.Instance = factory.CreateLogger<Program>();
+        GlobalLogger.Instance = factory;
+
+        ILogger<Program> logger = factory.CreateLogger<Program>();
 
         TestUI ui = new TestUI();
 
-        GlobalLogger.Instance.LogInformation("Done");
+        CSteamID playerId = new CSteamID(1);
+        
+        if (UnturnedUIDataSource.GetData<TestData>(playerId, ui) is not { } data)
+        {
+            data = new TestData { Owner = ui, Player = playerId };
+            UnturnedUIDataSource.AddData(data);
+        }
+
+        data = UnturnedUIDataSource.GetData<TestData>(playerId, ui);
+
+        TestPopupUI popup = new TestPopupUI();
+
+        logger.LogInformation("Done");
         Console.ReadLine();
+    }
+
+    public class TestData : IUnturnedUIData
+    {
+        public required CSteamID Player { get; init; }
+        public required UnturnedUI Owner { get; init; }
+        public UnturnedUIElement? Element => null;
     }
 }

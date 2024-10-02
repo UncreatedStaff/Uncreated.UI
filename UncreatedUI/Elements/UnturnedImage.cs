@@ -4,6 +4,7 @@ using SDG.NetTransport;
 using SDG.Unturned;
 using System;
 using System.Threading;
+using DanielWillett.ReflectionTools;
 using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI;
@@ -21,10 +22,7 @@ public class UnturnedImage : UnturnedUIElement, IImage
     /// <inheritdoc />
     protected override string ElementTypeDisplayName => "Image";
 
-    /// <exception cref="InvalidOperationException"><see cref="GlobalLogger.Instance"/> not initialized.</exception>
-    public UnturnedImage(string path) : this(GlobalLogger.Instance, path) { }
-    public UnturnedImage(ILogger logger, string path) : base(logger, path) { }
-    public UnturnedImage(ILoggerFactory factory, string path) : base(factory, path) { }
+    public UnturnedImage(string path) : base(path) { }
 
     /// <summary>
     /// Set the URL to the image displayed.
@@ -101,5 +99,6 @@ public class UnturnedImage : UnturnedUIElement, IImage
         }
     }
 
+    [Ignore]
     UnturnedImage IImage.Image => this;
 }
