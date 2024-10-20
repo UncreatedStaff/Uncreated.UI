@@ -4,7 +4,9 @@ using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,6 +21,12 @@ namespace Uncreated.Framework.UI;
 /// </summary>
 public class UnturnedUI : IDisposable
 {
+    private static class StaticKeys
+    {
+        public static readonly ConcurrentDictionary<Type, short> StaticKeysDictIntl = new ConcurrentDictionary<Type, short>();
+        static StaticKeys() { }
+    }
+
     private IAssetContainer? _container;
     private string _name;
     private int _disposed;
@@ -95,8 +103,9 @@ public class UnturnedUI : IDisposable
     /// Key used to identify a single instance of this UI. -1 if this UI is keyless.
     /// </summary>
     public short Key { get; set; }
-    private UnturnedUI(object? logger, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+    private UnturnedUI(object? logger, bool hasElements, bool keyless, bool reliable, bool debugLogging, bool staticKey)
     {
+        staticKey &= !keyless;
         Type type = GetType();
 
         bool isUnturnedUIObject = type == typeof(UnturnedUI);
@@ -105,7 +114,7 @@ public class UnturnedUI : IDisposable
         List<UnturnedUIElement> elements = new List<UnturnedUIElement>(hasElements ? 16 : 0);
         Elements = elements.AsReadOnly();
         _elements = elements;
-        Key = keyless ? (short)-1 : UnturnedUIKeyPool.Claim();
+        Key = keyless ? (short)-1 : (staticKey ? ClaimStaticKey(GetType()) : UnturnedUIKeyPool.Claim());
         IsReliable = reliable;
         IsSendReliable = reliable;
 
@@ -149,56 +158,133 @@ public class UnturnedUI : IDisposable
         }
     }
 
-    public UnturnedUI(ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(GlobalLogger.Instance, defaultId, hasElements, keyless, reliable, debugLogging) { }
-    public UnturnedUI(ILogger logger, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(GlobalLogger.Instance, defaultId, hasElements, keyless, reliable, debugLogging, staticKey) { }
+    public UnturnedUI(ILogger logger, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(defaultId);
     }
-    public UnturnedUI(ILoggerFactory factory, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(ILoggerFactory factory, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(defaultId);
     }
 
-    public UnturnedUI(Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(GlobalLogger.Instance, defaultGuid, hasElements, keyless, reliable, debugLogging) { }
-    public UnturnedUI(ILogger logger, Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(GlobalLogger.Instance, defaultGuid, hasElements, keyless, reliable, debugLogging, staticKey) { }
+    public UnturnedUI(ILogger logger, Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(defaultGuid);
     }
-    public UnturnedUI(ILoggerFactory factory, Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(ILoggerFactory factory, Guid defaultGuid, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(defaultGuid);
     }
 
-    public UnturnedUI(IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(GlobalLogger.Instance, assetContainer, hasElements, keyless, reliable, debugLogging) { }
-    public UnturnedUI(ILogger logger, IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(GlobalLogger.Instance, assetContainer, hasElements, keyless, reliable, debugLogging, staticKey) { }
+    public UnturnedUI(ILogger logger, IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(assetContainer);
     }
-    public UnturnedUI(ILoggerFactory factory, IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(ILoggerFactory factory, IAssetContainer assetContainer, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(assetContainer);
     }
 
-    public UnturnedUI(EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(GlobalLogger.Instance, asset, hasElements, keyless, reliable, debugLogging) { }
-    public UnturnedUI(ILogger logger, EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(GlobalLogger.Instance, asset, hasElements, keyless, reliable, debugLogging, staticKey) { }
+    public UnturnedUI(ILogger logger, EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(asset);
     }
-    public UnturnedUI(ILoggerFactory factory, EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false)
-        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging)
+    public UnturnedUI(ILoggerFactory factory, EffectAsset? asset, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(asset);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(ushort defaultId, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(GlobalLogger.Instance, defaultId, hasElements, keyless, reliable, debugLogging, false) { }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(ILogger logger, ushort defaultId, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, false)
+    {
+        LoadFromConfig(defaultId);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(ILoggerFactory factory, ushort defaultId, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, false)
+    {
+        LoadFromConfig(defaultId);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(Guid defaultGuid, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(GlobalLogger.Instance, defaultGuid, hasElements, keyless, reliable, debugLogging, false) { }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(ILogger logger, Guid defaultGuid, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, false)
+    {
+        LoadFromConfig(defaultGuid);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(ILoggerFactory factory, Guid defaultGuid, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, false)
+    {
+        LoadFromConfig(defaultGuid);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(IAssetContainer assetContainer, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(GlobalLogger.Instance, assetContainer, hasElements, keyless, reliable, debugLogging, false) { }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(ILogger logger, IAssetContainer assetContainer, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, false)
+    {
+        LoadFromConfig(assetContainer);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(ILoggerFactory factory, IAssetContainer assetContainer, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, false)
+    {
+        LoadFromConfig(assetContainer);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(EffectAsset? asset, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(GlobalLogger.Instance, asset, hasElements, keyless, reliable, debugLogging, false) { }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(ILogger logger, EffectAsset? asset, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, false)
+    {
+        LoadFromConfig(asset);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public UnturnedUI(ILoggerFactory factory, EffectAsset? asset, bool hasElements, bool keyless, bool reliable, bool debugLogging)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, false)
+    {
+        LoadFromConfig(asset);
+    }
+
+    private static short ClaimStaticKey(Type type)
+    {
+        return StaticKeys.StaticKeysDictIntl.GetOrAdd(type, static _ => UnturnedUIKeyPool.Claim());
     }
 
     /// <summary>
@@ -374,7 +460,7 @@ public class UnturnedUI : IDisposable
     }
 
     /// <summary>
-    /// Enumerate through all data linked to this UI <paramref name="owner"/>.
+    /// Enumerate through all data linked to this this UI.
     /// </summary>
     /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="IUnturnedUIDataSource.RequiresMainThread"/> is <see langword="true"/>.</exception>
     public IEnumerable<IUnturnedUIData> EnumerateData()

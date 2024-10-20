@@ -251,7 +251,7 @@ The ArrayPattern attribute can be used to create multiple nested pattern in a pa
 
 ```cs
 [ArrayPattern(1, To = 4)]
-[Pattern(Item_{0})]
+[Pattern("Item_{0}")]
 public ElementType[] Elements { get; }
 ```
 
