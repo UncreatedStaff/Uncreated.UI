@@ -27,6 +27,7 @@ public class TestUI : UnturnedUI
         LateRegisterElement(Elements);
     }
 
+    #region hide
     public class TestClass
     {
         // marking an element as Root will put all other objects below this one. Only one object can be a root.
@@ -116,6 +117,7 @@ public class TestUI : UnturnedUI
         [Pattern("ThisGoesBefore_", Mode = FormatMode.Prefix)]
         public UnturnedLabel LabelPrefix { get; set; }
     }
+    #endregion
 #nullable restore
 
     private void OnRootPressed(UnturnedButton button, Player player)

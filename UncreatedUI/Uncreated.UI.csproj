@@ -3,10 +3,10 @@
   <!-- Publish Settings -->
   <PropertyGroup>
 
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.0.1</VersionPrefix>
     <VersionSuffix></VersionSuffix>
 
-    <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
+    <PackageReleaseNotes>Added GetOrAddData functions to UnturnedUIDataSource and instance functions to UnturnedUI for interacting with UnturnedUIDataSource.</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
 

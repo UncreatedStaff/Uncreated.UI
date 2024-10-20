@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
+using Steamworks;
+using Uncreated.Framework.UI.Data;
 using Uncreated.Framework.UI.Reflection;
 
 namespace Uncreated.Framework.UI;
@@ -325,6 +327,59 @@ public class UnturnedUI : IDisposable
                 LoadFromConfigIntl(false);
             });
         }
+    }
+
+    /// <summary>
+    /// Add new UI data.
+    /// </summary>
+    /// <remarks>Thread-safe.</remarks>
+    /// <exception cref="InvalidOperationException"><paramref name="data"/> isn't made for this specific UI.</exception>
+    public void AddData(IUnturnedUIData data)
+    {
+        if (data.Element == null || data.Owner != this)
+            throw new InvalidOperationException("UnturnedUI data methods can only be used on data linked to this UI and no element.");
+
+        UnturnedUIDataSource.AddData(data);
+    }
+
+    /// <summary>
+    /// Get the data, if it exists, for a given <paramref name="player"/> and this UI, otheewise create and add it
+    /// </summary>
+    /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="IUnturnedUIDataSource.RequiresMainThread"/> is <see langword="true"/>.</exception>
+    public TData GetOrAddData<TData>(CSteamID player, Func<CSteamID, TData> func) where TData : class, IUnturnedUIData
+    {
+        IUnturnedUIDataSource instance = UnturnedUIDataSource.Instance;
+        if (instance.RequiresMainThread)
+            ThreadUtil.assertIsGameThread();
+
+        TData? data = instance.GetData<TData>(player, this);
+        if (data == null)
+        {
+            data = func(player);
+            if (data.Player.m_SteamID != player.m_SteamID || data.Element != null || data.Owner != this)
+                throw new InvalidOperationException("Created data does not store the same player and UI as expected.");
+            instance.AddData(data);
+        }
+
+        return data;
+    }
+
+    /// <summary>
+    /// Get the data, if it exists, for a given <paramref name="player"/> and this UI where the element is <see langword="null"/>.
+    /// </summary>
+    /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="IUnturnedUIDataSource.RequiresMainThread"/> is <see langword="true"/>.</exception>
+    public TData? GetData<TData>(CSteamID player) where TData : class, IUnturnedUIData
+    {
+        return UnturnedUIDataSource.GetData<TData>(player, this);
+    }
+
+    /// <summary>
+    /// Enumerate through all data linked to this UI <paramref name="owner"/>.
+    /// </summary>
+    /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="IUnturnedUIDataSource.RequiresMainThread"/> is <see langword="true"/>.</exception>
+    public IEnumerable<IUnturnedUIData> EnumerateData()
+    {
+        return UnturnedUIDataSource.EnumerateData(this);
     }
 
     /// <summary>

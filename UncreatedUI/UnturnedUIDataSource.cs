@@ -232,6 +232,48 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     }
 
     /// <summary>
+    /// Get the data, if it exists, for a given <paramref name="player"/> and <paramref name="element"/>, otheewise create and add it
+    /// </summary>
+    /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="IUnturnedUIDataSource.RequiresMainThread"/> is <see langword="true"/>.</exception>
+    public static TData GetOrAddData<TData>(CSteamID player, UnturnedUIElement element, Func<CSteamID, UnturnedUIElement, TData> func) where TData : class, IUnturnedUIData
+    {
+        if (_instance.RequiresMainThread)
+            ThreadUtil.assertIsGameThread();
+
+        TData? data = _instance.GetData<TData>(player, element);
+        if (data == null)
+        {
+            data = func(player, element);
+            if (data.Player.m_SteamID != player.m_SteamID || data.Element != element || data.Owner != element.Owner)
+                throw new InvalidOperationException("Created data does not store the same player and element as expected.");
+            _instance.AddData(data);
+        }
+
+        return data;
+    }
+
+    /// <summary>
+    /// Get the data, if it exists, for a given <paramref name="player"/> and <paramref name="ui"/>, otheewise create and add it
+    /// </summary>
+    /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="IUnturnedUIDataSource.RequiresMainThread"/> is <see langword="true"/>.</exception>
+    public static TData GetOrAddData<TData>(CSteamID player, UnturnedUI ui, Func<CSteamID, UnturnedUI, TData> func) where TData : class, IUnturnedUIData
+    {
+        if (_instance.RequiresMainThread)
+            ThreadUtil.assertIsGameThread();
+
+        TData? data = _instance.GetData<TData>(player, ui);
+        if (data == null)
+        {
+            data = func(player, ui);
+            if (data.Player.m_SteamID != player.m_SteamID || data.Element != null || data.Owner != ui)
+                throw new InvalidOperationException("Created data does not store the same player and UI as expected.");
+            _instance.AddData(data);
+        }
+
+        return data;
+    }
+
+    /// <summary>
     /// Get the data, if it exists, for a given <paramref name="player"/> and <paramref name="element"/>.
     /// </summary>
     /// <exception cref="NotSupportedException">Not ran on main thread if <see cref="IUnturnedUIDataSource.RequiresMainThread"/> is <see langword="true"/>.</exception>
