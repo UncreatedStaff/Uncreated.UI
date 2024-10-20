@@ -9,23 +9,42 @@ namespace Uncreated.UI.Tests;
 [UnturnedUI(BasePath = "Base")]
 public class TestUI : UnturnedUI
 {
-    public readonly UnturnedLabel Label;// = new UnturnedLabel("~/test/with/path");
-    public readonly TestGroup SingleGroup = ElementPatterns.Create<TestGroup>("./single/group/name");
-    public readonly TestGroup[] MultipleGroups = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}_group_{0}", 1, to: 3);
-    public readonly TestGroup[] MultipleGroups2 = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}", 1, to: 3);
-    public readonly NestedArray[] NestedArrayGroup = ElementPatterns.CreateArray<NestedArray>("no_path_{0}", 1, to: 8);
-    public readonly LabeledButton LabeledButton = new LabeledButton("~/test/path/1/btn", "./lbl");
+    //public readonly UnturnedLabel Label;// = new UnturnedLabel("~/test/with/path");
+    //public readonly TestGroup SingleGroup = ElementPatterns.Create<TestGroup>("./single/group/name");
+    //public readonly TestGroup[] MultipleGroups = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}_group_{0}", 1, to: 3);
+    //public readonly TestGroup[] MultipleGroups2 = ElementPatterns.CreateArray<TestGroup>("path/with/{0}/index/test_{1}", 1, to: 3);
+    //public readonly NestedArray[] NestedArrayGroup = ElementPatterns.CreateArray<NestedArray>("no_path_{0}", 1, to: 8);
+    //public readonly LabeledButton LabeledButton = new LabeledButton("~/test/path/1/btn", "./lbl");
 #nullable disable
-    public readonly FOBListElement[] FOBs = ElementPatterns.CreateArray<FOBListElement>("Canvas/FOB_Item_{0}", 0, to: 9);
-    public TestClass[] Elements { get; }
+    //public readonly FOBListElement[] FOBs = ElementPatterns.CreateArray<FOBListElement>("Canvas/FOB_Item_{0}", 0, to: 9);
+    //public TestClass[] Elements { get; }
+
+    public LabelTest[] PresetLabelTests = ElementPatterns.CreateArray<LabelTest>("A/B/C/Test_{0}_{1}_Value", 0, to: 2);
 
     public TestUI() : base(0, debugLogging: true)
     {
-        Elements = ElementPatterns.CreateArray<TestClass>("Test/{0}/Class_{1}", 1, to: 10);
-
-        LateRegisterElement(Label = new UnturnedLabel("test"));
-        LateRegisterElement(Elements);
+        //Elements = ElementPatterns.CreateArray<TestClass>("Test/{0}/Class_{1}", 1, to: 10);
+        //
+        //LateRegisterElement(Label = new UnturnedLabel("test"));
+        //LateRegisterElement(Elements);
     }
+
+    public class LabelTest
+    {
+        [Pattern("", CleanJoin = '_', Root = true)]
+        public UnturnedUIElement Root { get; set; }
+
+        [Pattern("ButtonNoArgs", Mode = FormatMode.Format)]
+        public LabeledRightClickableStateButton ButtonNoArgs { get; set; }
+
+        [Pattern("ButtonLessArgs", Mode = FormatMode.Format, PresetPaths = [ "./Label", "ButtonLessArgs/RClickListener", "../State" ])]
+        public LabeledRightClickableStateButton RelativeButtonLessArgs { get; set; }
+
+        [ArrayPattern(0, To = 3)]
+        [Pattern("Btn{0}", Mode = FormatMode.Format, PresetPaths = [ "./{0}_l", "ll/{0}_r", "../{0}_s"])]
+        public LabeledRightClickableStateButton[] ArrayTest { get; set; }
+    }
+
 
     #region hide
     public class TestClass

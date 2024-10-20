@@ -185,8 +185,6 @@ public void OnSomethingHappened(Player player)
 # Patterns
 Create your own data types and fill lists of them automatically using patterns.
 
-Currently only primitive types and other patterns are supported, none of the built-in presets can be used.
-
 ```cs
 public class ExampleUI : UnturnedUI
 {
@@ -209,6 +207,32 @@ public class ExampleUI : UnturnedUI
         // actual path PlayerList/Player_#/SteamID_#
         [Pattern("SteamID_{0}")]
         public UnturnedLabel SteamId { get; set; }
+    }
+}
+```
+
+## Using Presets
+Presets are types who's members are initialized from the constructor. See a list of built-in presets in the `Built in Types > Presets` section of this document.
+
+For a constructor to be considered, it must have only string parameters, such as: `StatePlaceholderTextBox(string path, string? placeholderPath, string? statePath)`.
+
+Any paths after the first parameter which start with `./` or `../` are expected to be taken as relative to the first parameter.
+```cs
+public class ExampleUI : UnturnedUI
+{
+    public PlayerListElement[] PlayerListElements { get; }
+        = ElementPatterns.CreateArray<PlayerListElement>("PlayerList/Player_{0}", 1, to: 10);
+        
+    public class PlayerListElement
+    {
+        // actual path PlayerList/Player_#
+        [Pattern(Root = true)]
+        public UnturnedUIElement Root { get; set; }
+
+        // actual button path PlayerList/Player_#/Name_#
+        // actual label path  PlayerList/Player_#/Name_#/Label
+        [Pattern("Name_{0}", PresetPaths = [ "./Label" ])]
+        public LabeledButton Name { get; set; }
     }
 }
 ```

@@ -1,6 +1,9 @@
 ﻿using DanielWillett.ReflectionTools;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Reflection;
 using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI.Patterns;
@@ -153,6 +156,9 @@ public static class ElementPatterns
         if (TryInitializePrimitives(type, rtnArray, pathFormat, start))
             return rtnArray;
 
+        if (TryInitializePresets(type, rtnArray, pathFormat, start))
+            return rtnArray;
+
         ReadOnlyMemory<char> fullName = pathFormat.AsMemory();
         ReadOnlySpan<char> baseName = UnturnedUIUtility.GetNameFromPathOrName(fullName).Span;
         ReadOnlySpan<char> basePath = UnturnedUIUtility.GetPathFromPathOrName(fullName).Span;
@@ -187,6 +193,10 @@ public static class ElementPatterns
             return (T)obj;
         }
 
+        obj = TryInitializePreset(type, path);
+        if (obj != null)
+            return (T)obj;
+
         ReadOnlyMemory<char> fullName = path.AsMemory();
         ReadOnlyMemory<char> baseName = UnturnedUIUtility.GetNameFromPathOrName(fullName);
         ReadOnlyMemory<char> basePath = UnturnedUIUtility.GetPathFromPathOrName(fullName);
@@ -202,10 +212,12 @@ public static class ElementPatterns
 
         return (T)InitializeTypeInfo(typeof(T), typeInfo, basePath.Span, baseName.Span);
     }
+
     internal static bool IsPrimitive(Type checkedType)
     {
         return typeof(UnturnedUIElement) == checkedType || checkedType.IsSubclassOf(typeof(UnturnedUIElement));
     }
+
     private static bool TryInitializePrimitives(Type type, Array array, string format, int start)
     {
         if (!IsPrimitive(type))
@@ -218,13 +230,77 @@ public static class ElementPatterns
 
         return true;
     }
+
     private static object? TryInitializePrimitive(Type type, string path)
     {
         return !IsPrimitive(type)
             ? null
             : Activator.CreateInstance(type, path);
     }
-    private static unsafe void ResolveVariablePath(PatternVariableInfo variable, ref ReadOnlySpan<char> basePath, ref ReadOnlySpan<char> baseName, int index = -1)
+
+    private static bool TryInitializePresets(Type type, Array array, string format, int start)
+    {
+        if (!TryGetPresetConstructor(type, 1, out ConstructorInfo? ctor, out object[]? parameters))
+            return false;
+
+        for (int i = 0; i < array.Length; ++i)
+        {
+            parameters[0] = UnturnedUIUtility.QuickFormat(format, i + start, 0);
+            array.SetValue(ctor.Invoke(parameters), i);
+        }
+
+        return true;
+    }
+    private static object? TryInitializePreset(Type type, string path)
+    {
+        if (!TryGetPresetConstructor(type, 1, out ConstructorInfo? ctor, out object[]? parameters))
+            return null;
+
+        parameters[0] = path;
+        return ctor.Invoke(parameters);
+    }
+
+    private static bool TryGetPresetConstructor(Type type, int numStrings, [MaybeNullWhen(false)] out ConstructorInfo constructorInfo, [MaybeNullWhen(false)] out object[] args)
+    {
+        ConstructorInfo[] ctors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
+
+        ConstructorInfo? minArgs = null;
+        int minArgsCt = 0;
+        for (int i = 0; i < ctors.Length; ++i)
+        {
+            ConstructorInfo ctor = ctors[i];
+            ParameterInfo[] parameters = ctor.GetParameters();
+
+            if (parameters.Length < numStrings || parameters.Any(x => x.ParameterType != typeof(string)))
+                continue;
+
+            if (parameters.Length == numStrings)
+            {
+                constructorInfo = ctor;
+                args = new object[parameters.Length];
+                return true;
+            }
+
+            if (minArgs == null || parameters.Length < minArgsCt)
+            {
+                minArgs = ctor;
+                minArgsCt = parameters.Length;
+            }
+        }
+
+        if (minArgs == null)
+        {
+            constructorInfo = null;
+            args = null;
+            return false;
+        }
+
+        constructorInfo = minArgs;
+        args = new object[minArgsCt];
+        return true;
+    }
+
+    private static unsafe void ResolveVariablePath(PatternVariableInfo variable, ref ReadOnlySpan<char> basePath, ref ReadOnlySpan<char> baseName, int index = -1, int presetCtorIndex = -1)
     {
         if (variable.RootInfo != null)
         {
@@ -251,7 +327,7 @@ public static class ElementPatterns
             }
         } 
 
-        string pattern = variable.Pattern;
+        string pattern = presetCtorIndex >= 0 ? variable.PresetPaths![presetCtorIndex]! : variable.Pattern;
         if (index != -1)
         {
             pattern = UnturnedUIUtility.QuickFormat(pattern, index, 0);
@@ -323,6 +399,8 @@ public static class ElementPatterns
         object obj = Activator.CreateInstance(typeInfo.Type);
         foreach (PatternVariableInfo variable in typeInfo.Variables)
         {
+            ConstructorInfo? presetCtor;
+            object?[]? args;
             ReadOnlySpan<char> baseVarPath = basePath, baseVarName = baseName;
             if (variable is { IsArray: true, ElementType: not null })
             {
@@ -333,6 +411,37 @@ public static class ElementPatterns
                 {
                     string format = UnturnedUIUtility.CombinePath(baseVarPath, baseVarName);
                     TryInitializePrimitives(variable.ElementType, array, format, variable.ArrayStart);
+                }
+                else if (TryGetPresetConstructor(variable.ElementType, variable.PresetPathsCount, out presetCtor, out args))
+                {
+                    for (int i = 0; i < array.Length; ++i)
+                    {
+                        string fmtPath = UnturnedUIUtility.QuickFormat(baseVarPath, i + variable.ArrayStart, 0);
+                        args[0] = UnturnedUIUtility.CombinePath(fmtPath, UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0));
+                        for (int j = 1; j < variable.PresetPathsCount; ++j)
+                        {
+                            string? path = variable.PresetPaths![j - 1];
+                            if (path == null)
+                            {
+                                args[j] = null;
+                                continue;
+                            }
+
+                            path = UnturnedUIUtility.QuickFormat(path, i + variable.ArrayStart, 0);
+                            if (!UnturnedUIUtility.IsRooted(path))
+                            {
+                                args[j] = path;
+                                continue;
+                            }
+
+                            ReadOnlySpan<char> varPath = fmtPath;
+                            ReadOnlySpan<char> varName = baseName;
+
+                            ResolveVariablePath(variable, ref varPath, ref varName, index + 1, j - 1);
+                            args[j] = UnturnedUIUtility.CombinePath(varPath, varName);
+                        }
+                        array.SetValue(presetCtor.Invoke(args), i);
+                    }
                 }
                 else
                 {
@@ -347,7 +456,27 @@ public static class ElementPatterns
 
             ResolveVariablePath(variable, ref baseVarPath, ref baseVarName, index);
 
-            if (variable.NestedType != null)
+            if (TryGetPresetConstructor(variable.MemberType, variable.PresetPathsCount, out presetCtor, out args))
+            {
+                args[0] = UnturnedUIUtility.CombinePath(baseVarPath, baseVarName);
+                for (int j = 1; j < variable.PresetPathsCount; ++j)
+                {
+                    string? path = variable.PresetPaths![j - 1];
+                    if (path == null || !UnturnedUIUtility.IsRooted(path))
+                    {
+                        args[j] = path;
+                        continue;
+                    }
+
+                    ReadOnlySpan<char> varPath = baseVarPath;
+                    ReadOnlySpan<char> varName = baseName;
+
+                    ResolveVariablePath(variable, ref varPath, ref varName, index, j - 1);
+                    args[j] = UnturnedUIUtility.CombinePath(varPath, varName);
+                }
+                variable.Variable.SetValue(obj, presetCtor.Invoke(args));
+            }
+            else if (variable.NestedType != null)
             {
                 variable.Variable.SetValue(obj, InitializeTypeInfo(rootType, variable.NestedType, baseVarPath, baseVarName));
             }

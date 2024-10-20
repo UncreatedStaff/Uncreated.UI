@@ -12,6 +12,8 @@ internal sealed class PatternVariableInfo
     public readonly IVariable Variable;
     public readonly FormatMode PatternFormatMode;
     public readonly string Pattern;
+    public readonly string?[]? PresetPaths;
+    public readonly int PresetPathsCount;
     public readonly bool IsRoot;
     public readonly bool UnderRoot;
     public readonly char? PatternCleanJoin;
@@ -34,12 +36,15 @@ internal sealed class PatternVariableInfo
             PatternFormatIndex = pattern.FormatIndex;
             IsRoot = pattern.Root;
             UnderRoot = !IsRoot && pattern.UnderRoot;
+            PresetPaths = pattern.PresetPaths;
+            PresetPathsCount = PresetPaths == null ? 1 : (PresetPaths.Length + 1); 
         }
         else
         {
             Pattern = variable.Member.Name;
             PatternFormatMode = FormatMode.Suffix;
             PatternFormatIndex = 1;
+            PresetPathsCount = 1;
         }
 
         if (variable.Member.TryGetAttributeSafe(out ArrayPatternAttribute arrayPattern, inherit: true))
@@ -100,6 +105,11 @@ internal sealed class PatternVariableInfo
         if (IsArray && (ElementType == typeof(object) || ElementType == typeof(ValueType)))
         {
             throw new NotSupportedException($"Element type must not be a system base type (like in {ToString()}).");
+        }
+
+        if (IsArray && ElementType == null)
+        {
+            throw new NotSupportedException($"Non-array variables can not be decorated with ArrayPatternAttribute (like in {ToString()}).");
         }
 
         if (!IsArray && (MemberType == typeof(object) || MemberType == typeof(ValueType)))

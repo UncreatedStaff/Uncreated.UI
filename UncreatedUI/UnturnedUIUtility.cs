@@ -30,6 +30,26 @@ public static class UnturnedUIUtility
     }
 
     /// <summary>
+    /// Check if a path is rooted instead of being relative.
+    /// </summary>
+    public static bool IsRooted(ReadOnlySpan<char> path)
+    {
+        if (path.Length < 2)
+            return true;
+
+        if (path[0] == '.')
+        {
+            if (path[1] == '/')
+                return false;
+
+            if (path.Length >= 3 && path[1] == '.' && path[2] == '/')
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Get the length from optional 'to' or 'length' parameters.
     /// </summary>
     internal static int ResolveLength(int start, int length, int to)

@@ -3,10 +3,10 @@
   <!-- Publish Settings -->
   <PropertyGroup>
 
-    <VersionPrefix>1.1.0</VersionPrefix>
+    <VersionPrefix>1.2.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
 
-    <PackageReleaseNotes>Added static keys for UIs of the same type but multiple instances.</PackageReleaseNotes>
+    <PackageReleaseNotes>Support for using presets in patterns..</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
 

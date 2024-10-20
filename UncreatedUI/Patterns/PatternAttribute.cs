@@ -1,4 +1,5 @@
 ﻿using System;
+using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI.Patterns;
 
@@ -47,6 +48,12 @@ public sealed class PatternAttribute : Attribute
     /// </summary>
     /// <remarks>Defaults to <see langword="true"/>.</remarks>
     public bool UnderRoot { get; set; } = true;
+
+    /// <summary>
+    /// Array of other paths to use as the constructor arguments for presets like <see cref="LabeledRightClickableStateButton"/> (in which this array would look like this: <c>[ "./Label", "./RightClickListener", "./State" ]</c>, for example).
+    /// </summary>
+    /// <remarks>All these paths will be relative if they start with './' or '../' characters.</remarks>
+    public string?[]? PresetPaths { get; set; }
 
     public PatternAttribute() : this(null)
     {
