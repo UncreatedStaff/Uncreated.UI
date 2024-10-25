@@ -13,14 +13,14 @@ internal static class UIElementDiscovery
     internal static void LinkAllElements(UnturnedUI ui, List<UnturnedUIElement> elements)
     {
         int depth = 0;
-        DiscoverElements(ui.Factory, ui.Logger, ui, elements, ref depth, ui.DebugLogging, ui);
+        DiscoverElements(ui.GetLogger(), ui, elements, ref depth, ui.DebugLogging, ui);
     }
 
-    internal static void DiscoverElements(ILoggerFactory? loggerFactory, ILogger? logger, object value, List<UnturnedUIElement> elements, ref int depth, bool debug, UnturnedUI owner, ReflectionCache? cache = null)
+    internal static void DiscoverElements(ILogger? logger, object value, List<UnturnedUIElement> elements, ref int depth, bool debug, UnturnedUI owner, ReflectionCache? cache = null)
     {
         if (value is IEnumerable)
         {
-            Discover(loggerFactory, logger, value, depth, elements, debug, owner);
+            Discover(logger, value, depth, elements, debug, owner);
             return;
         }
 
@@ -75,7 +75,7 @@ internal static class UIElementDiscovery
             if (!(ignoreMask == null ? IsIgnored(field, value) : ignoreMask[i]))
             {
                 object val = field.GetValue(value);
-                Discover(loggerFactory, logger, val, depth, elements, debug, owner);
+                Discover(logger, val, depth, elements, debug, owner);
             }
         }
         for (int i = 0; i < properties.Length; ++i)
@@ -84,7 +84,7 @@ internal static class UIElementDiscovery
             if (!(ignoreMask == null ? IsIgnored(property, value) || !property.CanRead : ignoreMask[i]))
             {
                 object val = property.GetValue(value, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, null, null);
-                Discover(loggerFactory, logger, val, depth, elements, debug, owner);
+                Discover(logger, val, depth, elements, debug, owner);
             }
         }
 
@@ -96,14 +96,14 @@ internal static class UIElementDiscovery
         return member.DeclaringType == typeof(UnturnedUI) || member.IsIgnored() || Attribute.IsDefined(member, typeof(IgnoreIfDefinedTypeAttribute)) && value.GetType() == member.DeclaringType || member.IsDefinedSafe<CompilerGeneratedAttribute>();
     }
 
-    private static void Discover(ILoggerFactory? loggerFactory, ILogger? logger, object val, int depth, List<UnturnedUIElement> elements, bool debug, UnturnedUI owner)
+    private static void Discover(ILogger? logger, object val, int depth, List<UnturnedUIElement> elements, bool debug, UnturnedUI owner)
     {
         if (val is UnturnedUIElement elem)
         {
             if (elements.Contains(elem))
                 return;
             elements.Add(elem);
-            elem.RegisterOwnerIntl(owner, loggerFactory);
+            elem.RegisterOwnerIntl(owner);
             if (debug)
                 logger.LogInformation("[{0}] Found element: {1}.", nameof(UIElementDiscovery), elem);
         }
@@ -117,7 +117,7 @@ internal static class UIElementDiscovery
                     if (elements.Contains(elem2))
                         return;
                     elements.Add(elem2);
-                    elem2.RegisterOwnerIntl(owner, loggerFactory);
+                    elem2.RegisterOwnerIntl(owner);
                     if (debug)
                         logger!.LogInformation("[{0}] Found element (enumerable member): {1}.", nameof(UIElementDiscovery), elem2);
                 }
@@ -126,7 +126,7 @@ internal static class UIElementDiscovery
                     // adds a cache within enumerables, which will usually always contain the same type
                     cache ??= new ReflectionCache { Type = value2.GetType() };
                     int depth2 = depth + 1;
-                    DiscoverElements(loggerFactory, logger, value2, elements, ref depth2, debug, owner, cache);
+                    DiscoverElements(logger, value2, elements, ref depth2, debug, owner, cache);
                     if (debug)
                         logger!.LogInformation("[{0}] Found nested type (enumerable member): {1}.", nameof(UIElementDiscovery), value2);
                 }
@@ -139,7 +139,7 @@ internal static class UIElementDiscovery
                 return;
 
             int depth2 = depth + 1;
-            DiscoverElements(loggerFactory, logger, val, elements, ref depth2, debug, owner);
+            DiscoverElements(logger, val, elements, ref depth2, debug, owner);
             if (debug)
                 logger!.LogInformation("[{0}] Found nested type: {1}.", nameof(UIElementDiscovery), val);
         }

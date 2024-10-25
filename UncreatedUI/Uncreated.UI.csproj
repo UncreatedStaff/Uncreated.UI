@@ -3,10 +3,10 @@
   <!-- Publish Settings -->
   <PropertyGroup>
 
-    <VersionPrefix>1.2.0</VersionPrefix>
+    <VersionPrefix>1.2.1</VersionPrefix>
     <VersionSuffix></VersionSuffix>
 
-    <PackageReleaseNotes>Support for using presets in patterns.</PackageReleaseNotes>
+    <PackageReleaseNotes>Fixed a bug with late registered elements not being able to log.</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
 

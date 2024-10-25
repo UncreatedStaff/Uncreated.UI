@@ -85,7 +85,7 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
 
         if (Owner.DebugLogging)
         {
-            Logger.LogInformation("[{0}] [{1}] {{{2}}} Set label text: \"{3}\".", Owner.Name, Name, Owner.Key, text);
+            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Set label text: \"{3}\".", Owner.Name, Name, Owner.Key, text);
         }
     }
 

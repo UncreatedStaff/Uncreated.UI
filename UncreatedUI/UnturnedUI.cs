@@ -1,16 +1,16 @@
 ﻿using Cysharp.Threading.Tasks;
 using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SDG.NetTransport;
 using SDG.Unturned;
+using Steamworks;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading;
-using Microsoft.Extensions.Logging.Abstractions;
-using Steamworks;
 using Uncreated.Framework.UI.Data;
 using Uncreated.Framework.UI.Reflection;
 
@@ -31,10 +31,27 @@ public class UnturnedUI : IDisposable
     private string _name;
     private int _disposed;
     private bool _waitingOnAssetLoad;
-    protected internal readonly ILogger? Logger;
-    internal readonly ILoggerFactory? Factory;
+
+    protected internal ILogger? Logger;
+    protected internal readonly ILoggerFactory? LoggerFactory;
+
     private readonly List<UnturnedUIElement> _elements;
     private readonly string? _basePath;
+
+    /// <summary>
+    /// Get a lazily cached <see cref="ILogger"/> object for this element. Will never be <see langword="null"/>.
+    /// </summary>
+    protected internal ILogger GetLogger()
+    {
+        if (Logger != null)
+            return Logger;
+
+        if (LoggerFactory == null)
+            return NullLogger.Instance;
+
+        Logger = LoggerFactory.CreateLogger(Name);
+        return Logger;
+    }
 
     /// <summary>
     /// If the current configuration includes a valid asset or 16-bit Id.
@@ -124,15 +141,14 @@ public class UnturnedUI : IDisposable
             DebugLogging = debugLogging;
             if (logger is ILoggerFactory factory)
             {
-                Logger = factory.CreateLogger(_name);
-                Factory = factory;
+                LoggerFactory = factory;
             }
             else
             {
-                Logger = (ILogger)logger;
+                Logger = logger as ILogger;
             }
 
-            DebugLogging &= Logger != null;
+            DebugLogging &= Logger != null || LoggerFactory != null;
         }
 
         _basePath = null;
@@ -483,10 +499,10 @@ public class UnturnedUI : IDisposable
 
         _elements.Add(element);
         SetupRelativeElementPath(element);
-        element.RegisterOwnerIntl(this, Factory);
+        element.RegisterOwnerIntl(this);
 
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Late-registered 1 element of type {1}.", Name, Accessor.Formatter.Format(element.GetType()));
+            GetLogger().LogInformation("[{0}] Late-registered 1 element of type {1}.", Name, Accessor.Formatter.Format(element.GetType()));
     }
 
     /// <summary>
@@ -511,14 +527,14 @@ public class UnturnedUI : IDisposable
 
         int depth = 1;
         int pos = _elements.Count;
-        UIElementDiscovery.DiscoverElements(Factory, Logger, obj, _elements, ref depth, DebugLogging, this);
+        UIElementDiscovery.DiscoverElements(GetLogger(), obj, _elements, ref depth, DebugLogging, this);
         for (int i = pos; i < _elements.Count; ++i)
         {
             SetupRelativeElementPath(_elements[i]);
         }
 
         if (DebugLogging && pos != _elements.Count)
-            Logger.LogInformation("[{0}] Late-registered {1} element(s) from {2}.", Name, _elements.Count - pos, Accessor.Formatter.Format(obj.GetType()));
+            GetLogger().LogInformation("[{0}] Late-registered {1} element(s) from {2}.", Name, _elements.Count - pos, Accessor.Formatter.Format(obj.GetType()));
     }
 
     private void SetupRelativeElementPath(UnturnedUIElement element)
@@ -550,7 +566,7 @@ public class UnturnedUI : IDisposable
             Guid = Asset.GUID;
             if (Id == 0)
             {
-                Logger.LogWarning("No id available, asset: {0}.", Asset.FriendlyName);
+                GetLogger().LogWarning("No id available, asset: {0}.", Asset.FriendlyName);
             }
         }
         else if (Id != 0)
@@ -567,7 +583,7 @@ public class UnturnedUI : IDisposable
             }
             else
             {
-                Logger.LogWarning("No asset available, id: {0}.", Id);
+                GetLogger().LogWarning("No asset available, id: {0}.", Id);
             }
         }
         else if (Guid != default)
@@ -586,14 +602,14 @@ public class UnturnedUI : IDisposable
             }
             else
             {
-                Logger.LogWarning("No asset or ID available, guid: {0}.", Guid);
+                GetLogger().LogWarning("No asset or ID available, guid: {0}.", Guid);
             }
             return;
         }
         else
         {
             HasAssetOrId = false;
-            Logger.LogWarning("No asset or ID available.");
+            GetLogger().LogWarning("No asset or ID available.");
             return;
         }
 
@@ -846,7 +862,7 @@ public class UnturnedUI : IDisposable
     {
         if (!HasAssetOrId)
         {
-            Logger.LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
             return;
         }
 
@@ -864,7 +880,7 @@ public class UnturnedUI : IDisposable
         }
 
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Sent to all players.", Name);
+            GetLogger().LogInformation("[{0}] Sent to all players.", Name);
     }
 
     /// <summary>
@@ -874,7 +890,7 @@ public class UnturnedUI : IDisposable
     {
         if (!HasAssetOrId)
         {
-            Logger.LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
             return;
         }
 
@@ -892,13 +908,13 @@ public class UnturnedUI : IDisposable
         }
 
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Cleared from all players.", Name);
+            GetLogger().LogInformation("[{0}] Cleared from all players.", Name);
     }
     private void SendToPlayerIntl(ITransportConnection connection)
     {
         if (!HasAssetOrId)
         {
-            Logger.LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
             return;
         }
 
@@ -917,13 +933,13 @@ public class UnturnedUI : IDisposable
         }
 
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Sent to {1}.", Name, connection.GetAddressString(true));
+            GetLogger().LogInformation("[{0}] Sent to {1}.", Name, connection.GetAddressString(true));
     }
     private void SendToPlayerIntl(ITransportConnection connection, string arg0)
     {
         if (!HasAssetOrId)
         {
-            Logger.LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
             return;
         }
 
@@ -943,13 +959,13 @@ public class UnturnedUI : IDisposable
         }
 
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Sent to {1}, arg: {2}.", Name, connection.GetAddressString(true), arg0);
+            GetLogger().LogInformation("[{0}] Sent to {1}, arg: {2}.", Name, connection.GetAddressString(true), arg0);
     }
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1)
     {
         if (!HasAssetOrId)
         {
-            Logger.LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
             return;
         }
 
@@ -970,13 +986,13 @@ public class UnturnedUI : IDisposable
         }
 
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}.", Name, connection.GetAddressString(true), arg0, arg1);
+            GetLogger().LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}.", Name, connection.GetAddressString(true), arg0, arg1);
     }
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2)
     {
         if (!HasAssetOrId)
         {
-            Logger.LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
             return;
         }
 
@@ -998,13 +1014,13 @@ public class UnturnedUI : IDisposable
         }
 
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}.", Name, connection.GetAddressString(true), arg0, arg1, arg2);
+            GetLogger().LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}.", Name, connection.GetAddressString(true), arg0, arg1, arg2);
     }
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2, string arg3)
     {
         if (!HasAssetOrId)
         {
-            Logger.LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
             return;
         }
 
@@ -1027,13 +1043,13 @@ public class UnturnedUI : IDisposable
         }
 
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}, {{3}} = {5}.", Name, connection.GetAddressString(true), arg0, arg1, arg2, arg3);
+            GetLogger().LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}, {{3}} = {5}.", Name, connection.GetAddressString(true), arg0, arg1, arg2, arg3);
     }
     private void ClearFromPlayerIntl(ITransportConnection connection)
     {
         if (!HasAssetOrId)
         {
-            Logger.LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
             return;
         }
 
@@ -1052,7 +1068,7 @@ public class UnturnedUI : IDisposable
         }
 
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Cleared from {1}.", Name, connection.GetAddressString(true));
+            GetLogger().LogInformation("[{0}] Cleared from {1}.", Name, connection.GetAddressString(true));
     }
 
     /// <inheritdoc />
@@ -1091,7 +1107,7 @@ public class UnturnedUI : IDisposable
     private void IntlDispose(IReadOnlyList<UnturnedUIElement> elements, IUnturnedUIDataSource src)
     {
         if (DebugLogging)
-            Logger.LogInformation("[{0}] Deregistering {1} elements.", Name, elements.Count);
+            GetLogger().LogInformation("[{0}] Deregistering {1} elements.", Name, elements.Count);
 
         src.RemoveOwner(this);
         for (int i = 0; i < elements.Count; ++i)

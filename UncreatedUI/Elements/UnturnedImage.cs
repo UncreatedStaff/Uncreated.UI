@@ -95,7 +95,7 @@ public class UnturnedImage : UnturnedUIElement, IImage
 
         if (Owner.DebugLogging)
         {
-            Logger.LogInformation("[{0}] [{1}] {{{2}}} Set image URL, link: {3}, force refresh: {4}.", Owner.Name, Name, Owner.Key, url, forceRefresh);
+            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Set image URL, link: {3}, force refresh: {4}.", Owner.Name, Name, Owner.Key, url, forceRefresh);
         }
     }
 

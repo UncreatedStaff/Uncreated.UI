@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
@@ -18,6 +19,22 @@ public class UnturnedUIElement : IElement
 {
     private UnturnedUI? _owner;
     protected internal ILogger? Logger;
+    protected internal ILoggerFactory? LoggerFactory;
+
+    /// <summary>
+    /// Get a lazily cached <see cref="ILogger"/> object for this element. Will never be <see langword="null"/>.
+    /// </summary>
+    protected internal ILogger GetLogger()
+    {
+        if (Logger != null)
+            return Logger;
+
+        if (LoggerFactory == null)
+            return NullLogger.Instance;
+
+        Logger = LoggerFactory.CreateLogger(Path);
+        return Logger;
+    }
     
     /// <summary>
     /// Display name of this element type for <see cref="ToString"/>.
@@ -67,16 +84,31 @@ public class UnturnedUIElement : IElement
             throw new InvalidOperationException("Owner's key is set to -1.");
     }
 
-    internal void RegisterOwnerIntl(UnturnedUI? owner, ILoggerFactory? loggerFactory) => RegisterOwner(owner, loggerFactory);
+    internal void RegisterOwnerIntl(UnturnedUI? owner) => RegisterOwner(owner);
 
     /// <summary>
     /// Register the owner of this element.
     /// </summary>
-    protected virtual void RegisterOwner(UnturnedUI? owner, ILoggerFactory? loggerFactory)
+    protected virtual void RegisterOwner(UnturnedUI? owner)
     {
         _owner = owner;
-        if (owner is { DebugLogging: true })
-            Logger = loggerFactory?.CreateLogger(Path) ?? owner.Logger;
+        if (owner == null)
+        {
+            Logger = null;
+            LoggerFactory = null;
+            return;
+        }
+
+        if (owner.LoggerFactory != null)
+        {
+            LoggerFactory = owner.LoggerFactory;
+            Logger = null;
+        }
+        else
+        {
+            LoggerFactory = null;
+            Logger = owner.Logger;
+        }
     }
 
     internal void DeregisterOwnerIntl() => DeregisterOwner();
@@ -88,6 +120,7 @@ public class UnturnedUIElement : IElement
     {
         _owner = null;
         Logger = null;
+        LoggerFactory = null;
     }
 
     /// <summary>
@@ -155,7 +188,7 @@ public class UnturnedUIElement : IElement
 
         if (Owner.DebugLogging)
         {
-            Logger.LogInformation("[{0}] [{1}] {{{2}}} Set visibility for {3}, visibility: {4}.", Owner.Name, Name, Owner.Key, connection.GetAddressString(true), isEnabled);
+            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Set visibility for {3}, visibility: {4}.", Owner.Name, Name, Owner.Key, connection.GetAddressString(true), isEnabled);
         }
     }
 

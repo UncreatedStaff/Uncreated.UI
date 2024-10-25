@@ -33,7 +33,7 @@ public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
     {
         if (Owner.DebugLogging)
         {
-            Logger.LogInformation("[{0}] [{1}] {{{2}}} Clicked by {3}.", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture));
+            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Clicked by {3}.", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture));
         }
 
         try
@@ -42,18 +42,18 @@ public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "[{0}] [{1}] Error invoking {2}.", Owner.Name, Name, nameof(OnClicked));
+            GetLogger().LogError(ex, "[{0}] [{1}] Error invoking {2}.", Owner.Name, Name, nameof(OnClicked));
         }
     }
 
-    protected override void RegisterOwner(UnturnedUI? owner, ILoggerFactory? loggerFactory)
+    protected override void RegisterOwner(UnturnedUI? owner)
     {
-        base.RegisterOwner(owner, loggerFactory);
+        base.RegisterOwner(owner);
 
         if (Duplicate == null)
             return;
 
-        Logger?.LogWarning("[{0}] [{1}] {{{2}}} There is already a button with name \"{3}\", replacing. Multiple buttons can not listen to events with the same name. Old button: \"{4}\". This button: \"{5}\".", Owner.Name, Name, Owner.Key, Name, Duplicate.Path, Path);
+        GetLogger().LogWarning("[{0}] [{1}] {{{2}}} There is already a button with name \"{3}\", replacing. Multiple buttons can not listen to events with the same name. Old button: \"{4}\". This button: \"{5}\".", Owner.Name, Name, Owner.Key, Name, Duplicate.Path, Path);
         Duplicate = null;
     }
 

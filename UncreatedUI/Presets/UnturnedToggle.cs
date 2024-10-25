@@ -97,7 +97,7 @@ public class UnturnedToggle : IDisposable, IButton, IStateElement
         }
         catch (Exception ex)
         {
-            ToggleButton.Logger.LogError(ex, "[{0}] [{1}] Error invoking {2} for toggle.", ToggleButton.Owner.Name, ToggleButton.Name, nameof(OnToggleUpdated));
+            ToggleButton.GetLogger().LogError(ex, "[{0}] [{1}] Error invoking {2} for toggle.", ToggleButton.Owner.Name, ToggleButton.Name, nameof(OnToggleUpdated));
         }
     }
 

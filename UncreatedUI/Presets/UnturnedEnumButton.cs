@@ -74,7 +74,7 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
             int ind = Array.IndexOf(_values, value);
             if (ind == -1)
                 _ignored = Array.Empty<int>();
-            else _ignored = new int[] { ind };
+            else _ignored = [ ind ];
         }
     }
 
@@ -308,7 +308,7 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
         }
         catch (Exception ex)
         {
-            Label.Logger.LogError(ex, "[{0}] [{1}] Error invoking {2} for enum button of {3}.", Button.Owner.Name, Button.Name, nameof(OnValueUpdated), typeof(TEnum).Name);
+            Label.GetLogger().LogError(ex, "[{0}] [{1}] Error invoking {2} for enum button of {3}.", Button.Owner.Name, Button.Name, nameof(OnValueUpdated), typeof(TEnum).Name);
         }
     }
 
@@ -404,7 +404,7 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
     /// <inheritdoc />
     public override string ToString()
     {
-        return typeof(TEnum).Name + " Enum Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+        return Accessor.ExceptionFormatter.Format(typeof(TEnum)) + " Enum Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
     }
 
     private class UnturnedEnumButtonData : IUnturnedUIData

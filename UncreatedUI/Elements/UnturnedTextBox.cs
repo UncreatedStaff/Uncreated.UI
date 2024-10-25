@@ -50,7 +50,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
 
         if (Owner.DebugLogging)
         {
-            Logger.LogInformation("[{0}] [{1}] {{{2}}} Text committed by {3}, text: \"{4}\".", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), text);
+            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Text committed by {3}, text: \"{4}\".", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), text);
         }
 
         try
@@ -59,7 +59,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "[{0}] [{1}] Error invoking {2}.", Owner.Name, Name, nameof(OnTextUpdated));
+            GetLogger().LogError(ex, "[{0}] [{1}] Error invoking {2}.", Owner.Name, Name, nameof(OnTextUpdated));
         }
     }
 
@@ -215,7 +215,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
         }
         else if (Owner.DebugLogging)
         {
-            Logger.LogInformation("[{0}] [{1}] {{{2}}} Text updated from data for {3}, text: \"{4}\" (event not invoked).", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), val);
+            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Text updated from data for {3}, text: \"{4}\" (event not invoked).", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), val);
         }
 
         return val;
@@ -283,14 +283,14 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
             data.Text = text;
         }
     }
-    protected override void RegisterOwner(UnturnedUI? owner, ILoggerFactory? loggerFactory)
+    protected override void RegisterOwner(UnturnedUI? owner)
     {
-        base.RegisterOwner(owner, loggerFactory);
+        base.RegisterOwner(owner);
 
         if (Duplicate == null)
             return;
 
-        Logger?.LogWarning("[{0}] [{1}] {{{2}}} There is already a text box with name \"{3}\", replacing. Multiple text boxes can not listen to events with the same name. Old text box: \"{4}\". This text box: \"{5}\".", Owner.Name, Name, Owner.Key, Name, Duplicate.Path, Path);
+        GetLogger().LogWarning("[{0}] [{1}] {{{2}}} There is already a text box with name \"{3}\", replacing. Multiple text boxes can not listen to events with the same name. Old text box: \"{4}\". This text box: \"{5}\".", Owner.Name, Name, Owner.Key, Name, Duplicate.Path, Path);
         Duplicate = null;
     }
 
