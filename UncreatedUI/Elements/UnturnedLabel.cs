@@ -1,10 +1,8 @@
-﻿using Cysharp.Threading.Tasks;
-using DanielWillett.ReflectionTools;
+﻿using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
-using System.Threading;
 using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI;
@@ -68,20 +66,7 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
     {
         AssertOwnerSet();
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.sendUIEffectText(Owner.Key, connection, Owner.IsReliable, Path, text);
-        }
-        else
-        {
-            ITransportConnection c2 = connection;
-            string txt2 = text;
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffectText(Owner.Key, c2, Owner.IsReliable, Path, txt2);
-            });
-        }
+        UnturnedUIProvider.Instance.SetElementText(Owner.Key, connection, Owner.IsReliable, Path, text);
 
         if (Owner.DebugLogging)
         {

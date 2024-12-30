@@ -1,5 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using DanielWillett.ReflectionTools;
+﻿using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SDG.NetTransport;
@@ -120,6 +119,17 @@ public class UnturnedUI : IDisposable
     /// Key used to identify a single instance of this UI. -1 if this UI is keyless.
     /// </summary>
     public short Key { get; set; }
+    private UnturnedUI(object? logger, UnturnedUIOptions options)
+        : this (logger,
+                hasElements:    (options & UnturnedUIOptions.HasElements) != 0,
+                keyless:        (options & UnturnedUIOptions.Keyless) != 0,
+                reliable:       (options & UnturnedUIOptions.Reliable) != 0,
+                debugLogging:   (options & UnturnedUIOptions.DebugLogging) != 0,
+                staticKey:      (options & UnturnedUIOptions.StaticKey) != 0)
+    {
+
+    }
+
     private UnturnedUI(object? logger, bool hasElements, bool keyless, bool reliable, bool debugLogging, bool staticKey)
     {
         staticKey &= !keyless;
@@ -183,6 +193,19 @@ public class UnturnedUI : IDisposable
     }
     public UnturnedUI(ILoggerFactory factory, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
         : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, staticKey)
+    {
+        LoadFromConfig(defaultId);
+    }
+
+    public UnturnedUI(ushort defaultId, UnturnedUIOptions options = UnturnedUIOptions.Default)
+        : this(GlobalLogger.Instance, defaultId, options) { }
+    public UnturnedUI(ILogger logger, ushort defaultId, UnturnedUIOptions options = UnturnedUIOptions.Default)
+        : this(logger ?? throw new ArgumentNullException(nameof(logger)), options)
+    {
+        LoadFromConfig(defaultId);
+    }
+    public UnturnedUI(ILoggerFactory factory, ushort defaultId, UnturnedUIOptions options = UnturnedUIOptions.Default)
+        : this(factory ?? throw new ArgumentNullException(nameof(factory)), options)
     {
         LoadFromConfig(defaultId);
     }
@@ -308,7 +331,7 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public void LoadFromConfig(Guid guid)
     {
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             Guid = guid;
             Id = 0;
@@ -319,9 +342,8 @@ public class UnturnedUI : IDisposable
         else
         {
             Guid guid2 = guid;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 Guid = guid2;
                 Id = 0;
                 Asset = Assets.find(guid2) as EffectAsset;
@@ -336,7 +358,7 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public void LoadFromConfig(IAssetContainer assetContainer)
     {
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             Guid = assetContainer.Guid;
             Id = assetContainer.Id;
@@ -347,9 +369,8 @@ public class UnturnedUI : IDisposable
         else
         {
             IAssetContainer container2 = assetContainer;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 Guid = container2.Guid;
                 Id = container2.Id;
                 Asset = container2.Asset as EffectAsset;
@@ -364,7 +385,7 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public void LoadFromConfig(ushort id)
     {
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             Guid = default;
             Id = id;
@@ -375,9 +396,8 @@ public class UnturnedUI : IDisposable
         else
         {
             ushort id2 = id;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 Guid = default;
                 Id = id2;
                 Asset = Assets.find(EAssetType.EFFECT, id2) as EffectAsset;
@@ -392,7 +412,7 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public void LoadFromConfig(EffectAsset? asset)
     {
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             Asset = asset;
             if (asset == null)
@@ -411,9 +431,8 @@ public class UnturnedUI : IDisposable
         else
         {
             EffectAsset? asset2 = asset;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 Asset = asset2;
                 if (asset2 == null)
                 {
@@ -866,18 +885,7 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.sendUIEffect(Id, Key, IsReliable || IsSendReliable);
-        }
-        else
-        {
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffect(Id, Key, IsReliable || IsSendReliable);
-            });
-        }
+        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable);
 
         if (DebugLogging)
             GetLogger().LogInformation("[{0}] Sent to all players.", Name);
@@ -894,22 +902,12 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.ClearEffectByID_AllPlayers(Id);
-        }
-        else
-        {
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.ClearEffectByID_AllPlayers(Id);
-            });
-        }
+        UnturnedUIProvider.Instance.ClearByIdGlobal(Id);
 
         if (DebugLogging)
             GetLogger().LogInformation("[{0}] Cleared from all players.", Name);
     }
+
     private void SendToPlayerIntl(ITransportConnection connection)
     {
         if (!HasAssetOrId)
@@ -918,23 +916,12 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable);
-        }
-        else
-        {
-            ITransportConnection c2 = connection;
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable);
-            });
-        }
+        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable);
 
         if (DebugLogging)
             GetLogger().LogInformation("[{0}] Sent to {1}.", Name, connection.GetAddressString(true));
     }
+
     private void SendToPlayerIntl(ITransportConnection connection, string arg0)
     {
         if (!HasAssetOrId)
@@ -943,24 +930,12 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable, arg0);
-        }
-        else
-        {
-            ITransportConnection c2 = connection;
-            string arg02 = arg0;
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable, arg02);
-            });
-        }
+        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0);
 
         if (DebugLogging)
             GetLogger().LogInformation("[{0}] Sent to {1}, arg: {2}.", Name, connection.GetAddressString(true), arg0);
     }
+
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1)
     {
         if (!HasAssetOrId)
@@ -969,25 +944,12 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1);
-        }
-        else
-        {
-            ITransportConnection c2 = connection;
-            string arg02 = arg0;
-            string arg12 = arg1;
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable, arg02, arg12);
-            });
-        }
+        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1);
 
         if (DebugLogging)
             GetLogger().LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}.", Name, connection.GetAddressString(true), arg0, arg1);
     }
+
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2)
     {
         if (!HasAssetOrId)
@@ -996,26 +958,12 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2);
-        }
-        else
-        {
-            ITransportConnection c2 = connection;
-            string arg02 = arg0;
-            string arg12 = arg1;
-            string arg22 = arg2;
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable, arg02, arg12, arg22);
-            });
-        }
+        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2);
 
         if (DebugLogging)
             GetLogger().LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}.", Name, connection.GetAddressString(true), arg0, arg1, arg2);
     }
+
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2, string arg3)
     {
         if (!HasAssetOrId)
@@ -1024,27 +972,12 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.sendUIEffect(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
-        }
-        else
-        {
-            ITransportConnection c2 = connection;
-            string arg02 = arg0;
-            string arg12 = arg1;
-            string arg22 = arg2;
-            string arg32 = arg3;
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffect(Id, Key, c2, IsReliable || IsSendReliable, arg02, arg12, arg22, arg32);
-            });
-        }
+        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
 
         if (DebugLogging)
             GetLogger().LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}, {{3}} = {5}.", Name, connection.GetAddressString(true), arg0, arg1, arg2, arg3);
     }
+
     private void ClearFromPlayerIntl(ITransportConnection connection)
     {
         if (!HasAssetOrId)
@@ -1053,19 +986,7 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.askEffectClearByID(Id, connection);
-        }
-        else
-        {
-            ITransportConnection c2 = connection;
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.askEffectClearByID(Id, c2);
-            });
-        }
+        UnturnedUIProvider.Instance.ClearById(Id, connection);
 
         if (DebugLogging)
             GetLogger().LogInformation("[{0}] Cleared from {1}.", Name, connection.GetAddressString(true));
@@ -1076,6 +997,7 @@ public class UnturnedUI : IDisposable
     {
         Dispose(true);
     }
+
     private void Dispose(bool disposing)
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
@@ -1085,13 +1007,12 @@ public class UnturnedUI : IDisposable
 
         if (src != null)
         {
-            if (src.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
+            if (src.RequiresMainThread && !UnturnedUIProvider.Instance.IsValidThread())
             {
                 IUnturnedUIDataSource src2 = src;
                 List<UnturnedUIElement> elements = Elements.ToList();
-                UniTask.Create(async () =>
+                UnturnedUIProvider.Instance.DispatchToValidThread(() =>
                 {
-                    await UniTask.SwitchToMainThread();
                     IntlDispose(elements, src2);
                 });
             }

@@ -1,10 +1,8 @@
-﻿using Cysharp.Threading.Tasks;
+﻿using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
-using System.Threading;
-using DanielWillett.ReflectionTools;
 using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI;
@@ -77,22 +75,7 @@ public class UnturnedImage : UnturnedUIElement, IImage
     {
         AssertOwnerSet();
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.sendUIEffectImageURL(Owner.Key, connection, Owner.IsReliable, Path, url, ShouldCache, forceRefresh);
-        }
-        else
-        {
-            ITransportConnection c2 = connection;
-            string url2 = url;
-            bool fr2 = forceRefresh;
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffectImageURL(Owner.Key, c2, Owner.IsReliable, Path, url2, ShouldCache, fr2);
-            });
-        }
-
+        UnturnedUIProvider.Instance.SetElementImageUrl(Owner.Key, connection, Owner.IsReliable, Path, url, ShouldCache, forceRefresh);
         if (Owner.DebugLogging)
         {
             GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Set image URL, link: {3}, force refresh: {4}.", Owner.Name, Name, Owner.Key, url, forceRefresh);

@@ -34,15 +34,16 @@ public static class UnturnedUIUtility
     /// </summary>
     public static bool IsRooted(ReadOnlySpan<char> path)
     {
-        if (path.Length < 2)
-            return true;
+        path = path.Trim();
+
+        if (path.IsEmpty) return true;
 
         if (path[0] == '.')
         {
-            if (path[1] == '/')
+            if (path.Length == 1 || path[1] == '/')
                 return false;
 
-            if (path.Length >= 3 && path[1] == '.' && path[2] == '/')
+            if (path[1] == '.' && (path.Length == 2 || path[2] == '/'))
                 return false;
         }
 
@@ -264,7 +265,15 @@ public static class UnturnedUIUtility
     public static unsafe string ResolveRelativePath(ReadOnlySpan<char> relativeTo, ReadOnlySpan<char> path, bool assumeRelative = false)
     {
         if (path.Length == 0)
-            return string.Empty;
+            return assumeRelative ? new string(relativeTo) : string.Empty;
+
+        if (path.Length >= 2)
+        {
+            if (path[0] == '\\' && char.IsWhiteSpace(path[1]))
+                path = path[1..];
+        }
+        else path = path.TrimStart();
+
 
         if (path[0] != '.' && !assumeRelative)
         {
@@ -560,10 +569,6 @@ public static class UnturnedUIUtility
     {
         newOffset = offset;
         newCount = count;
-        if (!front && !end)
-        {
-            return;
-        }
 
         int startInd = offset;
         int endInd = offset + count - 1;

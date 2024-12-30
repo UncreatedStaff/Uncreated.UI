@@ -1,5 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using SDG.Unturned;
+﻿using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -93,11 +92,10 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
             IUnturnedUIDataSource old = Interlocked.Exchange(ref _instance, value);
-            if (!Thread.CurrentThread.IsGameThread() && old.RequiresMainThread)
+            if (!UnturnedUIProvider.Instance.IsValidThread() && old.RequiresMainThread)
             {
-                UniTask.Create(async () =>
+                UnturnedUIProvider.Instance.DispatchToValidThread(() =>
                 {
-                    await UniTask.SwitchToMainThread();
                     try
                     {
                         old.Dispose();
@@ -134,19 +132,18 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
 
     public UnturnedUIDataSource()
     {
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             _isListeningToPlayerDisconnect = true;
             Provider.onServerDisconnected += OnPlayerDisconnected;
         }
         else
         {
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 if (_isListeningToPlayerDisconnect)
                     return;
-                
+
                 _isListeningToPlayerDisconnect = true;
                 Provider.onServerDisconnected += OnPlayerDisconnected;
             });
@@ -165,12 +162,11 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <remarks>Thread-safe.</remarks>
     public static void AddData(IUnturnedUIData data)
     {
-        if (_instance.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
+        if (_instance.RequiresMainThread && !UnturnedUIProvider.Instance.IsValidThread())
         {
             IUnturnedUIData data2 = data;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 _instance.AddData(data2);
             });
         }
@@ -183,12 +179,11 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <remarks>Thread-safe.</remarks>
     public static void RemoveElement(UnturnedUIElement element)
     {
-        if (_instance.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
+        if (_instance.RequiresMainThread && !UnturnedUIProvider.Instance.IsValidThread())
         {
             UnturnedUIElement element2 = element;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 _instance.RemoveElement(element2);
             });
         }
@@ -201,12 +196,11 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <remarks>Thread-safe.</remarks>
     public static void RemoveOwner(UnturnedUI owner)
     {
-        if (_instance.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
+        if (_instance.RequiresMainThread && !UnturnedUIProvider.Instance.IsValidThread())
         {
             UnturnedUI owner2 = owner;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 _instance.RemoveOwner(owner2);
             });
         }
@@ -219,12 +213,11 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <remarks>Thread-safe.</remarks>
     public static void RemovePlayer(CSteamID player)
     {
-        if (_instance.RequiresMainThread && !Thread.CurrentThread.IsGameThread())
+        if (_instance.RequiresMainThread && !UnturnedUIProvider.Instance.IsValidThread())
         {
             CSteamID player2 = player;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 _instance.RemovePlayer(player2);
             });
         }

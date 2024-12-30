@@ -1,11 +1,9 @@
-﻿using Cysharp.Threading.Tasks;
-using DanielWillett.ReflectionTools;
+﻿using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
-using System.Threading;
 using Uncreated.Framework.UI.Presets;
 using UnityEngine;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
@@ -171,20 +169,7 @@ public class UnturnedUIElement : IElement
     {
         AssertOwnerSet();
 
-        if (Thread.CurrentThread.IsGameThread())
-        {
-            EffectManager.sendUIEffectVisibility(Owner.Key, connection, Owner.IsReliable, Path, isEnabled);
-        }
-        else
-        {
-            ITransportConnection c2 = connection;
-            bool state2 = isEnabled;
-            UniTask.Create(async () =>
-            {
-                await UniTask.SwitchToMainThread();
-                EffectManager.sendUIEffectVisibility(Owner.Key, c2, Owner.IsReliable, Path, state2);
-            });
-        }
+        UnturnedUIProvider.Instance.SetElementVisibility(Owner.Key, connection, Owner.IsReliable, Path, isEnabled);
 
         if (Owner.DebugLogging)
         {

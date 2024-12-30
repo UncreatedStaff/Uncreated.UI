@@ -1,5 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using DanielWillett.ReflectionTools;
+﻿using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -73,7 +72,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             SetTextIntl(connection, text);
         }
@@ -84,9 +83,8 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
 
             ITransportConnection c2 = connection;
             string txt2 = text;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 SetTextIntl(c2, txt2);
             });
         }
@@ -102,7 +100,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             SetTextIntl(player, text);
         }
@@ -113,9 +111,8 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
 
             Player p2 = player;
             string txt2 = text;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 SetTextIntl(p2, txt2);
             });
         }
@@ -131,7 +128,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
             return;
         }
 
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             SetTextIntl(player, text);
         }
@@ -142,9 +139,8 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
 
             SteamPlayer p2 = player;
             string txt2 = text;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 SetTextIntl(p2, txt2);
             });
         }
@@ -168,7 +164,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
     /// <remarks>Thread Safe</remarks>
     public void UpdateFromData(Player player, string defaultValue = "", bool callEvent = false)
     {
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             UpdateFromDataMainThread(player, defaultValue, callEvent);
         }
@@ -180,9 +176,8 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
             Player p2 = player;
             string dv2 = defaultValue;
             bool call2 = callEvent;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 UpdateFromDataMainThread(p2, dv2, call2);
             });
         }

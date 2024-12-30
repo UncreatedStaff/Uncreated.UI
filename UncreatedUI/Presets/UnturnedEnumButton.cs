@@ -1,5 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using DanielWillett.ReflectionTools;
+﻿using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.Unturned;
 using Steamworks;
@@ -7,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
 using Uncreated.Framework.UI.Data;
 
 namespace Uncreated.Framework.UI.Presets;
@@ -227,7 +225,7 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
         if (index == -1)
             index = _defaultIndex;
 
-        if (Thread.CurrentThread.IsGameThread())
+        if (UnturnedUIProvider.Instance.IsValidThread())
         {
             SetOnMainThread(player, index, callEvent);
         }
@@ -236,13 +234,13 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
             Player p2 = player;
             bool call2 = callEvent;
             int ind2 = index;
-            UniTask.Create(async () =>
+            UnturnedUIProvider.Instance.DispatchToValidThread(() =>
             {
-                await UniTask.SwitchToMainThread();
                 SetOnMainThread(p2, ind2, call2);
             });
         }
     }
+
     private void SetOnMainThread(Player player, int index, bool callEvent)
     {
         UnturnedEnumButtonData? data = UnturnedUIDataSource.Instance.GetData<UnturnedEnumButtonData>(player.channel.owner.playerID.steamID, Button);
@@ -296,6 +294,7 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
         UnturnedEnumButtonData? data = UnturnedUIDataSource.Instance.GetData<UnturnedEnumButtonData>(player.channel.owner.playerID.steamID, Button);
         return data is { HasSelection: true };
     }
+
     private void SendValue(Player player, TEnum value, bool callEvent)
     {
         Label.SetText(player.channel.owner.transportConnection, TextFormatter?.Invoke(value, player) ?? value.ToString());
