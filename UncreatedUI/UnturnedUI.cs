@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SDG.NetTransport;
@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Uncreated.Framework.UI.Data;
 using Uncreated.Framework.UI.Reflection;
@@ -197,14 +198,14 @@ public class UnturnedUI : IDisposable
         LoadFromConfig(defaultId);
     }
 
-    public UnturnedUI(ushort defaultId, UnturnedUIOptions options = UnturnedUIOptions.Default)
+    public UnturnedUI(ushort defaultId, UnturnedUIOptions options)
         : this(GlobalLogger.Instance, defaultId, options) { }
-    public UnturnedUI(ILogger logger, ushort defaultId, UnturnedUIOptions options = UnturnedUIOptions.Default)
+    public UnturnedUI(ILogger logger, ushort defaultId, UnturnedUIOptions options)
         : this(logger ?? throw new ArgumentNullException(nameof(logger)), options)
     {
         LoadFromConfig(defaultId);
     }
-    public UnturnedUI(ILoggerFactory factory, ushort defaultId, UnturnedUIOptions options = UnturnedUIOptions.Default)
+    public UnturnedUI(ILoggerFactory factory, ushort defaultId, UnturnedUIOptions options)
         : this(factory ?? throw new ArgumentNullException(nameof(factory)), options)
     {
         LoadFromConfig(defaultId);
@@ -335,7 +336,7 @@ public class UnturnedUI : IDisposable
         {
             Guid = guid;
             Id = 0;
-            Asset = Assets.find(guid) as EffectAsset;
+            Asset = UnturnedUIProvider.Instance.GetEffectAsset(guid);
             _container = null;
             LoadFromConfigIntl(false);
         }
@@ -346,7 +347,7 @@ public class UnturnedUI : IDisposable
             {
                 Guid = guid2;
                 Id = 0;
-                Asset = Assets.find(guid2) as EffectAsset;
+                Asset = UnturnedUIProvider.Instance.GetEffectAsset(guid2);
                 _container = null;
                 LoadFromConfigIntl(false);
             });
@@ -389,7 +390,7 @@ public class UnturnedUI : IDisposable
         {
             Guid = default;
             Id = id;
-            Asset = Assets.find(EAssetType.EFFECT, id) as EffectAsset;
+            Asset = UnturnedUIProvider.Instance.GetEffectAsset(id);
             _container = null;
             LoadFromConfigIntl(false);
         }
@@ -400,7 +401,7 @@ public class UnturnedUI : IDisposable
             {
                 Guid = default;
                 Id = id2;
-                Asset = Assets.find(EAssetType.EFFECT, id2) as EffectAsset;
+                Asset = UnturnedUIProvider.Instance.GetEffectAsset(id2);
                 _container = null;
                 LoadFromConfigIntl(false);
             });
@@ -592,13 +593,9 @@ public class UnturnedUI : IDisposable
         {
             if (HasDefaultName)
                 _name = Id.ToString();
-            if (!assetsJustLoaded && Assets.isLoading)
+            if (!assetsJustLoaded && UnturnedUIProvider.Instance.AreAssetsStillLoading)
             {
-                if (!_waitingOnAssetLoad)
-                {
-                    Level.onPrePreLevelLoaded += OnAssetsLoaded;
-                    _waitingOnAssetLoad = true;
-                }
+                SubLevelLoaded();
             }
             else
             {
@@ -611,13 +608,9 @@ public class UnturnedUI : IDisposable
                 _name = Guid.ToString("N");
 
             HasAssetOrId = false;
-            if (!assetsJustLoaded && Assets.isLoading)
+            if (!assetsJustLoaded && UnturnedUIProvider.Instance.AreAssetsStillLoading)
             {
-                if (!_waitingOnAssetLoad)
-                {
-                    Level.onPrePreLevelLoaded += OnAssetsLoaded;
-                    _waitingOnAssetLoad = true;
-                }
+                SubLevelLoaded();
             }
             else
             {
@@ -633,6 +626,16 @@ public class UnturnedUI : IDisposable
         }
 
         HasAssetOrId = true;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private void SubLevelLoaded()
+    {
+        if (_waitingOnAssetLoad)
+            return;
+
+        Level.onPrePreLevelLoaded += OnAssetsLoaded;
+        _waitingOnAssetLoad = true;
     }
 
     private void OnAssetsLoaded(int lvlId)
@@ -889,6 +892,74 @@ public class UnturnedUI : IDisposable
 
         if (DebugLogging)
             GetLogger().LogInformation("[{0}] Sent to all players.", Name);
+    }
+
+    /// <summary>
+    /// Sends this UI to all online players with 1 formatting argument which replaces any <c>{0}</c> placeholders.
+    /// </summary>
+    public virtual void SendToAllPlayers(string arg0)
+    {
+        if (!HasAssetOrId)
+        {
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0);
+
+        if (DebugLogging)
+            GetLogger().LogInformation("[{0}] Sent to all players, args: {{0}} = {1}.", Name, arg0);
+    }
+
+    /// <summary>
+    /// Sends this UI to all online players with 2 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    public virtual void SendToAllPlayers(string arg0, string arg1)
+    {
+        if (!HasAssetOrId)
+        {
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0, arg1);
+
+        if (DebugLogging)
+            GetLogger().LogInformation("[{0}] Sent to all players, args: {{0}} = {1}, {{1}} = {2}.", Name, arg0, arg1);
+    }
+
+    /// <summary>
+    /// Sends this UI to all online players with 3 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    public virtual void SendToAllPlayers(string arg0, string arg1, string arg2)
+    {
+        if (!HasAssetOrId)
+        {
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0, arg1, arg2);
+
+        if (DebugLogging)
+            GetLogger().LogInformation("[{0}] Sent to all players, args: {{0}} = {1}, {{1}} = {2}, {{2}} = {3}.", Name, arg0, arg1, arg2);
+    }
+
+    /// <summary>
+    /// Sends this UI to all online players with 4 formatting arguments which replace any <c>{n}</c> placeholders.
+    /// </summary>
+    public virtual void SendToAllPlayers(string arg0, string arg1, string arg2, string arg3)
+    {
+        if (!HasAssetOrId)
+        {
+            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            return;
+        }
+
+        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
+
+        if (DebugLogging)
+            GetLogger().LogInformation("[{0}] Sent to all players, args: {{0}} = {1}, {{1}} = {2}, {{2}} = {3}, {{3}} = {4}.", Name, arg0, arg1, arg2, arg3);
     }
 
     /// <summary>

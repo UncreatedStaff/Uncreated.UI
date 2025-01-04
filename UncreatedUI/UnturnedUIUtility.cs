@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 
 namespace Uncreated.Framework.UI;
@@ -255,7 +255,7 @@ public static class UnturnedUIUtility
             ++startIndex;
 
         int ind = span.LastIndexOf('/') + 1;
-        return ind == 0 ? default : path.Slice(startIndex, ind - startIndex);
+        return ind == 0 ? default : path.Slice(startIndex, ind - startIndex - (ind == path.Length - startIndex ? 1 : 0));
     }
 
     /// <summary>

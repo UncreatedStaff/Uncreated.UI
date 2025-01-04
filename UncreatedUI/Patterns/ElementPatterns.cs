@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -307,7 +307,7 @@ public static class ElementPatterns
             ReadOnlySpan<char> newBasePath = basePath, newBaseName = baseName;
             ResolveVariablePath(variable.RootInfo, ref newBasePath, ref newBaseName);
 
-            basePath = UnturnedUIUtility.CombinePath(newBasePath, newBaseName);
+            basePath = newBaseName.Length == 0 ? newBasePath : UnturnedUIUtility.CombinePath(newBasePath, newBaseName);
         }
 
         if (!string.IsNullOrEmpty(variable.AdditionalPath))
@@ -317,13 +317,16 @@ public static class ElementPatterns
                 : UnturnedUIUtility.QuickFormat(variable.AdditionalPath, index, 0);
 
             ReadOnlySpan<char> pathSpan = additionalPath.AsSpan();
-            if (pathSpan.Length > 0 && pathSpan[0] is '.' or '~')
+            if (pathSpan.Length != 0)
             {
-                basePath = UnturnedUIUtility.ResolveRelativePath(basePath, pathSpan);
-            }
-            else
-            {
-                basePath = UnturnedUIUtility.CombinePath(basePath, pathSpan);
+                if (pathSpan.Length > 0 && pathSpan[0] is '.' or '~')
+                {
+                    basePath = UnturnedUIUtility.ResolveRelativePath(basePath, pathSpan);
+                }
+                else
+                {
+                    basePath = UnturnedUIUtility.CombinePath(basePath, pathSpan);
+                }
             }
         } 
 
@@ -339,7 +342,10 @@ public static class ElementPatterns
                 return;
 
             if (baseName.Length == 0)
+            {
                 baseName = pattern;
+                return;
+            }
         }
 
         switch (variable.PatternFormatMode)
@@ -417,7 +423,7 @@ public static class ElementPatterns
                     for (int i = 0; i < array.Length; ++i)
                     {
                         string fmtPath = UnturnedUIUtility.QuickFormat(baseVarPath, i + variable.ArrayStart, 0);
-                        args[0] = UnturnedUIUtility.CombinePath(fmtPath, UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0));
+                        args[0] = baseVarName.Length == 0 ? fmtPath : UnturnedUIUtility.CombinePath(fmtPath, UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0));
                         for (int j = 1; j < variable.PresetPathsCount; ++j)
                         {
                             string? path = variable.PresetPaths![j - 1];
@@ -438,7 +444,7 @@ public static class ElementPatterns
                             ReadOnlySpan<char> varName = baseName;
 
                             ResolveVariablePath(variable, ref varPath, ref varName, index + 1, j - 1);
-                            args[j] = UnturnedUIUtility.CombinePath(varPath, varName);
+                            args[j] = varName.Length == 0 ? new string(varPath) : UnturnedUIUtility.CombinePath(varPath, varName);
                         }
                         array.SetValue(presetCtor.Invoke(args), i);
                     }
@@ -458,7 +464,7 @@ public static class ElementPatterns
 
             if (TryGetPresetConstructor(variable.MemberType, variable.PresetPathsCount, out presetCtor, out args))
             {
-                args[0] = UnturnedUIUtility.CombinePath(baseVarPath, baseVarName);
+                args[0] = baseVarName.Length == 0 ? new string(baseVarPath) : UnturnedUIUtility.CombinePath(baseVarPath, baseVarName);
                 for (int j = 1; j < variable.PresetPathsCount; ++j)
                 {
                     string? path = variable.PresetPaths![j - 1];
@@ -472,7 +478,7 @@ public static class ElementPatterns
                     ReadOnlySpan<char> varName = baseName;
 
                     ResolveVariablePath(variable, ref varPath, ref varName, index, j - 1);
-                    args[j] = UnturnedUIUtility.CombinePath(varPath, varName);
+                    args[j] = varName.Length == 0 ? new string(varPath) : UnturnedUIUtility.CombinePath(varPath, varName);
                 }
                 variable.Variable.SetValue(obj, presetCtor.Invoke(args));
             }
@@ -482,7 +488,7 @@ public static class ElementPatterns
             }
             else
             {
-                object? prim = TryInitializePrimitive(variable.MemberType, UnturnedUIUtility.CombinePath(baseVarPath, baseVarName));
+                object? prim = TryInitializePrimitive(variable.MemberType, baseVarName.Length == 0 ? new string(baseVarPath) : UnturnedUIUtility.CombinePath(baseVarPath, baseVarName));
                 if (prim == null)
                     throw new InvalidOperationException($"Failed to initialize type {Accessor.ExceptionFormatter.Format(typeInfo.Type)} when creating {Accessor.ExceptionFormatter.Format(rootType)}.");
 

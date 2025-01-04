@@ -133,6 +133,11 @@
     <Message Importance="High" Text="UnityEngine.CoreModule: $(SharedManagedPath)/UnityEngine.CoreModule.dll" />
   </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(IsInGitHubActions)' == '' ">
-    <Exec Command="XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),Assembly-CSharp.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,Assembly-CSharp.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),SDG.NetTransport.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,SDG.NetTransport.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),com.rlabrecque.steamworks.net.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,com.rlabrecque.steamworks.net.dll))*&quot;&#xD;&#xA;XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnityEngine.CoreModule.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,UnityEngine.CoreModule.dll))*&quot;" />
+    <Exec Command="
+		  XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),Assembly-CSharp.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,Assembly-CSharp.dll))*&quot;&#xD;&#xA;
+		  XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnturnedDat.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,UnturnedDat.dll))*&quot;&#xD;&#xA;
+          XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),SDG.NetTransport.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,SDG.NetTransport.dll))*&quot;&#xD;&#xA;
+          XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),com.rlabrecque.steamworks.net.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,com.rlabrecque.steamworks.net.dll))*&quot;&#xD;&#xA;
+          XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnityEngine.CoreModule.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,UnityEngine.CoreModule.dll))*&quot;" />
   </Target>
 </Project>

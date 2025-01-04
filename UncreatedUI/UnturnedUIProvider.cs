@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using SDG.Framework.Utilities;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -124,6 +124,8 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
             }
         }
     }
+
+    public bool AreAssetsStillLoading => Assets.isLoading;
 
     static UnturnedUIProvider() { }
 
@@ -385,6 +387,10 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
             _actions.Enqueue(s.Invoke);
         }
     }
+
+    public virtual EffectAsset? GetEffectAsset(ushort id) => Assets.find(EAssetType.EFFECT, id) as EffectAsset;
+
+    public virtual EffectAsset? GetEffectAsset(Guid guid) => Assets.find<EffectAsset>(guid);
 
     private class ClearByIdState
     {

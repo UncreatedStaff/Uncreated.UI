@@ -1,4 +1,5 @@
-﻿using SDG.NetTransport;
+using System;
+using SDG.NetTransport;
 using SDG.Unturned;
 
 namespace Uncreated.Framework.UI;
@@ -9,6 +10,21 @@ namespace Uncreated.Framework.UI;
 public interface IUnturnedUIProvider
 {
     /// <summary>
+    /// Invoked when a button is pressed by a player. Only contains the name of the element, not the full path.
+    /// </summary>
+    event EffectManager.EffectButtonClickedHandler OnButtonClicked;
+
+    /// <summary>
+    /// Invoked when text is committed to a text box by a player. Only contains the name of the element, not the full path.
+    /// </summary>
+    event EffectManager.EffectTextCommittedHandler OnTextCommitted;
+
+    /// <summary>
+    /// Checks if assets are still loading and <see cref="Level.onPrePreLevelLoaded"/> should load the asset.
+    /// </summary>
+    bool AreAssetsStillLoading { get; }
+
+    /// <summary>
     /// If this thread is the optimized thread for calling APIs in this interface. Usually this is the 'game thread'.
     /// </summary>
     bool IsValidThread();
@@ -18,16 +34,6 @@ public interface IUnturnedUIProvider
     /// </summary>
     /// <remarks>Unexceptional.</remarks>
     void DispatchToValidThread(System.Action action);
-
-    /// <summary>
-    /// Invoked when a button is pressed by a player. Only contains the name of the element, not the full path.
-    /// </summary>
-    event EffectManager.EffectButtonClickedHandler OnButtonClicked;
-
-    /// <summary>
-    /// Invoked when text is committed to a text box by a player. Only contains the name of the element, not the full path.
-    /// </summary>
-    event EffectManager.EffectTextCommittedHandler OnTextCommitted;
 
     /// <summary>
     /// Clear an effect by it's ID for a single player.
@@ -175,4 +181,14 @@ public interface IUnturnedUIProvider
     /// <param name="arg2">Text to replace {2} in all text elements.</param>
     /// <param name="arg3">Text to replace {3} in all text elements.</param>
     void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1, string arg2, string arg3);
+
+    /// <summary>
+    /// Finds the <see cref="EffectAsset"/> for a given short ID.
+    /// </summary>
+    EffectAsset? GetEffectAsset(ushort id);
+
+    /// <summary>
+    /// Finds the <see cref="EffectAsset"/> for a given GUID.
+    /// </summary>
+    EffectAsset? GetEffectAsset(Guid guid);
 }
