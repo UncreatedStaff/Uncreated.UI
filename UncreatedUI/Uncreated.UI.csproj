@@ -113,6 +113,10 @@
       <HintPath>$(SharedManagedPath)/SDG.NetTransport.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Reference Include="SDG.NetPak.Runtime">
+      <HintPath>$(SharedManagedPath)/SDG.NetPak.Runtime.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
 
     <!-- Third Party -->
     <Reference Include="com.rlabrecque.steamworks.net">
@@ -134,8 +138,9 @@
   </Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition=" '$(IsInGitHubActions)' == '' ">
     <Exec Command="
-		  XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),Assembly-CSharp.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,Assembly-CSharp.dll))*&quot;&#xD;&#xA;
-		  XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnturnedDat.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,UnturnedDat.dll))*&quot;&#xD;&#xA;
+		      XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),Assembly-CSharp.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,Assembly-CSharp.dll))*&quot;&#xD;&#xA;
+		      XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnturnedDat.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,UnturnedDat.dll))*&quot;&#xD;&#xA;
+		      XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),SDG.NetPak.Runtime.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,SDG.NetPak.Runtime.dll))*&quot;&#xD;&#xA;
           XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),SDG.NetTransport.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,SDG.NetTransport.dll))*&quot;&#xD;&#xA;
           XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),com.rlabrecque.steamworks.net.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,com.rlabrecque.steamworks.net.dll))*&quot;&#xD;&#xA;
           XCOPY /v /y &quot;$([System.IO.Path]::Combine($(SharedManagedPath),UnityEngine.CoreModule.dll))*&quot; &quot;$([System.IO.Path]::Combine(../Libraries,UnityEngine.CoreModule.dll))*&quot;" />

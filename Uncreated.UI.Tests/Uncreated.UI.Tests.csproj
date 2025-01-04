@@ -28,6 +28,10 @@
       <HintPath>../Libraries/SDG.NetTransport.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Reference Include="SDG.NetPak.Runtime">
+      <HintPath>../Libraries/SDG.NetPak.Runtime.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <Reference Include="UnturnedDat">
       <HintPath>../Libraries/UnturnedDat.dll</HintPath>
       <Private>true</Private>
