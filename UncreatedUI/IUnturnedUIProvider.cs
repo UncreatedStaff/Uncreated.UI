@@ -1,12 +1,29 @@
-using System;
 using SDG.NetTransport;
 using SDG.Unturned;
+using System;
+using System.ComponentModel;
 
 namespace Uncreated.Framework.UI;
+
+[EditorBrowsable(EditorBrowsableState.Advanced)]
+public static class UnturnedUIProviderExtensions
+{
+    /// <summary>
+    /// Throws an <see cref="NotSupportedException"/> if not on main thread.
+    /// </summary>
+    public static void AssertValidThread(this IUnturnedUIProvider uiProvider)
+    {
+        if (uiProvider.IsValidThread())
+            return;
+
+        throw new NotSupportedException("Not on game thread.");
+    }
+}
 
 /// <summary>
 /// Thread-safe abstraction surrounding the vanilla UI API, used for unit tests.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Advanced)]
 public interface IUnturnedUIProvider
 {
     /// <summary>

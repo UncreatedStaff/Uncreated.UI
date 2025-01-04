@@ -1,10 +1,12 @@
-﻿using System.Threading;
+using System.ComponentModel;
+using System.Threading;
 
 namespace Uncreated.Framework.UI;
 
 /// <summary>
 /// Cycle through all valid <see cref="short"/> keys, skipping -1.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Advanced)]
 public static class UnturnedUIKeyPool
 {
     private static int _index;

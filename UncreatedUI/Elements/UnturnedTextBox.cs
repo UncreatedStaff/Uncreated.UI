@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -191,7 +191,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
     /// <exception cref="NotSupportedException">Not ran on main thread.</exception>
     public string UpdateFromDataMainThread(Player player, string defaultValue = "", bool callEvent = false)
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
 
         UnturnedTextBoxData? messageData = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(player.channel.owner.playerID.steamID, this);
         string val;

@@ -472,7 +472,7 @@ public class UnturnedUI : IDisposable
     {
         IUnturnedUIDataSource instance = UnturnedUIDataSource.Instance;
         if (instance.RequiresMainThread)
-            ThreadUtil.assertIsGameThread();
+            UnturnedUIProvider.Instance.AssertValidThread();
 
         TData? data = instance.GetData<TData>(player, this);
         if (data == null)

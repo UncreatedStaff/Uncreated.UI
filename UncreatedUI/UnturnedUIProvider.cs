@@ -4,6 +4,7 @@ using SDG.NetTransport;
 using SDG.Unturned;
 using System;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Threading;
 using Action = System.Action;
 
@@ -12,6 +13,7 @@ namespace Uncreated.Framework.UI;
 /// <summary>
 /// Thread-safe abstraction surrounding the vanilla UI API.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Advanced)]
 public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
 {
     [ThreadStatic]

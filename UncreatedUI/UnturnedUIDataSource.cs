@@ -2,6 +2,7 @@ using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using Uncreated.Framework.UI.Data;
@@ -11,6 +12,7 @@ namespace Uncreated.Framework.UI;
 /// <summary>
 /// Manages instances of <see cref="IUnturnedUIData"/>. Available through <see cref="UnturnedUIDataSource"/>.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Advanced)]
 public interface IUnturnedUIDataSource : IDisposable
 {
     /// <summary>
@@ -231,7 +233,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     public static TData GetOrAddData<TData>(CSteamID player, UnturnedUIElement element, Func<CSteamID, UnturnedUIElement, TData> func) where TData : class, IUnturnedUIData
     {
         if (_instance.RequiresMainThread)
-            ThreadUtil.assertIsGameThread();
+            UnturnedUIProvider.Instance.AssertValidThread();
 
         TData? data = _instance.GetData<TData>(player, element);
         if (data == null)
@@ -252,7 +254,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     public static TData GetOrAddData<TData>(CSteamID player, UnturnedUI ui, Func<CSteamID, UnturnedUI, TData> func) where TData : class, IUnturnedUIData
     {
         if (_instance.RequiresMainThread)
-            ThreadUtil.assertIsGameThread();
+            UnturnedUIProvider.Instance.AssertValidThread();
 
         TData? data = _instance.GetData<TData>(player, ui);
         if (data == null)
@@ -304,7 +306,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     void IUnturnedUIDataSource.AddData(IUnturnedUIData data)
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
 
         if (data.Player.GetEAccountType() == EAccountType.k_EAccountTypeIndividual)
         {
@@ -329,7 +331,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     void IUnturnedUIDataSource.RemoveElement(UnturnedUIElement element)
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
         
         if (!_elementData.Remove(element, out List<IUnturnedUIData> list))
             return;
@@ -355,7 +357,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     void IUnturnedUIDataSource.RemoveOwner(UnturnedUI owner)
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
         
         if (!_ownerData.Remove(owner, out List<IUnturnedUIData> list))
             return;
@@ -381,7 +383,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     void IUnturnedUIDataSource.RemovePlayer(CSteamID player)
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
         
         if (!_playerData.Remove(player.m_SteamID, out List<IUnturnedUIData> list))
             return;
@@ -407,7 +409,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     TData? IUnturnedUIDataSource.GetData<TData>(CSteamID player, UnturnedUIElement element) where TData : class
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
 
         if (!_elementData.TryGetValue(element, out List<IUnturnedUIData> data))
             return null;
@@ -424,7 +426,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     TData? IUnturnedUIDataSource.GetData<TData>(CSteamID player, UnturnedUI ui) where TData : class
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
 
         if (!_ownerData.TryGetValue(ui, out List<IUnturnedUIData> data))
             return null;
@@ -441,7 +443,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     IEnumerable<IUnturnedUIData> IUnturnedUIDataSource.EnumerateData(CSteamID player)
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
 
         return _playerData.TryGetValue(player.m_SteamID, out List<IUnturnedUIData> data) ? data : Array.Empty<IUnturnedUIData>();
     }
@@ -449,7 +451,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     IEnumerable<IUnturnedUIData> IUnturnedUIDataSource.EnumerateData(UnturnedUI owner)
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
 
         return _ownerData.TryGetValue(owner, out List<IUnturnedUIData> data) ? data : Array.Empty<IUnturnedUIData>();
     }
@@ -457,7 +459,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     IEnumerable<IUnturnedUIData> IUnturnedUIDataSource.EnumerateData(UnturnedUIElement element)
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
 
         return _elementData.TryGetValue(element, out List<IUnturnedUIData> data) ? data : Array.Empty<IUnturnedUIData>();
     }
@@ -465,7 +467,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
     /// <inheritdoc />
     void IDisposable.Dispose()
     {
-        ThreadUtil.assertIsGameThread();
+        UnturnedUIProvider.Instance.AssertValidThread();
 
         if (_isListeningToPlayerDisconnect)
         {

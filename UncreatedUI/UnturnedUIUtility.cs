@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Globalization;
 
 namespace Uncreated.Framework.UI;
@@ -6,6 +7,7 @@ namespace Uncreated.Framework.UI;
 /// <summary>
 /// Utility methods for working with UIs.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Advanced)]
 public static class UnturnedUIUtility
 {
     /// <summary>
