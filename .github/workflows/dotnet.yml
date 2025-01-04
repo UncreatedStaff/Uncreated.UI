@@ -29,10 +29,13 @@ jobs:
     - name: SetupDotNet
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '9.x.x'
         
     - name: Build
       run: dotnet build "./UncreatedUI/Uncreated.UI.csproj" --configuration Release "/p:VersionPrefix=${{ inputs.version_prefix }};VersionSuffix=${{ inputs.version_suffix }};PackageReleaseNotes=${{ inputs.change_notes }};IsInGitHubActions=True"
+        
+    - name: Test
+      run: dotnet test "./Uncreated.UI.Tests/Uncreated.UI.Tests.csproj" --configuration Release "/p:IsInGitHubActions=True"
     
     - name: Pack
       run: dotnet pack "./UncreatedUI/Uncreated.UI.csproj" --configuration Release "/p:VersionPrefix=${{ inputs.version_prefix }};VersionSuffix=${{ inputs.version_suffix }};PackageReleaseNotes=${{ inputs.change_notes }};IsInGitHubActions=True" --no-build --output .

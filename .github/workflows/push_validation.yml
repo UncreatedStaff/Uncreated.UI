@@ -2,7 +2,7 @@ name: Latest
 
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [ opened, reopened ]
   push:
     branches: [ "master" ]
 
@@ -19,7 +19,10 @@ jobs:
     - name: SetupDotNet
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '5.0.x'
+        dotnet-version: '9.x.x'
         
     - name: Build
       run: dotnet build "./UncreatedUI/Uncreated.UI.csproj" --configuration Release "/p:IsInGitHubActions=True"
+        
+    - name: Test
+      run: dotnet test "./Uncreated.UI.Tests/Uncreated.UI.Tests.csproj" --configuration Release "/p:IsInGitHubActions=True"
