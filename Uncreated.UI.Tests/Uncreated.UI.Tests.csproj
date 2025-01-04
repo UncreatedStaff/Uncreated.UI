@@ -36,6 +36,10 @@
       <HintPath>../Libraries/UnturnedDat.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Reference Include="com.rlabrecque.steamworks.net">
+      <HintPath>../Libraries/com.rlabrecque.steamworks.net.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

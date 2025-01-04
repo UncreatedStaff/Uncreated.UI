@@ -125,6 +125,34 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
         }
     }
 
+    public virtual event Provider.ServerDisconnected OnDisconnect
+    {
+        add
+        {
+            if (IsGameThread())
+            {
+                Provider.onServerDisconnected += value;
+            }
+            else
+            {
+                AddProviderDisconnectedListenerState s = new AddProviderDisconnectedListenerState(value);
+                _actions.Enqueue(s.Add);
+            }
+        }
+        remove
+        {
+            if (IsGameThread())
+            {
+                Provider.onServerDisconnected -= value;
+            }
+            else
+            {
+                AddProviderDisconnectedListenerState s = new AddProviderDisconnectedListenerState(value);
+                _actions.Enqueue(s.Remove);
+            }
+        }
+    }
+
     public bool AreAssetsStillLoading => Assets.isLoading;
 
     static UnturnedUIProvider() { }
@@ -628,6 +656,24 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
         public void Remove()
         {
             EffectManager.onEffectTextCommitted -= _callback;
+        }
+    }
+
+    private class AddProviderDisconnectedListenerState
+    {
+        private readonly Provider.ServerDisconnected _callback;
+        public AddProviderDisconnectedListenerState(Provider.ServerDisconnected callback)
+        {
+            _callback = callback;
+        }
+
+        public void Add()
+        {
+            Provider.onServerDisconnected += _callback;
+        }
+        public void Remove()
+        {
+            Provider.onServerDisconnected -= _callback;
         }
     }
 }

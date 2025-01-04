@@ -1,4 +1,4 @@
-﻿using SDG.Unturned;
+using SDG.Unturned;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -135,7 +135,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
         if (UnturnedUIProvider.Instance.IsValidThread())
         {
             _isListeningToPlayerDisconnect = true;
-            Provider.onServerDisconnected += OnPlayerDisconnected;
+            UnturnedUIProvider.Instance.OnDisconnect += OnPlayerDisconnected;
         }
         else
         {
@@ -145,7 +145,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
                     return;
 
                 _isListeningToPlayerDisconnect = true;
-                Provider.onServerDisconnected += OnPlayerDisconnected;
+                UnturnedUIProvider.Instance.OnDisconnect += OnPlayerDisconnected;
             });
         }
     }

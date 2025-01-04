@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
+using Steamworks;
 using Uncreated.Framework.UI;
 using Action = System.Action;
 
@@ -102,6 +103,7 @@ public class TestUIProvider : IUnturnedUIProvider
 
     public event EffectManager.EffectButtonClickedHandler? OnButtonClicked;
     public event EffectManager.EffectTextCommittedHandler? OnTextCommitted;
+    public event Provider.ServerDisconnected OnDisconnect;
 
     public static void Setup()
     {
@@ -117,6 +119,11 @@ public class TestUIProvider : IUnturnedUIProvider
     public static void CommitText(Player player, string name, string text)
     {
         ((TestUIProvider)UnturnedUIProvider.Instance).OnTextCommitted?.Invoke(player, name, text);
+    }
+
+    public static void DisconnectPlayer(CSteamID steam64)
+    {
+        ((TestUIProvider)UnturnedUIProvider.Instance).OnDisconnect?.Invoke(steam64);
     }
 
     public EffectAsset? GetEffectAsset(ushort id) => null;

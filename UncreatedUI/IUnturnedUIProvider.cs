@@ -20,6 +20,11 @@ public interface IUnturnedUIProvider
     event EffectManager.EffectTextCommittedHandler OnTextCommitted;
 
     /// <summary>
+    /// Invoked when a player disconnects.
+    /// </summary>
+    event Provider.ServerDisconnected OnDisconnect;
+
+    /// <summary>
     /// Checks if assets are still loading and <see cref="Level.onPrePreLevelLoaded"/> should load the asset.
     /// </summary>
     bool AreAssetsStillLoading { get; }
