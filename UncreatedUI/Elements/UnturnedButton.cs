@@ -2,6 +2,7 @@ using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.Unturned;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using Uncreated.Framework.UI.Presets;
@@ -11,6 +12,7 @@ namespace Uncreated.Framework.UI;
 /// <summary>
 /// Represents a clickable button in a Unity UI.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Path}")]
 public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
 {
     private int _disposed;

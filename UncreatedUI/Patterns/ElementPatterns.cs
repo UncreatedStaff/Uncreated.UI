@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using DanielWillett.ReflectionTools.Formatting;
 using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI.Patterns;
@@ -183,15 +184,15 @@ public static class ElementPatterns
             if (!TypeInfo.TryGetValue(type, out typeInfo))
             {
                 typeInfo = new PatternTypeInfo(type, null);
-                TypeInfo.Add(type, typeInfo);
             }
         }
 
         List<int> indexStack = new List<int>(3) { -1 };
+        List<Type> circularReferenceChecker = new List<Type>(3) { typeof(T) };
         for (int i = 0; i < length; ++i)
         {
             indexStack[0] = i + start;
-            rtnArray[i] = (T)InitializeTypeInfo(typeof(T), typeInfo, null, null, UnturnedUIUtility.QuickFormat(basePath, i + start, 0), UnturnedUIUtility.QuickFormat(baseName, i + start, 0), indexStack);
+            rtnArray[i] = (T)InitializeTypeInfo(typeof(T), typeInfo, null, null, UnturnedUIUtility.QuickFormat(basePath, i + start, 0), UnturnedUIUtility.QuickFormat(baseName, i + start, 0), indexStack, circularReferenceChecker);
         }
 
         return rtnArray;
@@ -224,11 +225,11 @@ public static class ElementPatterns
             if (!TypeInfo.TryGetValue(type, out typeInfo))
             {
                 typeInfo = new PatternTypeInfo(type, null);
-                TypeInfo.Add(type, typeInfo);
             }
         }
 
-        return (T)InitializeTypeInfo(typeof(T), typeInfo, null, null, basePath.Span, baseName.Span, new List<int>());
+        List<Type> circularReferenceChecker = new List<Type>(3) { typeof(T) };
+        return (T)InitializeTypeInfo(typeof(T), typeInfo, null, null, basePath.Span, baseName.Span, new List<int>(), circularReferenceChecker);
     }
 
     internal static bool IsPrimitive(Type checkedType, [MaybeNullWhen(false)] out ConstructorInfo ctor)
@@ -264,8 +265,7 @@ public static class ElementPatterns
         {
             parameters[0] = UnturnedUIUtility.QuickFormat(format, i + start, 0);
             object prim = ctor.Invoke(parameters);
-            if (prim is ITextBox t)
-                t.UseData = textBoxUseData;
+            SetTextBoxUseData(prim, textBoxUseData);
 
             wrapper.Set(prim, i);
         }
@@ -279,8 +279,7 @@ public static class ElementPatterns
             return null;
 
         object prim = ctor.Invoke([ path ]);
-        if (prim is ITextBox t)
-            t.UseData = textBoxUseData;
+        SetTextBoxUseData(prim, textBoxUseData);
 
         return prim;    
     }
@@ -293,7 +292,21 @@ public static class ElementPatterns
         for (int i = 0; i < array.Length; ++i)
         {
             parameters[0] = UnturnedUIUtility.QuickFormat(format, i + start, 0);
-            array.SetValue(ctor.Invoke(parameters), i);
+
+            object prim;
+            try
+            {
+                prim = ctor.Invoke(parameters);
+            }
+            catch (Exception ex)
+            {
+                if (ex is TargetInvocationException te)
+                    ex = te;
+
+                throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_ErrorRunningPrimitiveConstructor, Accessor.ExceptionFormatter.Format(type)), ex);
+            }
+
+            array.SetValue(prim, i);
         }
 
         return true;
@@ -347,36 +360,43 @@ public static class ElementPatterns
         return true;
     }
 
-    private static unsafe void ResolveVariablePath(PatternVariableInfo variable, ref ReadOnlySpan<char> basePath, ref ReadOnlySpan<char> baseName, List<int>? indexStack, int presetCtorIndex = -1)
+    private static void TryApplyIndexStack(ref string str, List<int>? indexStack, int indexOffset)
+    {
+        if (indexStack is not { Count: > 0 })
+            return;
+
+        Span<char> fmt = stackalloc char[UnturnedUIUtility.CountDigits(indexStack.Count) + 2];
+        fmt[0] = '{';
+
+        for (int i = indexStack.Count - 1; i >= 0; --i)
+        {
+            int formatIndex = indexStack.Count - i + indexOffset;
+            formatIndex.TryFormat(fmt[1..], out _, "F0", CultureInfo.InvariantCulture);
+            fmt[^1] = '}';
+
+            if (str.AsSpan().IndexOf(fmt, StringComparison.Ordinal) != -1)
+            {
+                str = UnturnedUIUtility.QuickFormat(str, indexStack[i], formatIndex);
+            }
+        }
+    }
+
+    private static unsafe void ResolveVariablePath(PatternVariableInfo variable, ref ReadOnlySpan<char> basePath, ref ReadOnlySpan<char> baseName, List<int>? indexStack, bool hasIndex)
     {
         if (variable.RootInfo != null)
         {
             ReadOnlySpan<char> newBasePath = basePath, newBaseName = baseName;
-            ResolveVariablePath(variable.RootInfo, ref newBasePath, ref newBaseName, indexStack);
+            ResolveVariablePath(variable.RootInfo, ref newBasePath, ref newBaseName, indexStack, hasIndex);
 
             basePath = newBaseName.Length == 0 ? newBasePath : UnturnedUIUtility.CombinePath(newBasePath, newBaseName);
         }
 
+        int indexOffset = hasIndex ? 0 : -1;
         if (!string.IsNullOrEmpty(variable.AdditionalPath))
         {
             string additionalPath = variable.AdditionalPath;
 
-            if (indexStack is { Count: > 0 })
-            {
-                Span<char> fmt = stackalloc char[UnturnedUIUtility.CountDigits(indexStack.Count) + 2];
-                fmt[0] = '{';
-                for (int i = indexStack.Count; i >= 0; --i)
-                {
-                    int formatIndex = indexStack.Count - i;
-                    formatIndex.TryFormat(fmt[1..], out _, "F0", CultureInfo.InvariantCulture);
-                    fmt[^1] = '}';
-
-                    if (additionalPath.AsSpan().IndexOf(fmt, StringComparison.Ordinal) != -1)
-                    {
-                        additionalPath = UnturnedUIUtility.QuickFormat(additionalPath, indexStack[i], formatIndex);
-                    }
-                }
-            }
+            TryApplyIndexStack(ref additionalPath, indexStack, indexOffset);
 
             ReadOnlySpan<char> pathSpan = additionalPath.AsSpan();
             if (pathSpan.Length != 0)
@@ -393,22 +413,7 @@ public static class ElementPatterns
         }
 
         string pattern = variable.Pattern;
-        if (indexStack is { Count: > 0 })
-        {
-            Span<char> fmt = stackalloc char[UnturnedUIUtility.CountDigits(indexStack.Count) + 2];
-            fmt[0] = '{';
-            for (int i = indexStack.Count - 1; i >= 0; --i)
-            {
-                int formatIndex = indexStack.Count - i;
-                formatIndex.TryFormat(fmt[1..], out _, "F0", CultureInfo.InvariantCulture);
-                fmt[^1] = '}';
-
-                if (pattern.AsSpan().IndexOf(fmt, StringComparison.Ordinal) != -1)
-                {
-                    pattern = UnturnedUIUtility.QuickFormat(pattern, indexStack[i], formatIndex);
-                }
-            }
-        }
+        TryApplyIndexStack(ref pattern, indexStack, indexOffset);
 
         if (variable.PatternFormatMode is FormatMode.Suffix or FormatMode.Prefix)
         {
@@ -474,7 +479,7 @@ public static class ElementPatterns
         public string Pattern;
     }
 
-    private static object InitializeTypeInfo(Type rootType, PatternTypeInfo typeInfo, PatternVariableInfo? selfVariable, object? parentInstance, ReadOnlySpan<char> basePath, ReadOnlySpan<char> baseName, List<int> indexStack)
+    private static object InitializeTypeInfo(Type rootType, PatternTypeInfo typeInfo, PatternVariableInfo? selfVariable, object? parentInstance, ReadOnlySpan<char> basePath, ReadOnlySpan<char> baseName, List<int> indexStack, List<Type> circularReferenceChecker)
     {
         object? obj = null;
         if (selfVariable != null && parentInstance != null && selfVariable.Variable.CanGet)
@@ -501,7 +506,13 @@ public static class ElementPatterns
             ReadOnlySpan<char> baseVarPath = basePath, baseVarName = baseName;
             if (variable is { IsArray: true, ElementType: not null })
             {
-                ResolveVariablePath(variable, ref baseVarPath, ref baseVarName, indexStack);
+                if (circularReferenceChecker.Contains(variable.ElementType))
+                {
+                    throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_CircularReference, variable.ElementType, variable.Variable.Format(Accessor.ExceptionFormatter)));
+                }
+
+                circularReferenceChecker.Add(variable.ElementType);
+                ResolveVariablePath(variable, ref baseVarPath, ref baseVarName, indexStack, true);
 
                 EnumerableWrapper array = new EnumerableWrapper(obj, variable, variable.ArrayLength);
                 if (IsPrimitive(variable.ElementType, out _))
@@ -527,7 +538,7 @@ public static class ElementPatterns
                                 continue;
                             }
 
-                            path = UnturnedUIUtility.QuickFormat(path, number, 0);
+                            TryApplyIndexStack(ref path, indexStack, -1);
                             if (!UnturnedUIUtility.IsRooted(path))
                             {
                                 args[j] = path;
@@ -537,14 +548,27 @@ public static class ElementPatterns
                             ReadOnlySpan<char> varPath = fmtPath;
                             ReadOnlySpan<char> varName = baseName;
 
-                            ResolveVariablePath(variable, ref varPath, ref varName, indexStack, j - 1);
+                            ResolveVariablePath(variable, ref varPath, ref varName, indexStack, true);
                             args[j] = varName.Length == 0 ? new string(varPath) : UnturnedUIUtility.CombinePath(varPath, varName);
                         }
 
-                        object value = presetCtor.Invoke(args);
-                        if (value is ITextBox t)
-                            t.UseData = variable.TextBoxUseData;
+                        object? value;
+                        try
+                        {
+                            value = presetCtor.Invoke(args);
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex is TargetInvocationException te)
+                                ex = te;
+
+                            throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_ErrorRunningPresetConstructor, Accessor.ExceptionFormatter.Format(variable.CreatedType)), ex);
+                        }
+
+                        SetTextBoxUseData(value, variable.TextBoxUseData);
+
                         array.Set(value, i);
+
                     }
                     indexStack.RemoveAt(indexStack.Count - 1);
                 }
@@ -562,24 +586,32 @@ public static class ElementPatterns
                             null,
                             UnturnedUIUtility.QuickFormat(baseVarPath, number, 0),
                             UnturnedUIUtility.QuickFormat(baseVarName, number, 0),
-                            indexStack
+                            indexStack,
+                            circularReferenceChecker
                         );
 
-                        if (value is ITextBox t)
-                            t.UseData = variable.TextBoxUseData;
+                        SetTextBoxUseData(value, variable.TextBoxUseData);
                         array.Set(value, i);
                     }
                     indexStack.RemoveAt(indexStack.Count - 1);
                 }
-                
+
                 if (array.NeedsAssign)
-                    variable.Variable.SetValue(obj, array.GetValue());
+                {
+                    SetVariable(variable.Variable, obj, array.GetValue());
+                }
+                circularReferenceChecker.RemoveAt(circularReferenceChecker.Count - 1);
                 continue;
+            }
+
+            if (circularReferenceChecker.Contains(variable.CreatedType))
+            {
+                throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_CircularReference, variable.CreatedType, variable.Variable.Format(Accessor.ExceptionFormatter)));
             }
 
             object? existingValue = variable.Variable.CanGet ? variable.Variable.GetValue(obj) : null;
 
-            ResolveVariablePath(variable, ref baseVarPath, ref baseVarName, indexStack);
+            ResolveVariablePath(variable, ref baseVarPath, ref baseVarName, indexStack, false);
 
             if (TryGetPresetConstructor(variable.CreatedType, variable.PresetPathsCount, out presetCtor, out args))
             {
@@ -599,21 +631,33 @@ public static class ElementPatterns
                     ReadOnlySpan<char> varPath = baseVarPath;
                     ReadOnlySpan<char> varName = baseName;
 
-                    ResolveVariablePath(variable, ref varPath, ref varName, indexStack, j - 1);
+                    ResolveVariablePath(variable, ref varPath, ref varName, indexStack, true);
                     args[j] = varName.Length == 0 ? new string(varPath) : UnturnedUIUtility.CombinePath(varPath, varName);
                 }
 
-                object value = presetCtor.Invoke(args);
-                if (value is ITextBox t)
-                    t.UseData = variable.TextBoxUseData;
-                variable.Variable.SetValue(obj, value);
+                object? value;
+                try
+                {
+                    value = presetCtor.Invoke(args);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is TargetInvocationException te)
+                        ex = te;
+                    
+                    throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_ErrorRunningPresetConstructor, Accessor.ExceptionFormatter.Format(variable.CreatedType)), ex);
+                }
+
+                SetTextBoxUseData(value, variable.TextBoxUseData);
+                SetVariable(variable.Variable, obj, value);
             }
             else if (variable.NestedType != null)
             {
-                object value = InitializeTypeInfo(rootType, variable.NestedType, variable, obj, baseVarPath, baseVarName, indexStack);
-                if (value is ITextBox t)
-                    t.UseData = variable.TextBoxUseData;
-                variable.Variable.SetValue(obj, value);
+                circularReferenceChecker.Add(variable.CreatedType);
+                object value = InitializeTypeInfo(rootType, variable.NestedType, variable, obj, baseVarPath, baseVarName, indexStack, circularReferenceChecker);
+                circularReferenceChecker.RemoveAt(circularReferenceChecker.Count - 1);
+                SetTextBoxUseData(value, variable.TextBoxUseData);
+                SetVariable(variable.Variable, obj, value);
             }
             else
             {
@@ -630,12 +674,49 @@ public static class ElementPatterns
 
                 if (prim == null)
                     throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_FailureCreatingPrimitive, Accessor.ExceptionFormatter.Format(typeInfo.Type), Accessor.ExceptionFormatter.Format(rootType)));
-                
-                variable.Variable.SetValue(obj, prim);
+
+                SetVariable(variable.Variable, obj, prim);
             }
         }
 
         return obj;
+    }
+
+    private static void SetVariable(IVariable variable, object obj, object value)
+    {
+        try
+        {
+            variable.SetValue(obj, value);
+        }
+        catch (Exception ex)
+        {
+            if (ex is TargetInvocationException te)
+                ex = te;
+
+            throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_ErrorSettingVariable, variable.Format(Accessor.ExceptionFormatter), Accessor.Formatter.Format(variable.DeclaringType!)), ex);
+        }
+    }
+
+    private static void SetTextBoxUseData(object value, bool useTextBoxData)
+    {
+        if (value is not ITextBox textBox)
+            return;
+
+        try
+        {
+            textBox.UseData = useTextBoxData;
+        }
+        catch (Exception ex)
+        {
+            throw new ElementPatternCreationException(
+                string.Format(Properties.Resources.Exception_ErrorSettingTextBoxUseData,
+                    new PropertyDefinition(nameof(ITextBox.UseData))
+                        .DeclaredIn(value.GetType(), false)
+                        .WithPropertyType<bool>()
+                        .WithNoGetter()
+                        .Format(Accessor.ExceptionFormatter),
+                    Accessor.ExceptionFormatter.Format(value.GetType())), ex);
+        }
     }
 
     private abstract class CollectionWrapper

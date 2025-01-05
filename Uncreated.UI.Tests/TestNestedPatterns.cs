@@ -1,5 +1,6 @@
 using Uncreated.Framework.UI;
 using Uncreated.Framework.UI.Patterns;
+using Uncreated.Framework.UI.Presets;
 using Uncreated.Framework.UI.Reflection;
 
 namespace Uncreated.UI.Tests;
@@ -21,10 +22,12 @@ public class TestNestedPatterns
         for (int p1 = 1; p1 <= ui.Pattern1s.Length; ++p1)
         {
             TestUI.Pattern1 pattern1 = ui.Pattern1s[p1 - 1];
+            Assert.That(pattern1.Root.Path, Is.EqualTo($"Base/Path/P1s/Pattern1_{p1}"));
             Assert.That(pattern1.Pattern2s.Length, Is.EqualTo(50));
             for (int p2 = 1; p2 <= pattern1.Pattern2s.Length; ++p2)
             {
                 TestUI.Pattern2 pattern2 = pattern1.Pattern2s[p2 - 1];
+                Assert.That(pattern2.Root.Path, Is.EqualTo($"Base/Path/P1s/Pattern1_{p1}/P2s/Pattern2_{p2}"));
                 Assert.That(pattern2.Labels.Length, Is.EqualTo(6));
                 for (int l = 1; l <= pattern2.Labels.Length; ++l)
                 {
@@ -40,6 +43,16 @@ public class TestNestedPatterns
                     Assert.That(button.Owner, Is.EqualTo(ui));
                     Assert.That(button.Path, Is.EqualTo($"Base/Path/P1s/Pattern1_{p1}/P2s/Pattern2_{p2}/Button_{p1}/Button_{p2}_{b}"));
                 }
+
+                Assert.That(pattern2.LabeledButtons.Length, Is.EqualTo(4));
+                for (int b = 1; b <= pattern2.LabeledButtons.Length; ++b)
+                {
+                    LabeledButton button = pattern2.LabeledButtons[b - 1];
+                    Assert.That(button.Button.Owner, Is.EqualTo(ui));
+                    Assert.That(button.Button.Path, Is.EqualTo($"Base/Path/P1s/Pattern1_{p1}/P2s/Pattern2_{p2}/LabeledButton_{p2}_{b}"));
+                    Assert.That(button.Label.Owner, Is.EqualTo(ui));
+                    Assert.That(button.Label.Path, Is.EqualTo($"Base/Path/P1s/Pattern1_{p1}/P2s/Pattern2_{p2}/LabeledButton_{p2}_{b}/Label_{p2}_{b}"));
+                }
             }
 
             Assert.That(pattern1.Buttons.Length, Is.EqualTo(6));
@@ -52,6 +65,45 @@ public class TestNestedPatterns
         }
     }
 
+    [Test]
+    public void PathsCorrectForSingularIndexInjection()
+    {
+        ServerListUI ui = new ServerListUI();
+
+        Assert.That(ui.ServerLists.Length, Is.EqualTo(10));
+        for (int sl = 1; sl <= ui.ServerLists.Length; ++sl)
+        {
+            ServerListUI.ServerList list = ui.ServerLists[sl - 1];
+            for (int si = 1; si <= list.Servers.Length; ++si)
+            {
+                ServerListUI.ServerInfo info = list.Servers[si - 1];
+                Assert.That(info.JoinButton.Path, Is.EqualTo($"ServerList_{sl}/Server_{si}/SL_{sl}_Server_{si}_JoinButton"));
+            }
+        }
+    }
+
+    #nullable disable
+    public class ServerListUI : UnturnedUI
+    {
+        public readonly ServerList[] ServerLists = ElementPatterns.CreateArray<ServerList>("ServerList_{0}/", 1, to: 10);
+        
+        public ServerListUI() : base(12345) { }
+
+        public class ServerList : PatternRoot
+        {
+            [ArrayPattern(1, To = 4)]
+            [Pattern("Server_{0}")]
+            public ServerInfo[] Servers { get; set; }
+        }
+
+        public class ServerInfo : PatternRoot
+        {
+            [Pattern("SL_{1}_Server_{0}_JoinButton")]
+            public UnturnedButton JoinButton { get; set; }
+        }
+    }
+
+
     [UnturnedUI(BasePath = "Base/Path")]
     public class TestUI : UnturnedUI
     {
@@ -59,7 +111,6 @@ public class TestNestedPatterns
 
         public TestUI() : base(0) { }
 
-#nullable disable
         public class Pattern1 : PatternRoot
         {
             [ArrayPattern(1, To = 6)]
@@ -80,6 +131,10 @@ public class TestNestedPatterns
             [ArrayPattern(1, To = 6)]
             [Pattern("Pattern3_{0}/Value")]
             public UnturnedLabel[] Labels { get; set; }
+
+            [ArrayPattern(1, To = 4)]
+            [Pattern("LabeledButton_{1}_{0}", PresetPaths = [ "./Label_{1}_{0}" ])]
+            public LabeledButton[] LabeledButtons { get; set; }
         }
 #nullable restore
     }

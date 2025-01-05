@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using Uncreated.Framework.UI.Data;
 
@@ -16,9 +17,14 @@ public delegate void ToggleUpdated(UnturnedToggle toggle, Player player, bool va
 /// <summary>
 /// Check box made up of a button and image.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {ToggleButton.Path}")]
 public class UnturnedToggle : IDisposable, IButton, IStateElement
 {
+    [Ignore]
     private int _disposed;
+
+    [Ignore]
+    protected virtual string ElementTypeDisplayName => Properties.Resources.DisplayName_UnturnedToggle;
 
     /// <summary>
     /// Arbitrary data storage for third-party usage.
@@ -177,7 +183,7 @@ public class UnturnedToggle : IDisposable, IButton, IStateElement
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"{Properties.Resources.DisplayName_UnturnedToggle} [{ToggleButton.Path}] ({ToggleButton.Owner.Name})";
+        return $"{ElementTypeDisplayName} [{ToggleButton.Path}] ({ToggleButton.Owner.Name})";
     }
 
     /// <inheritdoc />
@@ -187,10 +193,14 @@ public class UnturnedToggle : IDisposable, IButton, IStateElement
 /// <summary>
 /// Check box made up of a button and image with a label.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {ToggleButton.Path}")]
 public class LabeledUnturnedToggle : UnturnedToggle, ILabel
 {
     /// <inheritdoc />
     public UnturnedLabel Label { get; }
+
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_LabeledUnturnedToggle;
+
     public LabeledUnturnedToggle(bool defaultValue, string buttonPath) : this(defaultValue, buttonPath, buttonPath + "Label") { }
     public LabeledUnturnedToggle(bool defaultValue, string buttonPath, string labelName) : base(defaultValue, buttonPath)
     {
@@ -211,10 +221,4 @@ public class LabeledUnturnedToggle : UnturnedToggle, ILabel
     /// Disable the visibility of the label.
     /// </summary>
     public void HideLabel(ITransportConnection player) => Label.SetVisibility(player, false);
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{Properties.Resources.DisplayName_LabeledUnturnedToggle} [{ToggleButton.Path}] ({ToggleButton.Owner.Name})";
-    }
 }

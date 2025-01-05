@@ -1,4 +1,4 @@
-﻿using Uncreated.Framework.UI.Data;
+using Uncreated.Framework.UI.Data;
 
 namespace Uncreated.Framework.UI.Presets;
 

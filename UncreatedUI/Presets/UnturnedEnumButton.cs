@@ -5,6 +5,7 @@ using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using Uncreated.Framework.UI.Data;
 
@@ -23,6 +24,7 @@ public delegate string TextFormatter<in TEnum>(TEnum value, Player player) where
 /// <summary>
 /// A 'enum' button that switches between various values of an enum with an optional <see cref="TextFormatter"/>.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Button.Path}")]
 public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableButton, IDisposable where TEnum : unmanaged, Enum
 {
     [Ignore] private static readonly TEnum[] EnumValues = (TEnum[])typeof(TEnum).GetEnumValues();
@@ -30,6 +32,9 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
     [Ignore] private int[]? _ignored;
     [Ignore] private readonly int _defaultIndex;
     [Ignore] public event ValueUpdated<TEnum>? OnValueUpdated;
+
+    [Ignore]
+    protected virtual string ElementTypeDisplayName => string.Format(Properties.Resources.DisplayName_UnturnedEnumButton, Accessor.ExceptionFormatter.Format(typeof(TEnum)));
 
     /// <summary>
     /// Initial value of the enum button.
@@ -403,7 +408,7 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"{string.Format(Properties.Resources.DisplayName_UnturnedEnumButton, Accessor.ExceptionFormatter.Format(typeof(TEnum)))} [{Button.Path}] ({Button.Owner.Name})";
+        return $"{string.Format(ElementTypeDisplayName, Accessor.ExceptionFormatter.Format(typeof(TEnum)))} [{Button.Path}] ({Button.Owner.Name})";
     }
 
     /// <inheritdoc />

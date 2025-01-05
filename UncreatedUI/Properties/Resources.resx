@@ -348,4 +348,22 @@
   <data name="Log_ErrorDisposingIUnturnedUIProvider" xml:space="preserve">
     <value>Failed to dispose UI provider: {0}.</value>
   </data>
+  <data name="Log_ErrorDisposingUnturnedUI" xml:space="preserve">
+    <value>{0} threw an exception from an override of the OnDisposing method.</value>
+  </data>
+  <data name="Exception_CircularReference" xml:space="preserve">
+    <value>Type {0} caused a circular reference terminated by pattern variable {1}.</value>
+  </data>
+  <data name="Exception_ErrorRunningPresetConstructor" xml:space="preserve">
+    <value>The selected constructor on preset type {0} threw an exception, or was unable to create the preset for some reason.</value>
+  </data>
+  <data name="Exception_ErrorSettingVariable" xml:space="preserve">
+    <value>The setter for variable {0} threw an exception on type {1}, or there was some other issue setting the variable while creating pattern.</value>
+  </data>
+  <data name="Exception_ErrorSettingTextBoxUseData" xml:space="preserve">
+    <value>Setter for {0} threw an exception on {1} while creating pattern.</value>
+  </data>
+  <data name="Exception_ErrorRunningPrimitiveConstructor" xml:space="preserve">
+    <value>The constructor on primitive type {0} threw an exception, or was unable to create the primitive for some reason.</value>
+  </data>
 </root>

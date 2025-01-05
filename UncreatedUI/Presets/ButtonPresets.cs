@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DanielWillett.ReflectionTools;
 
 namespace Uncreated.Framework.UI.Presets;
@@ -5,6 +6,7 @@ namespace Uncreated.Framework.UI.Presets;
 /// <summary>
 /// A button with a label.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Button.Path}")]
 public class LabeledButton : ILabeledButton
 {
     /// <inheritdoc />
@@ -12,6 +14,9 @@ public class LabeledButton : ILabeledButton
 
     /// <inheritdoc />
     public UnturnedLabel Label { get; }
+
+    [Ignore]
+    protected virtual string ElementTypeDisplayName => Properties.Resources.DisplayName_LabeledButton;
 
     /// <inheritdoc />
     public event ButtonClicked OnClicked
@@ -35,7 +40,7 @@ public class LabeledButton : ILabeledButton
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"{Properties.Resources.DisplayName_LabeledButton} [{Button.Path}] ({Button.Owner.Name})";
+        return $"{ElementTypeDisplayName} [{Button.Path}] ({Button.Owner.Name})";
     }
 
     /// <inheritdoc />
@@ -45,6 +50,7 @@ public class LabeledButton : ILabeledButton
 /// <summary>
 /// A button with a enabled/disabled state.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Button.Path}")]
 public class StateButton : IButton, IStateElement
 {
     /// <inheritdoc />
@@ -52,6 +58,9 @@ public class StateButton : IButton, IStateElement
 
     /// <inheritdoc />
     public UnturnedUIElement State { get; }
+
+    [Ignore]
+    protected virtual string ElementTypeDisplayName => Properties.Resources.DisplayName_StateButton;
 
     /// <inheritdoc />
     public event ButtonClicked OnClicked
@@ -74,7 +83,7 @@ public class StateButton : IButton, IStateElement
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"{Properties.Resources.DisplayName_StateButton} [{Button.Path}] ({Button.Owner.Name})";
+        return $"{ElementTypeDisplayName} [{Button.Path}] ({Button.Owner.Name})";
     }
 
     /// <inheritdoc />
@@ -84,6 +93,7 @@ public class StateButton : IButton, IStateElement
 /// <summary>
 /// A button with a right click listener.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Button.Path}")]
 public class RightClickableButton : IRightClickableButton
 {
     /// <inheritdoc />
@@ -106,6 +116,9 @@ public class RightClickableButton : IRightClickableButton
         remove => RightClickListener.OnClicked -= value;
     }
 
+    [Ignore]
+    protected virtual string ElementTypeDisplayName => Properties.Resources.DisplayName_RightClickableButton;
+
     public RightClickableButton(string path) : this(path, path + "RightClickListener") { }
 
     public RightClickableButton(string buttonPath, string? rightClickListenerButtonPath)
@@ -121,7 +134,7 @@ public class RightClickableButton : IRightClickableButton
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"{Properties.Resources.DisplayName_RightClickableButton} [{Button.Path}] ({Button.Owner.Name})";
+        return $"{ElementTypeDisplayName} [{Button.Path}] ({Button.Owner.Name})";
     }
 
     /// <inheritdoc />
@@ -131,10 +144,14 @@ public class RightClickableButton : IRightClickableButton
 /// <summary>
 /// A labeled button who's intractability can be enabled and disabled.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Button.Path}")]
 public class LabeledStateButton : LabeledButton, IStateElement
 {
     /// <inheritdoc />
     public UnturnedUIElement State { get; }
+
+    [Ignore]
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_LabeledStateButton;
 
     public LabeledStateButton(string path) : base(path)
     {
@@ -146,21 +163,19 @@ public class LabeledStateButton : LabeledButton, IStateElement
     {
         State = new UnturnedUIElement(UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
     }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{Properties.Resources.DisplayName_LabeledStateButton} [{Button.Path}] ({Button.Owner.Name})";
-    }
 }
 
 /// <summary>
 /// A right-clickable button who's intractability can be enabled and disabled.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Button.Path}")]
 public class RightClickableStateButton : RightClickableButton, IStateElement
 {
     /// <inheritdoc />
     public UnturnedUIElement State { get; }
+
+    [Ignore]
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_RightClickableStateButton;
 
     public RightClickableStateButton(string path) : base(path)
     {
@@ -171,21 +186,19 @@ public class RightClickableStateButton : RightClickableButton, IStateElement
     {
         State = new UnturnedUIElement(UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
     }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{Properties.Resources.DisplayName_RightClickableStateButton} [{Button.Path}] ({Button.Owner.Name})";
-    }
 }
 
 /// <summary>
 /// A button with a label and right click listener.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Button.Path}")]
 public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
 {
     /// <inheritdoc />
     public UnturnedLabel Label { get; }
+
+    [Ignore]
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_LabeledRightClickableButton;
 
     public LabeledRightClickableButton(string path) : base(path)
     {
@@ -196,21 +209,19 @@ public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
     {
         Label = new UnturnedLabel(UnturnedUIUtility.GetPresetValue(buttonPath, labelPath, "Label"));
     }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{Properties.Resources.DisplayName_LabeledRightClickableButton} [{Button.Path}] ({Button.Owner.Name})";
-    }
 }
 
 /// <summary>
 /// A button with a label and right click listener, who's intractability can be enabled and disabled.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Button.Path}")]
 public class LabeledRightClickableStateButton : LabeledRightClickableButton, IStateElement
 {
     /// <inheritdoc />
     public UnturnedUIElement State { get; }
+
+    [Ignore]
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_LabeledRightClickableStateButton;
 
     public LabeledRightClickableStateButton(string path) : base(path)
     {
@@ -221,11 +232,5 @@ public class LabeledRightClickableStateButton : LabeledRightClickableButton, ISt
         : base(buttonPath, labelPath, rightClickListenerButtonPath)
     {
         State = new UnturnedUIElement(UnturnedUIUtility.GetPresetValue(buttonPath, statePath, "State"));
-    }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{Properties.Resources.DisplayName_LabeledRightClickableStateButton} [{Button.Path}] ({Button.Owner.Name})";
     }
 }

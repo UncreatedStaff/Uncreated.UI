@@ -133,23 +133,11 @@ internal sealed class PatternVariableInfo
             NestedType = ElementPatterns.TypeInfo.TryGetValue(valueType, out PatternTypeInfo existingTypeInfo)
                 ? existingTypeInfo
                 : FindInRootType(rootType, ownerType, valueType);
-        }
 
-        if (NestedType != null)
-            return;
+            if (NestedType != null)
+                return;
 
-        NestedType = new PatternTypeInfo(valueType, rootType);
-
-        lock (ElementPatterns.TypeInfo)
-        {
-            if (!ElementPatterns.TypeInfo.TryGetValue(NestedType.Type, out PatternTypeInfo nestedType))
-            {
-                ElementPatterns.TypeInfo.Add(NestedType.Type, NestedType);
-            }
-            else
-            {
-                NestedType = nestedType;
-            }
+            NestedType = new PatternTypeInfo(valueType, rootType);
         }
     }
     private static PatternTypeInfo? FindInRootType(PatternTypeInfo? rootType, PatternTypeInfo? ownerType, Type memberType)

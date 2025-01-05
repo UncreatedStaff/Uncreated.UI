@@ -1,4 +1,4 @@
-using Uncreated.Framework.UI.Data;
+using System.Diagnostics;
 using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI.Patterns;
@@ -7,11 +7,13 @@ namespace Uncreated.Framework.UI.Patterns;
 /// <summary>
 /// Provides a root object for a pattern to derive from. Provides implementations for <see cref="IElement"/>.
 /// </summary>
+[DebuggerDisplay("{GetType().Name,nq} {Root.Path}")]
 public abstract class PatternRoot : PatternRoot<UnturnedUIElement>;
 
 /// <summary>
 /// Provides a root object for a pattern to derive from which has a Text component. Provides implementations for <see cref="IElement"/> and <see cref="ILabel"/>.
 /// </summary>
+[DebuggerDisplay("{GetType().Name,nq} {Root.Path}")]
 public abstract class PatternLabelRoot : PatternRoot<UnturnedLabel>, ILabel
 {
     /// <inheritdoc />
@@ -21,6 +23,7 @@ public abstract class PatternLabelRoot : PatternRoot<UnturnedLabel>, ILabel
 /// <summary>
 /// Provides a root object for a pattern to derive from which has an Image component. Provides implementations for <see cref="IElement"/> and <see cref="IImage"/>.
 /// </summary>
+[DebuggerDisplay("{GetType().Name,nq} {Root.Path}")]
 public abstract class PatternImageRoot : PatternRoot<UnturnedImage>, IImage
 {
     /// <inheritdoc />
@@ -30,6 +33,7 @@ public abstract class PatternImageRoot : PatternRoot<UnturnedImage>, IImage
 /// <summary>
 /// Provides a root object for a pattern to derive from which has a Button component. Provides implementations for <see cref="IElement"/> and <see cref="IButton"/>.
 /// </summary>
+[DebuggerDisplay("{GetType().Name,nq} {Root.Path}")]
 public abstract class PatternButtonRoot : PatternRoot<UnturnedButton>, IButton
 {
     /// <inheritdoc />
@@ -46,6 +50,7 @@ public abstract class PatternButtonRoot : PatternRoot<UnturnedButton>, IButton
 /// <summary>
 /// Provides a root object for a pattern to derive from which has a TextBox component. Provides implementations for <see cref="IElement"/> and <see cref="ITextBox"/>.
 /// </summary>
+[DebuggerDisplay("{GetType().Name,nq} {Root.Path}")]
 public abstract class PatternTextBoxRoot : PatternRoot<UnturnedTextBox>, ITextBox
 {
     /// <inheritdoc />
@@ -68,6 +73,7 @@ public abstract class PatternTextBoxRoot : PatternRoot<UnturnedTextBox>, ITextBo
 /// <summary>
 /// Provides a root object for a pattern to derive from. Provides implementations for <see cref="IElement"/>.
 /// </summary>
+[DebuggerDisplay("{GetType().Name,nq} {Root.Path}")]
 public abstract class PatternRoot<TUIElement> : IElement where TUIElement : UnturnedUIElement
 {
     /// <summary>

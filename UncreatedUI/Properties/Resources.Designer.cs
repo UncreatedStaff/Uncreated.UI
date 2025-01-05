@@ -259,6 +259,51 @@ namespace Uncreated.Framework.UI.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type {0} caused a circular reference terminated by pattern variable {1}..
+        /// </summary>
+        internal static string Exception_CircularReference {
+            get {
+                return ResourceManager.GetString("Exception_CircularReference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selected constructor on preset type {0} threw an exception, or was unable to create the preset for some reason..
+        /// </summary>
+        internal static string Exception_ErrorRunningPresetConstructor {
+            get {
+                return ResourceManager.GetString("Exception_ErrorRunningPresetConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The constructor on primitive type {0} threw an exception, or was unable to create the primitive for some reason..
+        /// </summary>
+        internal static string Exception_ErrorRunningPrimitiveConstructor {
+            get {
+                return ResourceManager.GetString("Exception_ErrorRunningPrimitiveConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setter for {0} threw an exception on {1} while creating pattern..
+        /// </summary>
+        internal static string Exception_ErrorSettingTextBoxUseData {
+            get {
+                return ResourceManager.GetString("Exception_ErrorSettingTextBoxUseData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The setter for variable {0} threw an exception on type {1}, or there was some other issue setting the variable while creating pattern..
+        /// </summary>
+        internal static string Exception_ErrorSettingVariable {
+            get {
+                return ResourceManager.GetString("Exception_ErrorSettingVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to create instance of pattern class {0}. All patterns must have a parameterless constructor (created by default if no other constructors are available)..
         /// </summary>
         internal static string Exception_FailedToCreatePatternClass {
@@ -489,6 +534,15 @@ namespace Uncreated.Framework.UI.Properties {
         internal static string Log_ErrorDisposingIUnturnedUIProvider {
             get {
                 return ResourceManager.GetString("Log_ErrorDisposingIUnturnedUIProvider", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} threw an exception from an override of the OnDisposing method..
+        /// </summary>
+        internal static string Log_ErrorDisposingUnturnedUI {
+            get {
+                return ResourceManager.GetString("Log_ErrorDisposingUnturnedUI", resourceCulture);
             }
         }
         

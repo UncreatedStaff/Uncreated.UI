@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
+using System.Diagnostics;
 using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI;
@@ -10,6 +11,7 @@ namespace Uncreated.Framework.UI;
 /// <summary>
 /// Represents a web image in a Unity UI.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Path}")]
 public class UnturnedImage : UnturnedUIElement, IImage
 {
     /// <summary>

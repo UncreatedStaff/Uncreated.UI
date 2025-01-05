@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using Uncreated.Framework.UI.Data;
@@ -13,6 +14,7 @@ namespace Uncreated.Framework.UI;
 /// <summary>
 /// Represents an input component in a Unity UI.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Path}")]
 public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
 {
     private int _disposed;

@@ -134,6 +134,8 @@ The default UI data tracker can be accessed or changed using `UnturnedUIDataSour
 
 The `Element` can also be `null` so the data is just linked to the UI object itself.
 
+UI data does not persist between player sessions (it is removed on disconnect).
+
 ### Creating Custom Data
 ```cs
 public class CustomUIData : IUnturnedUIData
@@ -208,6 +210,16 @@ public class ExampleUI : UnturnedUI
 }
 ```
 
+Instead of creating a `Root` element, you can also just inherit your pattern from one of the following classes:
+* `PatternRoot`
+* `PatternRoot<TUIElement>`
+* `PatternLabelRoot`
+* `PatternButtonRoot`
+* `PatternTextBoxRoot`
+* `PatternImageRoot`
+
+These classes act as a root element but also implement the corresponding interfaces so you can call extension methods such as `IElement.Hide(...)` on them.
+
 ## Using Presets
 Presets are types who's members are initialized from the constructor. See a list of built-in presets in the `Built in Types > Presets` section of this document.
 
@@ -273,9 +285,36 @@ The ArrayPattern attribute can be used to create multiple nested pattern in a pa
 ```cs
 [ArrayPattern(1, To = 4)]
 [Pattern("Item_{0}")]
-public ElementType[] Elements { get; }
+public ElementType[] Elements { get; set; }
 ```
 
+Patterns strings (including the AdditionalPath field) can reference the index of the current object by using {1} and the index of the parent object using {2}. Higher numbers will continue marching up the type hierarchy.
+This is especially useful for buttons since they need to have unique names.
+```cs
+
+public class ServerListUI : UnturnedUI
+{
+    public readonly ServerList[] ServerLists = ElementPatterns.CreateArray<ServerList>("ServerList_{0}/", 1, to: 10);
+        
+    public ServerListUI() : base(12345) { }
+
+    public class ServerList : PatternRoot
+    {
+        [ArrayPattern(1, To = 4)]
+        [Pattern("Server_{0}")]
+        public ServerInfo[] Servers { get; set; }
+    }
+
+    public class ServerInfo : PatternRoot
+    {
+        [Pattern("SL_{1}_Server_{0}_JoinButton")]
+        public UnturnedButton JoinButton { get; set; }
+    }
+}
+
+```
+
+In the above example, buttons will have a path resembling: `ServerList_10/Server_3/SL_10_Server_3_JoinButton`
 
 # Logging and Dependency Injection
 `ILogger` or `ILoggerFactory` instances from `Microsoft.Extensions.Logging` can also be supplied to the first argument of the constructors of all built-in element and preset types.
@@ -287,6 +326,14 @@ All UI classes should usually be created as singleton services that will last th
 This is because they use keys that increment each time a UI is created and if they're not singletons will change their key each time.
 
 Also in this way, services can be injected into the parent class (like a configuration that stores the effect ID, a logger for debug logging, etc.) and used in the base constructor.
+
+
+**Registering UI classes as a transient service can cause a memory leak as elements' user-specific data is stored until either the player logs off or the UI is disposed.**
+
+# Custom element providers
+Types can implement `IUnturnedUIElementProvider` to customize how that type is searched for elements. By default they're just searched using the fields and properties in the type.
+
+When the element discovery finds a type implementing this interface, it will call the `EnumerateElements` method instead of searching fields and properties.
 
 
 # Built in Types

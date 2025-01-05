@@ -10,17 +10,17 @@ namespace Uncreated.Framework.UI.Reflection;
 
 internal static class UIElementDiscovery
 {
-    internal static void LinkAllElements(UnturnedUI ui, List<UnturnedUIElement> elements)
+    internal static void LinkAllElements(UnturnedUI ui, List<UnturnedUIElement> elements, List<object> circularReferenceStack)
     {
         int depth = 0;
-        DiscoverElements(ui.GetLogger(), ui, elements, ref depth, ui.DebugLogging, ui);
+        DiscoverElements(ui.GetLogger(), ui, elements, ref depth, ui.DebugLogging, ui, circularReferenceStack);
     }
 
-    internal static void DiscoverElements(ILogger? logger, object value, List<UnturnedUIElement> elements, ref int depth, bool debug, UnturnedUI owner, ReflectionCache? cache = null)
+    internal static void DiscoverElements(ILogger? logger, object value, List<UnturnedUIElement> elements, ref int depth, bool debug, UnturnedUI owner, List<object> circularReferenceStack, ReflectionCache? cache = null)
     {
         if (value is IEnumerable or IUnturnedUIElementProvider)
         {
-            Discover(logger, value, depth, elements, debug, owner);
+            Discover(logger, value, depth, elements, debug, owner, circularReferenceStack);
             return;
         }
 
@@ -72,20 +72,38 @@ internal static class UIElementDiscovery
         for (int i = 0; i < fields.Length; ++i)
         {
             FieldInfo field = fields[i];
-            if (!(ignoreMask == null ? IsIgnored(field, value) : ignoreMask[i]))
+            if (ignoreMask == null ? IsIgnored(field, value) : ignoreMask[i])
+                continue;
+
+            bool checkStack = !field.FieldType.IsValueType;
+            object val = field.GetValue(value);
+            if (checkStack && circularReferenceStack.Contains(val))
             {
-                object val = field.GetValue(value);
-                Discover(logger, val, depth, elements, debug, owner);
+                continue;
             }
+
+            if (checkStack)
+                circularReferenceStack.Add(val);
+            Discover(logger, val, depth, elements, debug, owner, circularReferenceStack);
+            if (checkStack)
+                circularReferenceStack.RemoveAt(circularReferenceStack.Count - 1);
         }
         for (int i = 0; i < properties.Length; ++i)
         {
             PropertyInfo property = properties[i];
-            if (!(ignoreMask == null ? IsIgnored(property, value) || !property.CanRead : ignoreMask[i]))
-            {
-                object val = property.GetValue(value, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, null, null);
-                Discover(logger, val, depth, elements, debug, owner);
-            }
+            if (ignoreMask == null ? IsIgnored(property, value) || !property.CanRead : ignoreMask[i])
+                continue;
+
+            bool checkStack = !property.PropertyType.IsValueType;
+            object val = property.GetValue(value, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic, null, null, null);
+            if (checkStack && circularReferenceStack.Contains(val))
+                continue;
+
+            if (checkStack)
+                circularReferenceStack.Add(val);
+            Discover(logger, val, depth, elements, debug, owner, circularReferenceStack);
+            if (checkStack)
+                circularReferenceStack.RemoveAt(circularReferenceStack.Count - 1);
         }
 
         ++depth;
@@ -96,7 +114,7 @@ internal static class UIElementDiscovery
         return member.DeclaringType == typeof(UnturnedUI) || member.IsIgnored() || Attribute.IsDefined(member, typeof(IgnoreIfDefinedTypeAttribute)) && value.GetType() == member.DeclaringType || member.IsDefinedSafe<CompilerGeneratedAttribute>();
     }
 
-    private static void Discover(ILogger? logger, object val, int depth, List<UnturnedUIElement> elements, bool debug, UnturnedUI owner)
+    private static void Discover(ILogger? logger, object val, int depth, List<UnturnedUIElement> elements, bool debug, UnturnedUI owner, List<object> circularReferenceStack)
     {
         if (val is UnturnedUIElement elem)
         {
@@ -129,7 +147,7 @@ internal static class UIElementDiscovery
                         cache = new ReflectionCache { Type = value2.GetType() };
                     int depth2 = depth + 1;
                     int oldCt = elements.Count;
-                    DiscoverElements(logger, value2, elements, ref depth2, debug, owner, cache);
+                    DiscoverElements(logger, value2, elements, ref depth2, debug, owner, circularReferenceStack, cache);
                     if (debug && elements.Count != oldCt)
                         logger!.LogInformation(Properties.Resources.Log_FoundOtherInEnumerable, nameof(UIElementDiscovery), elements.Count - oldCt, Accessor.Formatter.Format(value2.GetType()));
                 }
@@ -160,7 +178,7 @@ internal static class UIElementDiscovery
 
             int depth2 = depth + 1;
             int oldCt = elements.Count;
-            DiscoverElements(logger, val, elements, ref depth2, debug, owner);
+            DiscoverElements(logger, val, elements, ref depth2, debug, owner, circularReferenceStack);
             if (debug && elements.Count != oldCt)
                 logger!.LogInformation(Properties.Resources.Log_FoundOther, nameof(UIElementDiscovery), elements.Count - oldCt, Accessor.Formatter.Format(val.GetType()));
         }

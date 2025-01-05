@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using Uncreated.Framework.UI.Presets;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace Uncreated.Framework.UI;
 /// <summary>
 /// Any <see cref="GameObject"/> in a Unity UI.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {Path}")]
 public class UnturnedUIElement : IElement
 {
     private static int _globalElementId;

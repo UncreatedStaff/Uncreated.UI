@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DanielWillett.ReflectionTools;
 
 namespace Uncreated.Framework.UI.Presets;
@@ -5,6 +6,7 @@ namespace Uncreated.Framework.UI.Presets;
 /// <summary>
 /// Represents a text box with a placeholder.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {TextBox.Path}")]
 public class PlaceholderTextBox : IPlaceholderTextBox
 {
     /// <inheritdoc />
@@ -21,11 +23,15 @@ public class PlaceholderTextBox : IPlaceholderTextBox
     }
 
     /// <inheritdoc />
+    [Ignore]
     public bool UseData
     {
         get => TextBox.UseData;
         set => TextBox.UseData = value;
     }
+
+    [Ignore]
+    protected virtual string ElementTypeDisplayName => Properties.Resources.DisplayName_PlaceholderTextBox;
 
     public PlaceholderTextBox(string path) : this(path, path + "Placeholder") { }
 
@@ -44,7 +50,7 @@ public class PlaceholderTextBox : IPlaceholderTextBox
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"{Properties.Resources.DisplayName_PlaceholderTextBox} [{TextBox.Path}] ({TextBox.Owner.Name})";
+        return $"{ElementTypeDisplayName} [{TextBox.Path}] ({TextBox.Owner.Name})";
     }
 
     /// <inheritdoc />
@@ -54,6 +60,7 @@ public class PlaceholderTextBox : IPlaceholderTextBox
 /// <summary>
 /// Represents a text box with a state.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {TextBox.Path}")]
 public class StateTextBox : IStateElement, ITextBox
 {
     /// <inheritdoc />
@@ -70,11 +77,15 @@ public class StateTextBox : IStateElement, ITextBox
     }
 
     /// <inheritdoc />
+    [Ignore]
     public bool UseData
     {
         get => TextBox.UseData;
         set => TextBox.UseData = value;
     }
+
+    [Ignore]
+    protected virtual string ElementTypeDisplayName => Properties.Resources.DisplayName_StateTextBox;
 
     public StateTextBox(string path) : this(path, path + "State") { }
 
@@ -93,7 +104,7 @@ public class StateTextBox : IStateElement, ITextBox
     /// <inheritdoc />
     public override string ToString()
     {
-        return $"{Properties.Resources.DisplayName_StateTextBox} [{TextBox.Path}] ({TextBox.Owner.Name})";
+        return $"{ElementTypeDisplayName} [{TextBox.Path}] ({TextBox.Owner.Name})";
     }
 
     /// <inheritdoc />
@@ -103,10 +114,14 @@ public class StateTextBox : IStateElement, ITextBox
 /// <summary>
 /// Represents a text box with a state and placeholder.
 /// </summary>
+[DebuggerDisplay("{ElementTypeDisplayName,nq} {TextBox.Path}")]
 public class StatePlaceholderTextBox : PlaceholderTextBox, IStateElement
 {
     /// <inheritdoc />
     public UnturnedUIElement State { get; }
+
+    [Ignore]
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_StatePlaceholderTextBox;
 
     public StatePlaceholderTextBox(string path) : base(path)
     {
@@ -117,11 +132,5 @@ public class StatePlaceholderTextBox : PlaceholderTextBox, IStateElement
         : base(path, UnturnedUIUtility.GetPresetValue(path, placeholderPath, "Placeholder"))
     {
         State = new UnturnedLabel(UnturnedUIUtility.GetPresetValue(path, statePath, "State"));
-    }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        return $"{Properties.Resources.DisplayName_StatePlaceholderTextBox} [{TextBox.Path}] ({TextBox.Owner.Name})";
     }
 }

@@ -177,7 +177,8 @@ public class UnturnedUI : IDisposable
         if (!HasElements)
             return;
 
-        UIElementDiscovery.LinkAllElements(this, elements);
+        List<object> circularReferenceStack = new List<object>(3);
+        UIElementDiscovery.LinkAllElements(this, elements, circularReferenceStack);
 
         for (int i = 0; i < elements.Count; ++i)
         {
@@ -552,7 +553,8 @@ public class UnturnedUI : IDisposable
         lock (_elements)
         {
             int pos = _elements.Count;
-            UIElementDiscovery.DiscoverElements(GetLogger(), obj, _elements, ref depth, DebugLogging, this);
+            List<object> circularReferenceStack = new List<object>(2);
+            UIElementDiscovery.DiscoverElements(GetLogger(), obj, _elements, ref depth, DebugLogging, this, circularReferenceStack);
             for (int i = pos; i < _elements.Count; ++i)
             {
                 SetupRelativeElementPath(_elements[i]);
@@ -1102,8 +1104,24 @@ public class UnturnedUI : IDisposable
         if (disposing)
             GC.SuppressFinalize(this);
     }
+
+    /// <summary>
+    /// This function is invoked after <see cref="Dispose"/> is called before elements get cleaned up.
+    /// </summary>
+    /// <remarks>This will always be invoked on the game thread. The base method has no implementation and doesn't need to be invoked.</remarks>
+    protected virtual void OnDisposing() { }
+
     private void IntlDispose(IReadOnlyList<UnturnedUIElement> elements, IUnturnedUIDataSource src)
     {
+        try
+        {
+            OnDisposing();
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogError(ex, string.Format(Properties.Resources.Log_ErrorDisposingUnturnedUI, Accessor.Formatter.Format(GetType())));
+        }
+
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_DeregisteringPrimitives, Name, elements.Count);
 
