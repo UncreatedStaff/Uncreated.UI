@@ -32,6 +32,22 @@ public class TestNestedPatterns
                     Assert.That(label.Owner, Is.EqualTo(ui));
                     Assert.That(label.Path, Is.EqualTo($"Base/Path/P1s/Pattern1_{p1}/P2s/Pattern2_{p2}/Pattern3_{l}/Value"));
                 }
+
+                Assert.That(pattern2.Buttons.Length, Is.EqualTo(6));
+                for (int b = 1; b <= pattern2.Buttons.Length; ++b)
+                {
+                    UnturnedButton button = pattern2.Buttons[b - 1];
+                    Assert.That(button.Owner, Is.EqualTo(ui));
+                    Assert.That(button.Path, Is.EqualTo($"Base/Path/P1s/Pattern1_{p1}/P2s/Pattern2_{p2}/Button_{p1}/Button_{p2}_{b}"));
+                }
+            }
+
+            Assert.That(pattern1.Buttons.Length, Is.EqualTo(6));
+            for (int b = 1; b <= pattern1.Buttons.Length; ++b)
+            {
+                UnturnedButton button = pattern1.Buttons[b - 1];
+                Assert.That(button.Owner, Is.EqualTo(ui));
+                Assert.That(button.Path, Is.EqualTo($"Base/Path/P1s/Pattern1_{p1}/Button_{p1}/Button_{p1}_{b}"));
             }
         }
     }
@@ -46,6 +62,10 @@ public class TestNestedPatterns
 #nullable disable
         public class Pattern1 : PatternRoot
         {
+            [ArrayPattern(1, To = 6)]
+            [Pattern("Button_{1}_{0}", AdditionalPath = "Button_{1}")]
+            public UnturnedButton[] Buttons { get; set; }
+
             [ArrayPattern(1, To = 50)]
             [Pattern("P2s/Pattern2_{0}")]
             public Pattern2[] Pattern2s { get; set; }
@@ -53,6 +73,10 @@ public class TestNestedPatterns
 
         public class Pattern2 : PatternRoot
         {
+            [ArrayPattern(1, To = 6)]
+            [Pattern("Button_{1}_{0}", AdditionalPath = "Button_{2}")]
+            public UnturnedButton[] Buttons { get; set; }
+
             [ArrayPattern(1, To = 6)]
             [Pattern("Pattern3_{0}/Value")]
             public UnturnedLabel[] Labels { get; set; }

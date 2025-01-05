@@ -12,7 +12,7 @@ public class KeyPoolTests
         {
             short key = UnturnedUIKeyPool.Claim();
 
-            Assert.That(keys.Add(key), Is.True, "Duplicate key: {0}.", key);
+            Assert.That(keys.Add(key), Is.True, $"Duplicate key: {key}.");
         }
     }
 

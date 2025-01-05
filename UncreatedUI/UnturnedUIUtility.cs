@@ -470,7 +470,7 @@ public static class UnturnedUIUtility
 
         return ResolveRelativePath(parentName, inputValue);
     }
-    private static int CountDigits(int num)
+    internal static int CountDigits(int num)
     {
         int c = (uint)Math.Abs(num) switch
         {
