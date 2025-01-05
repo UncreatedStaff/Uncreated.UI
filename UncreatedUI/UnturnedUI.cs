@@ -163,7 +163,7 @@ public class UnturnedUI : IDisposable
         }
 
         _basePath = null;
-        if (!isUnturnedUIObject && Attribute.GetCustomAttribute(type, typeof(UnturnedUIAttribute)) is UnturnedUIAttribute attr)
+        if (!isUnturnedUIObject && Attribute.GetCustomAttribute(type, typeof(UnturnedUIAttribute), true) is UnturnedUIAttribute attr)
         {
             if (!string.IsNullOrEmpty(attr.DisplayName))
                 Name = attr.DisplayName;
@@ -459,7 +459,7 @@ public class UnturnedUI : IDisposable
     public void AddData(IUnturnedUIData data)
     {
         if (data.Element == null || data.Owner != this)
-            throw new InvalidOperationException("UnturnedUI data methods can only be used on data linked to this UI and no element.");
+            throw new InvalidOperationException(Properties.Resources.Exception_UnrelatedUIDataType);
 
         UnturnedUIDataSource.AddData(data);
     }
@@ -479,7 +479,7 @@ public class UnturnedUI : IDisposable
         {
             data = func(player);
             if (data.Player.m_SteamID != player.m_SteamID || data.Element != null || data.Owner != this)
-                throw new InvalidOperationException("Created data does not store the same player and UI as expected.");
+                throw new InvalidOperationException(Properties.Resources.Exception_InconsistantPlayerFromCreatedDataUI);
             instance.AddData(data);
         }
 
@@ -514,15 +514,18 @@ public class UnturnedUI : IDisposable
         if (element == null)
             throw new ArgumentNullException(nameof(element));
 
-        if (_elements.Contains(element))
-            return;
+        lock (_elements)
+        {
+            if (_elements.Contains(element))
+                return;
 
-        _elements.Add(element);
-        SetupRelativeElementPath(element);
-        element.RegisterOwnerIntl(this);
+            _elements.Add(element);
+            SetupRelativeElementPath(element);
+            element.RegisterOwnerIntl(this);
+        }
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Late-registered 1 element of type {1}.", Name, Accessor.Formatter.Format(element.GetType()));
+            GetLogger().LogInformation(Properties.Resources.Log_LateRegisteredPrimitive, Name, element);
     }
 
     /// <summary>
@@ -540,21 +543,24 @@ public class UnturnedUI : IDisposable
         }
 
         if (obj is UnturnedUI)
-            throw new ArgumentException("Can not register another UI.", nameof(obj));
+            throw new ArgumentException(Properties.Resources.Exception_LateRegisterUnturnedUI, nameof(obj));
 
         if (obj == null)
             throw new ArgumentNullException(nameof(obj));
 
         int depth = 1;
-        int pos = _elements.Count;
-        UIElementDiscovery.DiscoverElements(GetLogger(), obj, _elements, ref depth, DebugLogging, this);
-        for (int i = pos; i < _elements.Count; ++i)
+        lock (_elements)
         {
-            SetupRelativeElementPath(_elements[i]);
-        }
+            int pos = _elements.Count;
+            UIElementDiscovery.DiscoverElements(GetLogger(), obj, _elements, ref depth, DebugLogging, this);
+            for (int i = pos; i < _elements.Count; ++i)
+            {
+                SetupRelativeElementPath(_elements[i]);
+            }
 
-        if (DebugLogging && pos != _elements.Count)
-            GetLogger().LogInformation("[{0}] Late-registered {1} element(s) from {2}.", Name, _elements.Count - pos, Accessor.Formatter.Format(obj.GetType()));
+            if (DebugLogging && pos != _elements.Count)
+                GetLogger().LogInformation(Properties.Resources.Log_LateRegisteredOther, Name, _elements.Count - pos, Accessor.Formatter.Format(obj.GetType()));
+        }
     }
 
     private void SetupRelativeElementPath(UnturnedUIElement element)
@@ -586,7 +592,7 @@ public class UnturnedUI : IDisposable
             Guid = Asset.GUID;
             if (Id == 0)
             {
-                GetLogger().LogWarning("No id available, asset: {0}.", Asset.FriendlyName);
+                GetLogger().LogWarning(Properties.Resources.Log_UnableToFindIdFromAsset, Name, Asset.FriendlyName);
             }
         }
         else if (Id != 0)
@@ -599,7 +605,7 @@ public class UnturnedUI : IDisposable
             }
             else
             {
-                GetLogger().LogWarning("No asset available, id: {0}.", Id);
+                GetLogger().LogWarning(Properties.Resources.Log_UnableToFindAssetFromId, Name, Id);
             }
         }
         else if (Guid != default)
@@ -614,14 +620,14 @@ public class UnturnedUI : IDisposable
             }
             else
             {
-                GetLogger().LogWarning("No asset or ID available, guid: {0}.", Guid);
+                GetLogger().LogWarning(Properties.Resources.Log_UnableToFindAssetFromGuid, Name, Guid);
             }
             return;
         }
         else
         {
             HasAssetOrId = false;
-            GetLogger().LogWarning("No asset or ID available.");
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
@@ -884,14 +890,14 @@ public class UnturnedUI : IDisposable
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to all players.", Name);
+            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_0, Name);
     }
 
     /// <summary>
@@ -901,14 +907,14 @@ public class UnturnedUI : IDisposable
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to all players, args: {{0}} = {1}.", Name, arg0);
+            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_1, Name, arg0);
     }
 
     /// <summary>
@@ -918,14 +924,14 @@ public class UnturnedUI : IDisposable
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0, arg1);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to all players, args: {{0}} = {1}, {{1}} = {2}.", Name, arg0, arg1);
+            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_2, Name, arg0, arg1);
     }
 
     /// <summary>
@@ -935,14 +941,14 @@ public class UnturnedUI : IDisposable
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0, arg1, arg2);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to all players, args: {{0}} = {1}, {{1}} = {2}, {{2}} = {3}.", Name, arg0, arg1, arg2);
+            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_3, Name, arg0, arg1, arg2);
     }
 
     /// <summary>
@@ -952,14 +958,14 @@ public class UnturnedUI : IDisposable
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to all players, args: {{0}} = {1}, {{1}} = {2}, {{2}} = {3}, {{3}} = {4}.", Name, arg0, arg1, arg2, arg3);
+            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_4, Name, arg0, arg1, arg2, arg3);
     }
 
     /// <summary>
@@ -969,98 +975,98 @@ public class UnturnedUI : IDisposable
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.ClearByIdGlobal(Id);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Cleared from all players.", Name);
+            GetLogger().LogInformation(Properties.Resources.Log_ClearFromAllPlayers, Name);
     }
 
     private void SendToPlayerIntl(ITransportConnection connection)
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to {1}.", Name, connection.GetAddressString(true));
+            GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_0, Name, connection.GetAddressString(true));
     }
 
     private void SendToPlayerIntl(ITransportConnection connection, string arg0)
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to {1}, arg: {2}.", Name, connection.GetAddressString(true), arg0);
+            GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_1, Name, connection.GetAddressString(true), arg0);
     }
 
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1)
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}.", Name, connection.GetAddressString(true), arg0, arg1);
+            GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_2, Name, connection.GetAddressString(true), arg0, arg1);
     }
 
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2)
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}.", Name, connection.GetAddressString(true), arg0, arg1, arg2);
+            GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_3, Name, connection.GetAddressString(true), arg0, arg1, arg2);
     }
 
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2, string arg3)
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}, {{3}} = {5}.", Name, connection.GetAddressString(true), arg0, arg1, arg2, arg3);
+            GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_4, Name, connection.GetAddressString(true), arg0, arg1, arg2, arg3);
     }
 
     private void ClearFromPlayerIntl(ITransportConnection connection)
     {
         if (!HasAssetOrId)
         {
-            GetLogger().LogWarning("[{0}] No asset or id.", Name);
+            GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
         UnturnedUIProvider.Instance.ClearById(Id, connection);
 
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Cleared from {1}.", Name, connection.GetAddressString(true));
+            GetLogger().LogInformation(Properties.Resources.Log_ClearFromPlayer, Name, connection.GetAddressString(true));
     }
 
     /// <inheritdoc />
@@ -1099,7 +1105,7 @@ public class UnturnedUI : IDisposable
     private void IntlDispose(IReadOnlyList<UnturnedUIElement> elements, IUnturnedUIDataSource src)
     {
         if (DebugLogging)
-            GetLogger().LogInformation("[{0}] Deregistering {1} elements.", Name, elements.Count);
+            GetLogger().LogInformation(Properties.Resources.Log_DeregisteringPrimitives, Name, elements.Count);
 
         src.RemoveOwner(this);
         for (int i = 0; i < elements.Count; ++i)

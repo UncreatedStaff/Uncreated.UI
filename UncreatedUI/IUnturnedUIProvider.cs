@@ -16,7 +16,7 @@ public static class UnturnedUIProviderExtensions
         if (uiProvider.IsValidThread())
             return;
 
-        throw new NotSupportedException("Not on game thread.");
+        throw new NotSupportedException(Properties.Resources.Exception_NotOnValidThread);
     }
 }
 

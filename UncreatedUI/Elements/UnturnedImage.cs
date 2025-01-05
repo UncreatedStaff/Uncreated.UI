@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -18,7 +18,7 @@ public class UnturnedImage : UnturnedUIElement, IImage
     public bool ShouldCache { get; set; } = true;
 
     /// <inheritdoc />
-    protected override string ElementTypeDisplayName => "Image";
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_UnturnedImage;
 
     public UnturnedImage(string path) : base(path) { }
 
@@ -78,7 +78,7 @@ public class UnturnedImage : UnturnedUIElement, IImage
         UnturnedUIProvider.Instance.SetElementImageUrl(Owner.Key, connection, Owner.IsReliable, Path, url, ShouldCache, forceRefresh);
         if (Owner.DebugLogging)
         {
-            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Set image URL, link: {3}, force refresh: {4}.", Owner.Name, Name, Owner.Key, url, forceRefresh);
+            GetLogger().LogInformation(Properties.Resources.Log_UnturnedImageUpdated, Owner.Name, Name, Owner.Key, url, forceRefresh);
         }
     }
 

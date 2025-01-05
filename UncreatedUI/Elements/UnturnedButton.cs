@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.Unturned;
 using System;
@@ -22,7 +22,7 @@ public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
     public event ButtonClicked? OnClicked;
 
     /// <inheritdoc />
-    protected override string ElementTypeDisplayName => "Button";
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_UnturnedButton;
 
     public UnturnedButton(string path) : base(path)
     {
@@ -33,7 +33,7 @@ public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
     {
         if (Owner.DebugLogging)
         {
-            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Clicked by {3}.", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture));
+            GetLogger().LogInformation(Properties.Resources.Log_UnturnedButtonClicked, Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture));
         }
 
         try
@@ -42,7 +42,7 @@ public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
         }
         catch (Exception ex)
         {
-            GetLogger().LogError(ex, "[{0}] [{1}] Error invoking {2}.", Owner.Name, Name, nameof(OnClicked));
+            GetLogger().LogError(ex, Properties.Resources.Log_EventError, Owner.Name, Name, nameof(OnClicked));
         }
     }
 
@@ -53,7 +53,7 @@ public class UnturnedButton : UnturnedUIElement, IDisposable, IButton
         if (Duplicate == null)
             return;
 
-        GetLogger().LogWarning("[{0}] [{1}] {{{2}}} There is already a button with name \"{3}\", replacing. Multiple buttons can not listen to events with the same name. Old button: \"{4}\". This button: \"{5}\".", Owner.Name, Name, Owner.Key, Name, Duplicate.Path, Path);
+        GetLogger().LogWarning(Properties.Resources.Log_DuplicateButtonName, Owner.Name, Name, Owner.Key, Name, Duplicate.Path, Path);
         Duplicate = null;
     }
 

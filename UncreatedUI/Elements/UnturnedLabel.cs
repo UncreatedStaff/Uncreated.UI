@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -12,7 +12,7 @@ namespace Uncreated.Framework.UI;
 public class UnturnedLabel : UnturnedUIElement, ILabel
 {
     /// <inheritdoc />
-    protected override string ElementTypeDisplayName => "Label";
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_UnturnedLabel;
 
     public UnturnedLabel(string path) : base(path) { }
 
@@ -70,7 +70,7 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
 
         if (Owner.DebugLogging)
         {
-            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Set label text: \"{3}\".", Owner.Name, Name, Owner.Key, text);
+            GetLogger().LogInformation(Properties.Resources.Log_UnturnedLabelUpdated, Owner.Name, Name, Owner.Key, text);
         }
     }
 

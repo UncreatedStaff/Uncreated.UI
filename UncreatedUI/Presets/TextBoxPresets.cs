@@ -1,5 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
-using Uncreated.Framework.UI.Patterns;
+using DanielWillett.ReflectionTools;
 
 namespace Uncreated.Framework.UI.Presets;
 
@@ -9,11 +8,9 @@ namespace Uncreated.Framework.UI.Presets;
 public class PlaceholderTextBox : IPlaceholderTextBox
 {
     /// <inheritdoc />
-    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedTextBox TextBox { get; }
 
     /// <inheritdoc />
-    [Pattern("Placeholder", Mode = FormatMode.Format)]
     public UnturnedLabel Placeholder { get; }
 
     /// <inheritdoc />
@@ -47,8 +44,11 @@ public class PlaceholderTextBox : IPlaceholderTextBox
     /// <inheritdoc />
     public override string ToString()
     {
-        return "Placeholder Text Box [" + TextBox.Path + "] (" + TextBox.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_PlaceholderTextBox} [{TextBox.Path}] ({TextBox.Owner.Name})";
     }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => TextBox.GetHashCode();
 }
 
 /// <summary>
@@ -57,11 +57,9 @@ public class PlaceholderTextBox : IPlaceholderTextBox
 public class StateTextBox : IStateElement, ITextBox
 {
     /// <inheritdoc />
-    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedTextBox TextBox { get; }
 
     /// <inheritdoc />
-    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
     /// <inheritdoc />
@@ -95,8 +93,11 @@ public class StateTextBox : IStateElement, ITextBox
     /// <inheritdoc />
     public override string ToString()
     {
-        return "State Text Box [" + TextBox.Path + "] (" + TextBox.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_StateTextBox} [{TextBox.Path}] ({TextBox.Owner.Name})";
     }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => TextBox.GetHashCode();
 }
 
 /// <summary>
@@ -105,7 +106,6 @@ public class StateTextBox : IStateElement, ITextBox
 public class StatePlaceholderTextBox : PlaceholderTextBox, IStateElement
 {
     /// <inheritdoc />
-    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
     public StatePlaceholderTextBox(string path) : base(path)
@@ -122,6 +122,6 @@ public class StatePlaceholderTextBox : PlaceholderTextBox, IStateElement
     /// <inheritdoc />
     public override string ToString()
     {
-        return "State Placeholder Text Box [" + TextBox.Path + "] (" + TextBox.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_StatePlaceholderTextBox} [{TextBox.Path}] ({TextBox.Owner.Name})";
     }
 }

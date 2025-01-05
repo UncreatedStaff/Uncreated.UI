@@ -1,4 +1,4 @@
-﻿using Steamworks;
+using Steamworks;
 using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI.Data;

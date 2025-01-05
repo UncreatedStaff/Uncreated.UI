@@ -62,13 +62,13 @@ public static class UnturnedUIUtility
             int newLen = to - start + 1;
 
             if (length > -1 && length != newLen)
-                throw new ArgumentException(nameof(to), "Inconsistent values in arguments: 'to', and 'length'.");
+                throw new ArgumentException(nameof(to), Properties.Resources.Exception_InconsistantLengthArguments);
 
             return newLen;
         }
 
         if (length < 0)
-            throw new ArgumentOutOfRangeException(nameof(length), "Must either specify 'to' or 'length'.");
+            throw new ArgumentOutOfRangeException(nameof(length), Properties.Resources.Exception_MissingLengthArguments);
 
         return length;
     }
@@ -305,7 +305,7 @@ public static class UnturnedUIUtility
             ReadOnlySpan<char> segment = relativeTo[relativeToSections[i]];
 
             if (segment.Length == 1 && segment[0] == '.' || segment.Length == 2 && segment[0] == '.' && segment[1] == '.')
-                throw new ArgumentException("Navigational path segments like '.' and '..' are not supported in the 'relative to' path.", nameof(relativeTo));
+                throw new ArgumentException(Properties.Resources.Exception_NavigationPathsNotSupportedInRelevantPath, nameof(relativeTo));
 
             totalSize += segment.Length;
         }
@@ -334,7 +334,7 @@ public static class UnturnedUIUtility
                 {
                     int ind = relativeToSectionCt - -level + 1;
                     if (ind >= relativeToSectionCt || !segment.Equals(relativeTo[relativeToSections[ind]], StringComparison.Ordinal))
-                        throw new ArgumentException("The relative path navigates further up than the root object.", nameof(path));
+                        throw new ArgumentException(Properties.Resources.Exception_RelativePathExceedsRoot, nameof(path));
                 }
                 ++level;
                 minLevel = level;
@@ -388,7 +388,7 @@ public static class UnturnedUIUtility
             return string.Empty;
 
         if (minLevel < 0 && -minLevel > relativeToSectionCt)
-            throw new ArgumentException("The relative path navigates further up than the root object.", nameof(path));
+            throw new ArgumentException(Properties.Resources.Exception_RelativePathExceedsRoot, nameof(path));
 
         totalSize += actualPathElements - 1;
 

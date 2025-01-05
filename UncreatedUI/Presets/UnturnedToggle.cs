@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
@@ -177,8 +177,11 @@ public class UnturnedToggle : IDisposable, IButton, IStateElement
     /// <inheritdoc />
     public override string ToString()
     {
-        return "Toggle [" + ToggleButton.Path + "] (" + ToggleButton.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_UnturnedToggle} [{ToggleButton.Path}] ({ToggleButton.Owner.Name})";
     }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => ToggleButton.GetHashCode();
 }
 
 /// <summary>
@@ -212,6 +215,6 @@ public class LabeledUnturnedToggle : UnturnedToggle, ILabel
     /// <inheritdoc />
     public override string ToString()
     {
-        return "Labeled Toggle [" + ToggleButton.Path + "] (" + ToggleButton.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_LabeledUnturnedToggle} [{ToggleButton.Path}] ({ToggleButton.Owner.Name})";
     }
 }

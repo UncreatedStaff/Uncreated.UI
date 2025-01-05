@@ -1,5 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
-using Uncreated.Framework.UI.Patterns;
+using DanielWillett.ReflectionTools;
 
 namespace Uncreated.Framework.UI.Presets;
 
@@ -9,11 +8,9 @@ namespace Uncreated.Framework.UI.Presets;
 public class LabeledButton : ILabeledButton
 {
     /// <inheritdoc />
-    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedButton Button { get; }
 
     /// <inheritdoc />
-    [Pattern("Label", Mode = FormatMode.Format)]
     public UnturnedLabel Label { get; }
 
     /// <inheritdoc />
@@ -38,8 +35,11 @@ public class LabeledButton : ILabeledButton
     /// <inheritdoc />
     public override string ToString()
     {
-        return "Labeled Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_LabeledButton} [{Button.Path}] ({Button.Owner.Name})";
     }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => Button.GetHashCode();
 }
 
 /// <summary>
@@ -48,11 +48,9 @@ public class LabeledButton : ILabeledButton
 public class StateButton : IButton, IStateElement
 {
     /// <inheritdoc />
-    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedButton Button { get; }
 
     /// <inheritdoc />
-    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
     /// <inheritdoc />
@@ -76,8 +74,11 @@ public class StateButton : IButton, IStateElement
     /// <inheritdoc />
     public override string ToString()
     {
-        return "State Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_StateButton} [{Button.Path}] ({Button.Owner.Name})";
     }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => Button.GetHashCode();
 }
 
 /// <summary>
@@ -86,11 +87,9 @@ public class StateButton : IButton, IStateElement
 public class RightClickableButton : IRightClickableButton
 {
     /// <inheritdoc />
-    [Pattern("", Mode = FormatMode.Format, Root = true)]
     public UnturnedButton Button { get; }
 
     /// <inheritdoc />
-    [Pattern("RightClickListener", Mode = FormatMode.Format)]
     public UnturnedButton RightClickListener { get; }
 
     /// <inheritdoc />
@@ -122,17 +121,19 @@ public class RightClickableButton : IRightClickableButton
     /// <inheritdoc />
     public override string ToString()
     {
-        return "Right-Clickable Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_RightClickableButton} [{Button.Path}] ({Button.Owner.Name})";
     }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => Button.GetHashCode();
 }
 
 /// <summary>
-/// Labeled button who's intractability can be enabled and disabled.
+/// A labeled button who's intractability can be enabled and disabled.
 /// </summary>
 public class LabeledStateButton : LabeledButton, IStateElement
 {
     /// <inheritdoc />
-    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
     public LabeledStateButton(string path) : base(path)
@@ -149,17 +150,16 @@ public class LabeledStateButton : LabeledButton, IStateElement
     /// <inheritdoc />
     public override string ToString()
     {
-        return "Labeled State Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_LabeledStateButton} [{Button.Path}] ({Button.Owner.Name})";
     }
 }
 
 /// <summary>
-/// Right-clickable button who's intractability can be enabled and disabled.
+/// A right-clickable button who's intractability can be enabled and disabled.
 /// </summary>
 public class RightClickableStateButton : RightClickableButton, IStateElement
 {
     /// <inheritdoc />
-    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
     public RightClickableStateButton(string path) : base(path)
@@ -175,7 +175,7 @@ public class RightClickableStateButton : RightClickableButton, IStateElement
     /// <inheritdoc />
     public override string ToString()
     {
-        return "Right-Clickable State Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_RightClickableStateButton} [{Button.Path}] ({Button.Owner.Name})";
     }
 }
 
@@ -185,7 +185,6 @@ public class RightClickableStateButton : RightClickableButton, IStateElement
 public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
 {
     /// <inheritdoc />
-    [Pattern("Label", Mode = FormatMode.Format)]
     public UnturnedLabel Label { get; }
 
     public LabeledRightClickableButton(string path) : base(path)
@@ -201,7 +200,7 @@ public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
     /// <inheritdoc />
     public override string ToString()
     {
-        return "Labeled Right-Clickable Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_LabeledRightClickableButton} [{Button.Path}] ({Button.Owner.Name})";
     }
 }
 
@@ -211,7 +210,6 @@ public class LabeledRightClickableButton : RightClickableButton, ILabeledButton
 public class LabeledRightClickableStateButton : LabeledRightClickableButton, IStateElement
 {
     /// <inheritdoc />
-    [Pattern("State", Mode = FormatMode.Format)]
     public UnturnedUIElement State { get; }
 
     public LabeledRightClickableStateButton(string path) : base(path)
@@ -228,6 +226,6 @@ public class LabeledRightClickableStateButton : LabeledRightClickableButton, ISt
     /// <inheritdoc />
     public override string ToString()
     {
-        return "Labeled Right-Clickable State Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+        return $"{Properties.Resources.DisplayName_LabeledRightClickableStateButton} [{Button.Path}] ({Button.Owner.Name})";
     }
 }

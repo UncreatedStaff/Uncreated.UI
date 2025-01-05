@@ -46,7 +46,7 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
             }
             catch (Exception ex)
             {
-                GetLogger().LogError(ex, "Failed to dispose UI provider: {0}.", oldValue.GetType());
+                GetLogger().LogError(ex, Properties.Resources.Log_ErrorDisposingIUnturnedUIProvider, oldValue.GetType());
             }
         }
     }
@@ -61,7 +61,7 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
             }
             catch (Exception ex)
             {
-                GetLogger().LogError(ex, "Error invoking main thread dispatch (without dispatching).");
+                GetLogger().LogError(ex, Properties.Resources.Log_ErrorDispatchingMainThreadEvent_NoContextSwitch);
             }
         }
         else
@@ -218,7 +218,7 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
             }
             catch (Exception ex)
             {
-                GetLogger().LogError(ex, "Error invoking main thread dispatch.");
+                GetLogger().LogError(ex, Properties.Resources.Log_ErrorDispatchingMainThreadEvent);
             }
         }
     }

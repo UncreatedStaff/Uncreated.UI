@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Uncreated.Framework.UI.Presets;
 
 namespace Uncreated.Framework.UI.Patterns;
@@ -42,6 +42,12 @@ public sealed class PatternAttribute : Attribute
     /// </summary>
     /// <remarks>Defaults to <see langword="false"/>.</remarks>
     public bool Root { get; set; }
+
+    /// <summary>
+    /// <see cref="ITextBox"/> objects will be initialized with <see cref="ITextBox.UseData"/> set to this value.
+    /// </summary>
+    /// <remarks>Defaults to <see langword="false"/>.</remarks>
+    public bool TextBoxUseData { get; set; }
 
     /// <summary>
     /// If there's an object with <see cref="Root"/> = <see langword="true"/>, this object will be under that object, where <see cref="AdditionalPath"/> is relative to that object.

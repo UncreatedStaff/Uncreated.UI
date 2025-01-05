@@ -240,7 +240,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
         {
             data = func(player, element);
             if (data.Player.m_SteamID != player.m_SteamID || data.Element != element || data.Owner != element.Owner)
-                throw new InvalidOperationException("Created data does not store the same player and element as expected.");
+                throw new InvalidOperationException(Properties.Resources.Exception_InconsistantPlayerFromCreatedDataElement);
             _instance.AddData(data);
         }
 
@@ -261,7 +261,7 @@ public class UnturnedUIDataSource : IUnturnedUIDataSource
         {
             data = func(player, ui);
             if (data.Player.m_SteamID != player.m_SteamID || data.Element != null || data.Owner != ui)
-                throw new InvalidOperationException("Created data does not store the same player and UI as expected.");
+                throw new InvalidOperationException(Properties.Resources.Exception_InconsistantPlayerFromCreatedDataUI);
             _instance.AddData(data);
         }
 

@@ -78,12 +78,42 @@ public class TestBasicElements
         Assert.That(ui.CompoundElementNoLblPath.Label.Name.ToString(), Is.EqualTo("dLabel"));
     }
 
+    [Test]
+    public void EnumerableElements()
+    {
+        TestUI ui = new TestUI();
+
+        Assert.That(ui.EnumerableElements[0].Path, Is.EqualTo("a/b/c/1"));
+        Assert.That(ui.EnumerableElements[0].Name.ToString(), Is.EqualTo("1"));
+
+        Assert.That(ui.EnumerableElements[1].Path, Is.EqualTo("a/b/c/2"));
+        Assert.That(ui.EnumerableElements[1].Name.ToString(), Is.EqualTo("2"));
+    }
+
+    [Test]
+    public void EnumerableElementsWithBase()
+    {
+        TestUIWithBasePath ui = new TestUIWithBasePath();
+
+        Assert.That(ui.EnumerableElements[0].Path, Is.EqualTo("base/path/a/b/c/1"));
+        Assert.That(ui.EnumerableElements[0].Name.ToString(), Is.EqualTo("1"));
+
+        Assert.That(ui.EnumerableElements[1].Path, Is.EqualTo("base/path/a/b/c/2"));
+        Assert.That(ui.EnumerableElements[1].Name.ToString(), Is.EqualTo("2"));
+    }
+
     private class TestUI : UnturnedUI
     {
         public readonly UnturnedUIElement Element = new UnturnedUIElement("a/b/c");
 
         public readonly LabeledButton CompoundElement = new LabeledButton("a/d", "./lbl");
         public readonly LabeledButton CompoundElementNoLblPath = new LabeledButton("a/d");
+
+        public readonly UnturnedUIElement[] EnumerableElements =
+        [
+            new UnturnedUIElement("a/b/c/1"),
+            new UnturnedUIElement("a/b/c/2")
+        ];
 
         public TestUI() : base(12345) { }
     }
@@ -94,6 +124,12 @@ public class TestBasicElements
         public readonly UnturnedUIElement Element = new UnturnedUIElement("a/b/c");
         public readonly UnturnedUIElement RootElement = new UnturnedUIElement("~a/b/c");
         public readonly UnturnedUIElement UpElement = new UnturnedUIElement("../a/b/c");
+
+        public readonly UnturnedUIElement[] EnumerableElements =
+        [
+            new UnturnedUIElement("a/b/c/1"),
+            new UnturnedUIElement("a/b/c/2")
+        ];
 
         public TestUIWithBasePath() : base(12345) { }
     }

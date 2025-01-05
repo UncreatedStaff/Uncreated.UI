@@ -24,7 +24,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
     public event TextUpdated? OnTextUpdated;
 
     /// <inheritdoc />
-    protected override string ElementTypeDisplayName => "Text Box";
+    protected override string ElementTypeDisplayName => Properties.Resources.DisplayName_UnturnedTextBox;
 
     /// <summary>
     /// Whether or not to save input to <see cref="UnturnedTextBoxData"/>.
@@ -49,7 +49,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
 
         if (Owner.DebugLogging)
         {
-            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Text committed by {3}, text: \"{4}\".", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), text);
+            GetLogger().LogInformation(Properties.Resources.Log_UnturnedTextBoxCommitted, Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), text);
         }
 
         try
@@ -58,7 +58,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
         }
         catch (Exception ex)
         {
-            GetLogger().LogError(ex, "[{0}] [{1}] Error invoking {2}.", Owner.Name, Name, nameof(OnTextUpdated));
+            GetLogger().LogError(ex, Properties.Resources.Log_EventError, Owner.Name, Name, nameof(OnTextUpdated));
         }
     }
 
@@ -210,7 +210,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
         }
         else if (Owner.DebugLogging)
         {
-            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Text updated from data for {3}, text: \"{4}\" (event not invoked).", Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), val);
+            GetLogger().LogInformation(Properties.Resources.Log_UnturnedTextBoxUpdatedFromData, Owner.Name, Name, Owner.Key, player.channel.owner.playerID.steamID.m_SteamID.ToString(CultureInfo.InvariantCulture), val);
         }
 
         return val;
@@ -285,7 +285,7 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
         if (Duplicate == null)
             return;
 
-        GetLogger().LogWarning("[{0}] [{1}] {{{2}}} There is already a text box with name \"{3}\", replacing. Multiple text boxes can not listen to events with the same name. Old text box: \"{4}\". This text box: \"{5}\".", Owner.Name, Name, Owner.Key, Name, Duplicate.Path, Path);
+        GetLogger().LogWarning(Properties.Resources.Log_DuplicateTextBoxName, Owner.Name, Name, Owner.Key, Name, Duplicate.Path, Path);
         Duplicate = null;
     }
 

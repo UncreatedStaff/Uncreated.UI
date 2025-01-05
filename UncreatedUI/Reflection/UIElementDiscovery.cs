@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections;
@@ -18,7 +18,7 @@ internal static class UIElementDiscovery
 
     internal static void DiscoverElements(ILogger? logger, object value, List<UnturnedUIElement> elements, ref int depth, bool debug, UnturnedUI owner, ReflectionCache? cache = null)
     {
-        if (value is IEnumerable)
+        if (value is IEnumerable or IUnturnedUIElementProvider)
         {
             Discover(logger, value, depth, elements, debug, owner);
             return;
@@ -105,7 +105,7 @@ internal static class UIElementDiscovery
             elements.Add(elem);
             elem.RegisterOwnerIntl(owner);
             if (debug)
-                logger.LogInformation("[{0}] Found element: {1}.", nameof(UIElementDiscovery), elem);
+                logger.LogInformation(Properties.Resources.Log_FoundPrimitive, nameof(UIElementDiscovery), elem);
         }
         else if (val is IEnumerable enumerable)
         {
@@ -119,18 +119,38 @@ internal static class UIElementDiscovery
                     elements.Add(elem2);
                     elem2.RegisterOwnerIntl(owner);
                     if (debug)
-                        logger!.LogInformation("[{0}] Found element (enumerable member): {1}.", nameof(UIElementDiscovery), elem2);
+                        logger!.LogInformation(Properties.Resources.Log_FoundPrimitiveInEnumerable, nameof(UIElementDiscovery), elem2);
                 }
                 else if (value2 != null)
                 {
                     // adds a cache within enumerables, which will usually always contain the same type
-                    cache ??= new ReflectionCache { Type = value2.GetType() };
+                    Type valueType = value2.GetType();
+                    if (cache == null || cache.Type != valueType)
+                        cache = new ReflectionCache { Type = value2.GetType() };
                     int depth2 = depth + 1;
+                    int oldCt = elements.Count;
                     DiscoverElements(logger, value2, elements, ref depth2, debug, owner, cache);
-                    if (debug)
-                        logger!.LogInformation("[{0}] Found nested type (enumerable member): {1}.", nameof(UIElementDiscovery), value2);
+                    if (debug && elements.Count != oldCt)
+                        logger!.LogInformation(Properties.Resources.Log_FoundOtherInEnumerable, nameof(UIElementDiscovery), elements.Count - oldCt, Accessor.Formatter.Format(value2.GetType()));
                 }
             }
+        }
+        else if (val is IUnturnedUIElementProvider provider)
+        {
+            int ct = 0;
+            foreach (UnturnedUIElement element in provider.EnumerateElements())
+            {
+                ++ct;
+                if (elements.Contains(element))
+                    return;
+                elements.Add(element);
+                element.RegisterOwnerIntl(owner);
+                if (debug)
+                    logger!.LogInformation(Properties.Resources.Log_FoundPrimitiveInIUnturnedUIElementProvider, nameof(UIElementDiscovery), element);
+            }
+
+            if (debug && ct != 0)
+                logger!.LogInformation(Properties.Resources.Log_FoundIUnturnedUIElementProvider, nameof(UIElementDiscovery), ct);
         }
         else if (val != null)
         {
@@ -139,9 +159,10 @@ internal static class UIElementDiscovery
                 return;
 
             int depth2 = depth + 1;
+            int oldCt = elements.Count;
             DiscoverElements(logger, val, elements, ref depth2, debug, owner);
-            if (debug)
-                logger!.LogInformation("[{0}] Found nested type: {1}.", nameof(UIElementDiscovery), val);
+            if (debug && elements.Count != oldCt)
+                logger!.LogInformation(Properties.Resources.Log_FoundOther, nameof(UIElementDiscovery), elements.Count - oldCt, Accessor.Formatter.Format(val.GetType()));
         }
     }
 

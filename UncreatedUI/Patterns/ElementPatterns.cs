@@ -1,5 +1,6 @@
 using DanielWillett.ReflectionTools;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -9,11 +10,12 @@ using Uncreated.Framework.UI.Presets;
 namespace Uncreated.Framework.UI.Patterns;
 
 /// <summary>
-/// Create arrays of elements based on a pattern.
+/// Create arrays of elements based on a pattern defined by decorating propeties and fields with a <see cref="PatternAttribute"/>.
 /// </summary>
 public static class ElementPatterns
 {
     internal static readonly Dictionary<Type, PatternTypeInfo> TypeInfo = new Dictionary<Type, PatternTypeInfo>();
+    internal static readonly Dictionary<Type, ConstructorInfo> PrimitiveConstructors = new Dictionary<Type, ConstructorInfo>();
 
     /// <summary>
     /// Add <paramref name="handler"/> to all <see cref="UnturnedButton.OnClicked"/> events in <paramref name="buttons"/> after being transformed by a <paramref name="selector"/>.
@@ -122,9 +124,14 @@ public static class ElementPatterns
         foreach (T textBox in textBoxes)
             selector(textBox).OnTextUpdated -= handler;
     }
+
     /// <summary>
-    /// Create an array of elements using a factory.
+    /// Create an array of elements using a factory method.
     /// </summary>
+    /// <param name="start">Starting number of the paths of the returned elements.</param>
+    /// <param name="length">Number of elements in the array. Either this or <paramref name="to"/> must be supplied, but not both.</param>
+    /// <param name="to">Number of the last element in the array. Either this or <paramref name="start"/> must be supplied, but not both.</param>
+    /// <param name="factory">Factory method used to create elements when supplied with the element's number (index + <paramref name="start"/>).</param>
     public static T[] CreateArray<T>(Func<int, T> factory, int start, int length = -1, int to = -1)
     {
         length = UnturnedUIUtility.ResolveLength(start, length, to);
@@ -143,6 +150,10 @@ public static class ElementPatterns
     /// <summary>
     /// Create an array of elements from a format string.
     /// </summary>
+    /// <param name="start">Starting number of the paths of the returned elements.</param>
+    /// <param name="length">Number of elements in the array. Either this or <paramref name="to"/> must be supplied, but not both.</param>
+    /// <param name="to">Number of the last element in the array. Either this or <paramref name="start"/> must be supplied, but not both.</param>
+    /// <param name="pathFormat">If the pattern has a root element, this would be the path to the root element. If not, this would be the common path to all elements which are transformed by the pattern attribute. <c>{0}</c> is replaced by the index.</param>
     public static T[] CreateArray<T>(string pathFormat, int start, int length = -1, int to = -1)
     {
         length = UnturnedUIUtility.ResolveLength(start, length, to);
@@ -153,8 +164,11 @@ public static class ElementPatterns
         T[] rtnArray = new T[length];
         Type type = typeof(T);
 
-        if (TryInitializePrimitives(type, rtnArray, pathFormat, start))
-            return rtnArray;
+        if (IsPrimitive(type, out _))
+        {
+            if (TryInitializePrimitives(type, new EnumerableWrapper(rtnArray), pathFormat, start, false))
+                return rtnArray;
+        }
 
         if (TryInitializePresets(type, rtnArray, pathFormat, start))
             return rtnArray;
@@ -174,20 +188,21 @@ public static class ElementPatterns
 
         for (int i = 0; i < length; ++i)
         {
-            rtnArray[i] = (T)InitializeTypeInfo(typeof(T), typeInfo, UnturnedUIUtility.QuickFormat(basePath, i + start, 0), UnturnedUIUtility.QuickFormat(baseName, i + start, 0), i + start);
+            rtnArray[i] = (T)InitializeTypeInfo(typeof(T), typeInfo, null, null, UnturnedUIUtility.QuickFormat(basePath, i + start, 0), UnturnedUIUtility.QuickFormat(baseName, i + start, 0), i + start);
         }
 
         return rtnArray;
     }
 
     /// <summary>
-    /// Create an array of elements from a format string.
+    /// Create a single class of a pattern at the given <paramref name="path"/>.
     /// </summary>
+    /// <param name="path">If the pattern has a root element, this would be the path to the root element. If not, this would be the common path to all elements which are transformed by the pattern attribute.</param>
     public static T Create<T>(string path)
     {
         Type type = typeof(T);
 
-        object? obj = TryInitializePrimitive(type, path);
+        object? obj = TryInitializePrimitive(type, path, false);
         if (obj != null)
         {
             return (T)obj;
@@ -210,32 +225,61 @@ public static class ElementPatterns
             }
         }
 
-        return (T)InitializeTypeInfo(typeof(T), typeInfo, basePath.Span, baseName.Span);
+        return (T)InitializeTypeInfo(typeof(T), typeInfo, null, null, basePath.Span, baseName.Span);
     }
 
-    internal static bool IsPrimitive(Type checkedType)
+    internal static bool IsPrimitive(Type checkedType, [MaybeNullWhen(false)] out ConstructorInfo ctor)
     {
-        return typeof(UnturnedUIElement) == checkedType || checkedType.IsSubclassOf(typeof(UnturnedUIElement));
+        if (PrimitiveConstructors.TryGetValue(checkedType, out ctor))
+            return true;
+
+        if (typeof(UnturnedUIElement) != checkedType && !checkedType.IsSubclassOf(typeof(UnturnedUIElement)))
+        {
+            ctor = null;
+            return false;
+        }
+
+        ctor = checkedType.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, [ typeof(string) ], null);
+        if (ctor != null && !ctor.IsIgnored())
+        {
+            PrimitiveConstructors.Add(checkedType, ctor);
+            return true;
+        }
+
+        ctor = null;
+        return false;
+
     }
 
-    private static bool TryInitializePrimitives(Type type, Array array, string format, int start)
+    private static bool TryInitializePrimitives(Type type, EnumerableWrapper wrapper, string format, int start, bool textBoxUseData)
     {
-        if (!IsPrimitive(type))
+        if (!IsPrimitive(type, out ConstructorInfo? ctor))
             return false;
 
-        for (int i = 0; i < array.Length; ++i)
+        object[] parameters = new object[1];
+        for (int i = 0; i < wrapper.Size; ++i)
         {
-            array.SetValue(Activator.CreateInstance(type, UnturnedUIUtility.QuickFormat(format, i + start, 0)), i);
+            parameters[0] = UnturnedUIUtility.QuickFormat(format, i + start, 0);
+            object prim = ctor.Invoke(parameters);
+            if (prim is ITextBox t)
+                t.UseData = textBoxUseData;
+
+            wrapper.Set(prim, i);
         }
 
         return true;
     }
 
-    private static object? TryInitializePrimitive(Type type, string path)
+    private static object? TryInitializePrimitive(Type type, string path, bool textBoxUseData)
     {
-        return !IsPrimitive(type)
-            ? null
-            : Activator.CreateInstance(type, path);
+        if (!IsPrimitive(type, out ConstructorInfo? ctor))
+            return null;
+
+        object prim = ctor.Invoke([ path ]);
+        if (prim is ITextBox t)
+            t.UseData = textBoxUseData;
+
+        return prim;    
     }
 
     private static bool TryInitializePresets(Type type, Array array, string format, int start)
@@ -400,9 +444,26 @@ public static class ElementPatterns
         public string Pattern;
     }
 
-    private static object InitializeTypeInfo(Type rootType, PatternTypeInfo typeInfo, ReadOnlySpan<char> basePath, ReadOnlySpan<char> baseName, int index = -1)
+    private static object InitializeTypeInfo(Type rootType, PatternTypeInfo typeInfo, PatternVariableInfo? selfVariable, object? parentInstance, ReadOnlySpan<char> basePath, ReadOnlySpan<char> baseName, int index = -1)
     {
-        object obj = Activator.CreateInstance(typeInfo.Type);
+        object? obj = null;
+        if (selfVariable != null && parentInstance != null && selfVariable.Variable.CanGet)
+        {
+            obj = selfVariable.Variable.GetValue(parentInstance);
+        }
+
+        if (obj == null)
+        {
+            try
+            {
+                obj = Activator.CreateInstance(typeInfo.Type);
+            }
+            catch (Exception ex)
+            {
+                throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_FailedToCreatePatternClass, Accessor.ExceptionFormatter.Format(typeInfo.Type)), ex);
+            }
+        }
+
         foreach (PatternVariableInfo variable in typeInfo.Variables)
         {
             ConstructorInfo? presetCtor;
@@ -412,15 +473,15 @@ public static class ElementPatterns
             {
                 ResolveVariablePath(variable, ref baseVarPath, ref baseVarName);
 
-                Array array = Array.CreateInstance(variable.ElementType, variable.ArrayLength);
-                if (IsPrimitive(variable.ElementType))
+                EnumerableWrapper array = new EnumerableWrapper(obj, variable, variable.ArrayLength);
+                if (IsPrimitive(variable.ElementType, out _))
                 {
                     string format = UnturnedUIUtility.CombinePath(baseVarPath, baseVarName);
-                    TryInitializePrimitives(variable.ElementType, array, format, variable.ArrayStart);
+                    TryInitializePrimitives(variable.ElementType, array, format, variable.ArrayStart, variable.TextBoxUseData);
                 }
                 else if (TryGetPresetConstructor(variable.ElementType, variable.PresetPathsCount, out presetCtor, out args))
                 {
-                    for (int i = 0; i < array.Length; ++i)
+                    for (int i = 0; i < array.Size; ++i)
                     {
                         string fmtPath = UnturnedUIUtility.QuickFormat(baseVarPath, i + variable.ArrayStart, 0);
                         args[0] = baseVarName.Length == 0 ? fmtPath : UnturnedUIUtility.CombinePath(fmtPath, UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0));
@@ -446,24 +507,47 @@ public static class ElementPatterns
                             ResolveVariablePath(variable, ref varPath, ref varName, index + 1, j - 1);
                             args[j] = varName.Length == 0 ? new string(varPath) : UnturnedUIUtility.CombinePath(varPath, varName);
                         }
-                        array.SetValue(presetCtor.Invoke(args), i);
+
+                        object value = presetCtor.Invoke(args);
+                        if (value is ITextBox t)
+                            t.UseData = variable.TextBoxUseData;
+                        array.Set(value, i);
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < array.Length; ++i)
+                    for (int i = 0; i < array.Size; ++i)
                     {
-                        array.SetValue(InitializeTypeInfo(rootType, variable.NestedType!, UnturnedUIUtility.QuickFormat(baseVarPath, i + variable.ArrayStart, 0), UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0), i + variable.ArrayStart), i);
+                        object value = InitializeTypeInfo(
+                            rootType,
+                            variable.NestedType!,
+                            null,
+                            null,
+                            UnturnedUIUtility.QuickFormat(baseVarPath, i + variable.ArrayStart, 0),
+                            UnturnedUIUtility.QuickFormat(baseVarName, i + variable.ArrayStart, 0),
+                            i + variable.ArrayStart
+                        );
+
+                        if (value is ITextBox t)
+                            t.UseData = variable.TextBoxUseData;
+                        array.Set(value, i);
                     }
                 }
-                variable.Variable.SetValue(obj, array);
+                
+                if (array.NeedsAssign)
+                    variable.Variable.SetValue(obj, array.GetValue());
                 continue;
             }
 
+            object? existingValue = variable.Variable.CanGet ? variable.Variable.GetValue(obj) : null;
+
             ResolveVariablePath(variable, ref baseVarPath, ref baseVarName, index);
 
-            if (TryGetPresetConstructor(variable.MemberType, variable.PresetPathsCount, out presetCtor, out args))
+            if (TryGetPresetConstructor(variable.CreatedType, variable.PresetPathsCount, out presetCtor, out args))
             {
+                if (existingValue != null)
+                    continue;
+
                 args[0] = baseVarName.Length == 0 ? new string(baseVarPath) : UnturnedUIUtility.CombinePath(baseVarPath, baseVarName);
                 for (int j = 1; j < variable.PresetPathsCount; ++j)
                 {
@@ -480,23 +564,188 @@ public static class ElementPatterns
                     ResolveVariablePath(variable, ref varPath, ref varName, index, j - 1);
                     args[j] = varName.Length == 0 ? new string(varPath) : UnturnedUIUtility.CombinePath(varPath, varName);
                 }
-                variable.Variable.SetValue(obj, presetCtor.Invoke(args));
+
+                object value = presetCtor.Invoke(args);
+                if (value is ITextBox t)
+                    t.UseData = variable.TextBoxUseData;
+                variable.Variable.SetValue(obj, value);
             }
             else if (variable.NestedType != null)
             {
-                variable.Variable.SetValue(obj, InitializeTypeInfo(rootType, variable.NestedType, baseVarPath, baseVarName));
+                object value = InitializeTypeInfo(rootType, variable.NestedType, variable, obj, baseVarPath, baseVarName);
+                if (value is ITextBox t)
+                    t.UseData = variable.TextBoxUseData;
+                variable.Variable.SetValue(obj, value);
             }
             else
             {
-                object? prim = TryInitializePrimitive(variable.MemberType, baseVarName.Length == 0 ? new string(baseVarPath) : UnturnedUIUtility.CombinePath(baseVarPath, baseVarName));
-                if (prim == null)
-                    throw new InvalidOperationException($"Failed to initialize type {Accessor.ExceptionFormatter.Format(typeInfo.Type)} when creating {Accessor.ExceptionFormatter.Format(rootType)}.");
+                if (existingValue != null)
+                    continue;
 
+                object? prim = TryInitializePrimitive(
+                    variable.CreatedType,
+                    baseVarName.Length == 0
+                        ? new string(baseVarPath)
+                        : UnturnedUIUtility.CombinePath(baseVarPath, baseVarName),
+                    variable.TextBoxUseData
+                );
+
+                if (prim == null)
+                    throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_FailureCreatingPrimitive, Accessor.ExceptionFormatter.Format(typeInfo.Type), Accessor.ExceptionFormatter.Format(rootType)));
+                
                 variable.Variable.SetValue(obj, prim);
             }
         }
 
         return obj;
+    }
+
+    private abstract class CollectionWrapper
+    {
+        public abstract object Value { get; }
+        public abstract void Add(object v);
+    }
+    private class CollectionWrapper<T> : CollectionWrapper
+    {
+        private readonly ICollection<T> _collection;
+
+        public override object Value => _collection;
+
+        public CollectionWrapper(ICollection<T> collection, int capacity)
+        {
+            _collection = collection;
+            if (_collection is List<T> l)
+                l.Capacity = capacity;
+        }
+
+        public override void Add(object v)
+        {
+            _collection.Add((T)v);
+        }
+    }
+
+    private readonly struct EnumerableWrapper
+    {
+        public readonly int Size;
+        public readonly bool NeedsAssign;
+
+        private readonly int _type;
+        private readonly object _collection;
+        public void Set(object value, int index)
+        {
+            switch (_type)
+            {
+                case 0:
+                    ((Array)_collection).SetValue(value, index);
+                    break;
+
+                case 1:
+                    ((IList)_collection).Add(value);
+                    break;
+
+                default:
+                    ((CollectionWrapper)_collection).Add(value);
+                    break;
+            }
+        }
+
+        public object GetValue()
+        {
+            return _type == 2 ? ((CollectionWrapper)_collection).Value : _collection;
+        }
+
+        public EnumerableWrapper(Array array)
+        {
+            Size = array.Length;
+            _collection = array;
+        }
+
+        public EnumerableWrapper(object instance, PatternVariableInfo variable, int count)
+        {
+            Size = count;
+            Type elementType = variable.ElementType!;
+            Type enumerableType = variable.CreatedType;
+
+            object? existing = variable.Variable.GetValue(instance);
+
+            if (existing == null)
+            {
+                NeedsAssign = true;
+                if (enumerableType.IsInterface)
+                {
+                    if (enumerableType == typeof(IEnumerable) ||
+                        enumerableType == typeof(ICollection) ||
+                        enumerableType == typeof(IReadOnlyList<>).MakeGenericType(elementType) ||
+                        enumerableType == typeof(IReadOnlyCollection<>).MakeGenericType(elementType))
+                    {
+                        _collection = Array.CreateInstance(elementType, count);
+                    }
+                    else if (elementType == typeof(IList))
+                    {
+                        _collection = new ArrayList(count);
+                        _type = 1;
+                    }
+                    else if (enumerableType == typeof(IList)
+                             || enumerableType == typeof(IList<>).MakeGenericType(elementType))
+                    {
+                        _collection = Activator.CreateInstance(typeof(List<>).MakeGenericType(elementType), count);
+                        _type = 1;
+                    }
+                    else
+                    {
+                        throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_UnknownEnumerableType, Accessor.ExceptionFormatter.Format(variable.Variable.DeclaringType!), variable.Variable.Format(Accessor.ExceptionFormatter)));
+                    }
+
+                    return;
+                }
+
+                // array (null)
+                if (enumerableType.IsArray)
+                {
+                    _collection = Array.CreateInstance(elementType, count);
+                }
+                else if (typeof(IList).IsAssignableFrom(enumerableType))
+                {
+                    if (enumerableType.IsGenericType && enumerableType.GetGenericTypeDefinition() == typeof(List<>))
+                        _collection = Activator.CreateInstance(enumerableType, count);
+                    else
+                        _collection = Activator.CreateInstance(enumerableType);
+                    _type = 1;
+                }
+                else if (typeof(ICollection<>).MakeGenericType(elementType).IsAssignableFrom(enumerableType))
+                {
+                    _collection = Activator.CreateInstance(typeof(CollectionWrapper<>).MakeGenericType(elementType), Activator.CreateInstance(enumerableType), count);
+                    _type = 2;
+                }
+                else
+                {
+                    throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_UnknownEnumerableType, Accessor.ExceptionFormatter.Format(variable.Variable.DeclaringType!), variable.Variable.Format(Accessor.ExceptionFormatter)));
+                }
+            }
+            else
+            {
+                _collection = existing;
+                switch (existing)
+                {
+                    case Array arr:
+                        if (arr.Length < count)
+                            throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_FillEnumerableArrayTooSmall, Accessor.ExceptionFormatter.Format(variable.Variable.DeclaringType!), variable.Variable.Format(Accessor.ExceptionFormatter)));
+                        _type = 0;
+                        break;
+
+                    case IList:
+                        _type = 1;
+                        break;
+
+                    default:
+                        if (!typeof(ICollection<>).MakeGenericType(elementType).IsInstanceOfType(existing))
+                            throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_FillEnumerableNotValidType, Accessor.ExceptionFormatter.Format(variable.Variable.DeclaringType!), variable.Variable.Format(Accessor.ExceptionFormatter)));
+                        _type = 2;
+                        _collection = Activator.CreateInstance(typeof(CollectionWrapper<>).MakeGenericType(elementType), existing, count);
+                        break;
+                }
+            }
+        }
     }
 }
 

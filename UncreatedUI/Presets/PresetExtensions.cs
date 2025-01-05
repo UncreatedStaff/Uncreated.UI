@@ -1,4 +1,4 @@
-﻿using SDG.NetTransport;
+using SDG.NetTransport;
 using SDG.Unturned;
 
 namespace Uncreated.Framework.UI.Presets;

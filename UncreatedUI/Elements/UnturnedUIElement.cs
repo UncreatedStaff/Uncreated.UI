@@ -1,9 +1,10 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using SDG.NetTransport;
 using SDG.Unturned;
 using System;
+using System.Threading;
 using Uncreated.Framework.UI.Presets;
 using UnityEngine;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
@@ -15,7 +16,9 @@ namespace Uncreated.Framework.UI;
 /// </summary>
 public class UnturnedUIElement : IElement
 {
+    private static int _globalElementId;
     private UnturnedUI? _owner;
+    private readonly int _id;
     protected internal ILogger? Logger;
     protected internal ILoggerFactory? LoggerFactory;
 
@@ -37,7 +40,7 @@ public class UnturnedUIElement : IElement
     /// <summary>
     /// Display name of this element type for <see cref="ToString"/>.
     /// </summary>
-    protected virtual string ElementTypeDisplayName => "UI Element";
+    protected virtual string ElementTypeDisplayName => Properties.Resources.DisplayName_UnturnedUIElement;
 
     /// <summary>
     /// Name in Unity of this UI element.
@@ -49,6 +52,9 @@ public class UnturnedUIElement : IElement
     /// </summary>
     public string Path { get; internal set; }
 
+    /// <summary>
+    /// The <see cref="UnturnedUI"/> object this parent belongs to.
+    /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the owner has yet to be set.</exception>
     public UnturnedUI Owner
     {
@@ -64,6 +70,7 @@ public class UnturnedUIElement : IElement
     /// </summary>
     public UnturnedUIElement(string path)
     {
+        _id = Interlocked.Increment(ref _globalElementId);
         Path = path;
         Name = UnturnedUIUtility.GetNameFromPathOrName(path.AsMemory());
     }
@@ -77,9 +84,10 @@ public class UnturnedUIElement : IElement
     protected void AssertOwnerSet(bool checkKey = true)
     {
         if (_owner is null)
-            throw new InvalidOperationException("UI owner has not yet been set. Make sure the element is a field in it's owner's class.");
+            throw new InvalidOperationException(Properties.Resources.Exception_UIOwnerNotSet);
+        
         if (_owner.Key == -1 && checkKey)
-            throw new InvalidOperationException("Owner's key is set to -1.");
+            throw new InvalidOperationException(Properties.Resources.Exception_UIOwnerM1Key);
     }
 
     internal void RegisterOwnerIntl(UnturnedUI? owner) => RegisterOwner(owner);
@@ -173,7 +181,7 @@ public class UnturnedUIElement : IElement
 
         if (Owner.DebugLogging)
         {
-            GetLogger().LogInformation("[{0}] [{1}] {{{2}}} Set visibility for {3}, visibility: {4}.", Owner.Name, Name, Owner.Key, connection.GetAddressString(true), isEnabled);
+            GetLogger().LogInformation(Properties.Resources.Log_UnturnedUIElementVisibilityUpdated, Owner.Name, Name, Owner.Key, connection.GetAddressString(true), isEnabled);
         }
     }
 
@@ -181,9 +189,15 @@ public class UnturnedUIElement : IElement
     public override string ToString()
     {
         return _owner == null
-            ? ElementTypeDisplayName + " [" + Path + "]"
-            : ElementTypeDisplayName + " [" + Path + "] (" + _owner.Name + ")";
+            ? $"{ElementTypeDisplayName} [{Path}]"
+            : $"{ElementTypeDisplayName} [{Path}] ({_owner.Name})";
     }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => _id;
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj) => ReferenceEquals(obj, this);
 
     [Ignore]
     UnturnedUIElement IElement.Element => this;

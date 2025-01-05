@@ -9,10 +9,7 @@ This library was built for [Uncreated Warfare](https://github.com/UncreatedStaff
 
 You must be targeting .NET Standard 2.1 to use this library.
 This means the [netstandard.dll](https://github.com/UncreatedStaff/Uncreated.UI/raw/refs/heads/master/Libraries/netstandard.dll) library must be included in your Libraries folder from the correct Unity installation.
-You must also be using UniTask (do NOT download the UniTask from this repository).
-OpenMod comes with UniTask pre-installed and you can use [RocketExtensions](https://github.com/ShimmyMySherbet/RocketExtensions) by ShimmyMySherbet if you're using RocketMod.
-Alternatively you can use my [Unturned UniTask fork](https://github.com/DanielWillett/UniTaskUnturned/releases/latest) and follow the instructions in the README for that repository.
-Finally this library references [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions/3.1.0) 3.1.0 (netstandard2.0) and [DanielWillett.ReflectionTools](https://www.nuget.org/packages/DanielWillett.ReflectionTools/3.1.0) 3.1.0 (netstandard2.1) which can be downloaded from NuGet.
+This library references [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions/3.1.0) 3.1.0 (netstandard2.0) and [DanielWillett.ReflectionTools](https://www.nuget.org/packages/DanielWillett.ReflectionTools/3.1.0) 3.1.0 (netstandard2.1) which can be downloaded from NuGet.
 
 # Creating a simple UI
 Simple UIs that use only formatting arguments can be defined without creating a new class.

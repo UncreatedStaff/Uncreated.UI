@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.Unturned;
 using Steamworks;
@@ -403,8 +403,11 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
     /// <inheritdoc />
     public override string ToString()
     {
-        return Accessor.ExceptionFormatter.Format(typeof(TEnum)) + " Enum Button [" + Button.Path + "] (" + Button.Owner.Name + ")";
+        return $"{string.Format(Properties.Resources.DisplayName_UnturnedEnumButton, Accessor.ExceptionFormatter.Format(typeof(TEnum)))} [{Button.Path}] ({Button.Owner.Name})";
     }
+
+    /// <inheritdoc />
+    public override int GetHashCode() => Button.GetHashCode();
 
     private class UnturnedEnumButtonData : IUnturnedUIData
     {

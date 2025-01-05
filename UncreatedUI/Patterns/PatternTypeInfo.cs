@@ -1,4 +1,4 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -22,10 +22,10 @@ internal class PatternTypeInfo
         if (ct == 0)
             return;
 
-        PatternVariableInfo root = Array.Find(Variables, x => x.IsRoot)!;
         if (ct > 1)
-            throw new NotSupportedException($"There can only be one root in a pattern object (like in {root}).");
+            throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_MultipleRootObjects, Accessor.ExceptionFormatter.Format(Type)));
 
+        PatternVariableInfo root = Array.Find(Variables, x => x.IsRoot)!;
         foreach (PatternVariableInfo info in Variables)
         {
             if (info is { IsRoot: false, UnderRoot: true })

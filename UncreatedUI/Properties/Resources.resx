@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Log_EventError" xml:space="preserve">
+    <value>[{0}] [{1}] Error invoking {2}.</value>
+  </data>
+  <data name="DisplayName_UnturnedButton" xml:space="preserve">
+    <value>Button</value>
+  </data>
+  <data name="DisplayName_UnturnedImage" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="DisplayName_UnturnedLabel" xml:space="preserve">
+    <value>Label</value>
+  </data>
+  <data name="DisplayName_UnturnedTextBox" xml:space="preserve">
+    <value>Text Box</value>
+  </data>
+  <data name="DisplayName_UnturnedUIElement" xml:space="preserve">
+    <value>UI Element</value>
+  </data>
+  <data name="Exception_UIOwnerM1Key" xml:space="preserve">
+    <value>This element's owner UI has a key of -1. A -1 key is usually only used to make Unturned respect the effect's lifetime.</value>
+  </data>
+  <data name="Exception_UIOwnerNotSet" xml:space="preserve">
+    <value>This element does not have an owner UI. Make sure the element was initialized as a field or property in it's owner's class.</value>
+  </data>
+  <data name="Log_UnturnedButtonClicked" xml:space="preserve">
+    <value>[{0}] [{1}] {{{2}}} Clicked by {3}.</value>
+  </data>
+  <data name="Log_DuplicateButtonName" xml:space="preserve">
+    <value>[{0}] [{1}] {{{2}}} There is already a button with name \"{3}\", replacing. Multiple buttons can not listen to events with the same name. Old button: \"{4}\". This button: \"{5}\".</value>
+  </data>
+  <data name="Log_DuplicateTextBoxName" xml:space="preserve">
+    <value>[{0}] [{1}] {{{2}}} There is already a text box with name \"{3}\", replacing. Multiple text boxes can not listen to events with the same name. Old text box: \"{4}\". This text box: \"{5}\".</value>
+  </data>
+  <data name="Log_UnturnedImageUpdated" xml:space="preserve">
+    <value>[{0}] [{1}] {{{2}}} Set image URL, link: {3}, force refresh: {4}.</value>
+  </data>
+  <data name="Log_UnturnedLabelUpdated" xml:space="preserve">
+    <value>[{0}] [{1}] {{{2}}} Set label text: \"{3}\".</value>
+  </data>
+  <data name="Log_UnturnedTextBoxCommitted" xml:space="preserve">
+    <value>[{0}] [{1}] {{{2}}} Text committed by {3}, text: \"{4}\".</value>
+  </data>
+  <data name="Log_UnturnedTextBoxUpdatedFromData" xml:space="preserve">
+    <value>[{0}] [{1}] {{{2}}} Text updated from data for {3}, text: \"{4}\" (event not invoked).</value>
+  </data>
+  <data name="Log_UnturnedUIElementVisibilityUpdated" xml:space="preserve">
+    <value>[{0}] [{1}] {{{2}}} Set visibility for {3}, visibility: {4}.</value>
+  </data>
+  <data name="Exception_FailureCreatingPrimitive" xml:space="preserve">
+    <value>Failed to initialize type {0} when creating {1}.</value>
+  </data>
+  <data name="Exception_MultipleRootObjects" xml:space="preserve">
+    <value>Pattern class {0} has more than one root element defined. There can not be more than one root element.</value>
+  </data>
+  <data name="Exception_ArrayRootObject" xml:space="preserve">
+    <value>Pattern class {0} defines an array as a root object. Arrays can not be root objects.</value>
+  </data>
+  <data name="Exception_NonSZArray" xml:space="preserve">
+    <value>Pattern class {0} defines a multi-dimensional or non-zero based array. Non-SZ arrays are not supportted.</value>
+  </data>
+  <data name="Exception_ArrayAttributeNotSpecified" xml:space="preserve">
+    <value>Pattern class {0} defines enumerable property {1} without decorating it with an ArrayPatternAttribute.</value>
+  </data>
+  <data name="Exception_ArrayAttributeSpecifiedOnSingular" xml:space="preserve">
+    <value>Pattern class {0} decorates {1} with an ArrayPatternAttribute when it isn't an enumerable.</value>
+  </data>
+  <data name="Exception_FillEnumerableNotValidType" xml:space="preserve">
+    <value>Pattern class {0} has a non-null value for {1} which is an enumerable type that isn't assignable to the ICollection&lt;&gt; type for it's expected element. Values can not be added to this enumerable.</value>
+  </data>
+  <data name="Exception_UnknownEnumerableType" xml:space="preserve">
+    <value>Pattern class {0} defines an invalid enumerable type on property {1} which can not be auto-generated.</value>
+  </data>
+  <data name="Exception_FillEnumerableArrayTooSmall" xml:space="preserve">
+    <value>Array in pattern class {0} at property {1} is too small for the amount of elements required.</value>
+  </data>
+  <data name="DisplayName_PatternRoot_Uninitialized" xml:space="preserve">
+    <value>&lt;uninitialized&gt;</value>
+  </data>
+  <data name="Exception_FailedToCreatePatternClass" xml:space="preserve">
+    <value>Unable to create instance of pattern class {0}. All patterns must have a parameterless constructor (created by default if no other constructors are available).</value>
+  </data>
+  <data name="DisplayName_LabeledButton" xml:space="preserve">
+    <value>Labeled Button</value>
+  </data>
+  <data name="DisplayName_StateButton" xml:space="preserve">
+    <value>State Button</value>
+  </data>
+  <data name="DisplayName_RightClickableButton" xml:space="preserve">
+    <value>Right-Clickable Button</value>
+  </data>
+  <data name="DisplayName_LabeledStateButton" xml:space="preserve">
+    <value>Labeled State Button</value>
+  </data>
+  <data name="DisplayName_RightClickableStateButton" xml:space="preserve">
+    <value>Right-Clickable State Button</value>
+  </data>
+  <data name="DisplayName_LabeledRightClickableButton" xml:space="preserve">
+    <value>Labeled Right-Clickable Button</value>
+  </data>
+  <data name="DisplayName_LabeledRightClickableStateButton" xml:space="preserve">
+    <value>Labeled Right-Clickable State Button</value>
+  </data>
+  <data name="DisplayName_StatePlaceholderTextBox" xml:space="preserve">
+    <value>State Placeholder Text Box</value>
+  </data>
+  <data name="DisplayName_StateTextBox" xml:space="preserve">
+    <value>State Text Box</value>
+  </data>
+  <data name="DisplayName_PlaceholderTextBox" xml:space="preserve">
+    <value>Placeholder Text Box</value>
+  </data>
+  <data name="DisplayName_UnturnedEnumButton" xml:space="preserve">
+    <value>{0} Enum Button</value>
+  </data>
+  <data name="DisplayName_UnturnedToggle" xml:space="preserve">
+    <value>Toggle</value>
+  </data>
+  <data name="DisplayName_LabeledUnturnedToggle" xml:space="preserve">
+    <value>Labeled Toggle</value>
+  </data>
+  <data name="Log_FoundPrimitive" xml:space="preserve">
+    <value>[{0}] Found element: {1}.</value>
+  </data>
+  <data name="Log_LateRegisteredPrimitive" xml:space="preserve">
+    <value>[{0}] Late-registered element: {1}.</value>
+  </data>
+  <data name="Log_FoundPrimitiveInEnumerable" xml:space="preserve">
+    <value>[{0}] Found element (enumerable member): {1}.</value>
+  </data>
+  <data name="Log_FoundOtherInEnumerable" xml:space="preserve">
+    <value>[{0}] Found object (enumerable member) containing the previous {1} element(s): {2}.</value>
+  </data>
+  <data name="Log_FoundPrimitiveInIUnturnedUIElementProvider" xml:space="preserve">
+    <value>[{0}] Found element (IUnturnedUIElementProvider): {1}.</value>
+  </data>
+  <data name="Log_FoundIUnturnedUIElementProvider" xml:space="preserve">
+    <value>[{0}] Found IUnturnedUIElementProvider containing {1} element(s).</value>
+  </data>
+  <data name="Log_FoundOther" xml:space="preserve">
+    <value>[{0}] Found object containing the previous {1} element(s): {2}.</value>
+  </data>
+  <data name="Exception_NotOnValidThread" xml:space="preserve">
+    <value>This function should only be called from the game thread. (e.g. from Unity's Update)</value>
+  </data>
+  <data name="Exception_UnrelatedUIDataType" xml:space="preserve">
+    <value>UnturnedUI data methods can only be used on data linked to this UI and no element.</value>
+  </data>
+  <data name="Exception_InconsistantPlayerFromCreatedDataUI" xml:space="preserve">
+    <value>Created data does not store the same player and UI as expected.</value>
+  </data>
+  <data name="Exception_LateRegisterUnturnedUI" xml:space="preserve">
+    <value>Unable to register an UnturnedUI object as an element.</value>
+  </data>
+  <data name="Log_LateRegisteredOther" xml:space="preserve">
+    <value>[{0}] Late-registered object containing the previous {1} element(s): {2}.</value>
+  </data>
+  <data name="Log_UnableToFindIdFromAsset" xml:space="preserve">
+    <value>[{0}] Effect asset {1} does not have a valid numeric ID.</value>
+  </data>
+  <data name="Log_UnableToFindAssetFromId" xml:space="preserve">
+    <value>[{0}] Unable to find an effect asset with ID {1}.</value>
+  </data>
+  <data name="Log_UnableToFindAssetFromGuid" xml:space="preserve">
+    <value>[{0}] Unable to find an effect asset with GUID {1}.</value>
+  </data>
+  <data name="Log_NoAssetSupplied" xml:space="preserve">
+    <value>[{0}] Unable to find an Asset, ID, or GUID.</value>
+  </data>
+  <data name="Log_SendToAllPlayers_0" xml:space="preserve">
+    <value>[{0}] Sent to all players.</value>
+  </data>
+  <data name="Log_SendToAllPlayers_1" xml:space="preserve">
+    <value>[{0}] Sent to all players, args: {{0}} = {1}.</value>
+  </data>
+  <data name="Log_SendToAllPlayers_2" xml:space="preserve">
+    <value>[{0}] Sent to all players, args: {{0}} = {1}, {{1}} = {2}.</value>
+  </data>
+  <data name="Log_SendToAllPlayers_3" xml:space="preserve">
+    <value>[{0}] Sent to all players, args: {{0}} = {1}, {{1}} = {2}, {{2}} = {3}.</value>
+  </data>
+  <data name="Log_SendToAllPlayers_4" xml:space="preserve">
+    <value>[{0}] Sent to all players, args: {{0}} = {1}, {{1}} = {2}, {{2}} = {3}, {{3}} = {4}.</value>
+  </data>
+  <data name="Log_SendToPlayer_0" xml:space="preserve">
+    <value>[{0}] Sent to {1}.</value>
+  </data>
+  <data name="Log_SendToPlayer_1" xml:space="preserve">
+    <value>[{0}] Sent to {1}, args: {{0}} = {2}.</value>
+  </data>
+  <data name="Log_SendToPlayer_2" xml:space="preserve">
+    <value>[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}.</value>
+  </data>
+  <data name="Log_SendToPlayer_3" xml:space="preserve">
+    <value>[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}.</value>
+  </data>
+  <data name="Log_SendToPlayer_4" xml:space="preserve">
+    <value>[{0}] Sent to {1}, args: {{0}} = {2}, {{1}} = {3}, {{2}} = {4}, {{3}} = {5}.</value>
+  </data>
+  <data name="Log_ClearFromAllPlayers" xml:space="preserve">
+    <value>[{0}] Cleared from all players.</value>
+  </data>
+  <data name="Log_ClearFromPlayer" xml:space="preserve">
+    <value>[{0}] Cleared from {1}.</value>
+  </data>
+  <data name="Exception_InconsistantLengthArguments" xml:space="preserve">
+    <value>Inconsistent values in arguments: 'to', and 'length'.</value>
+  </data>
+  <data name="Exception_InconsistantPlayerFromCreatedDataElement" xml:space="preserve">
+    <value>Created data does not store the same player and element as expected.</value>
+  </data>
+  <data name="Exception_MissingLengthArguments" xml:space="preserve">
+    <value>Must either specify 'to' or 'length'.</value>
+  </data>
+  <data name="Exception_NavigationPathsNotSupportedInRelevantPath" xml:space="preserve">
+    <value>Navigational path segments like '.' and '..' are not supported in the 'relative to' path.</value>
+  </data>
+  <data name="Exception_RelativePathExceedsRoot" xml:space="preserve">
+    <value>The relative path navigates further up than the root object.</value>
+  </data>
+  <data name="Log_DeregisteringPrimitives" xml:space="preserve">
+    <value>[{0}] Deregistering {1} elements.</value>
+  </data>
+  <data name="Log_ErrorDispatchingMainThreadEvent" xml:space="preserve">
+    <value>Error invoking main thread dispatch.</value>
+  </data>
+  <data name="Log_ErrorDispatchingMainThreadEvent_NoContextSwitch" xml:space="preserve">
+    <value>Error invoking main thread dispatch (without dispatching).</value>
+  </data>
+  <data name="Log_ErrorDisposingIUnturnedUIProvider" xml:space="preserve">
+    <value>Failed to dispose UI provider: {0}.</value>
+  </data>
+</root>

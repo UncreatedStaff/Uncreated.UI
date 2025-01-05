@@ -1,13 +1,13 @@
-﻿using DanielWillett.ReflectionTools;
+using DanielWillett.ReflectionTools;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 
 namespace Uncreated.Framework.UI.Patterns;
 internal sealed class PatternVariableInfo
 {
-    public readonly Type MemberType;
+    public readonly Type CreatedType;
     public readonly Type? ElementType;
     public readonly IVariable Variable;
     public readonly FormatMode PatternFormatMode;
@@ -16,6 +16,7 @@ internal sealed class PatternVariableInfo
     public readonly int PresetPathsCount;
     public readonly bool IsRoot;
     public readonly bool UnderRoot;
+    public readonly bool TextBoxUseData;
     public readonly char? PatternCleanJoin;
     public readonly string? AdditionalPath;
     public readonly int PatternFormatIndex;
@@ -32,6 +33,7 @@ internal sealed class PatternVariableInfo
             Pattern = pattern.Pattern ?? string.Empty;
             PatternCleanJoin = pattern.CleanJoin;
             AdditionalPath = pattern.AdditionalPath;
+            TextBoxUseData = pattern.TextBoxUseData;
             PatternFormatMode = pattern.Mode;
             PatternFormatIndex = pattern.FormatIndex;
             IsRoot = pattern.Root;
@@ -50,33 +52,37 @@ internal sealed class PatternVariableInfo
         if (variable.Member.TryGetAttributeSafe(out ArrayPatternAttribute arrayPattern, inherit: true))
         {
             if (IsRoot)
-                throw new NotSupportedException($"Arrays can not be root objects (like in {ToString()}).");
+                throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_ArrayRootObject, Accessor.ExceptionFormatter.Format(ownerType.Type)));
 
             IsArray = true;
             ArrayStart = arrayPattern.Start;
             ArrayLength = arrayPattern.Length;
         }
 
-        MemberType = Variable.MemberType;
-        if (MemberType.IsArray)
+        CreatedType = Variable.MemberType;
+        if (CreatedType.IsArray)
         {
-            if (MemberType.GetArrayRank() != 1)
+            if (!CreatedType.IsSZArray)
             {
-                throw new NotSupportedException($"Multi-dimensional arrays are not supported (like in {ToString()}).");
+                throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_NonSZArray, Accessor.ExceptionFormatter.Format(ownerType.Type)));
             }
 
-            ElementType = MemberType.GetElementType();
+            ElementType = CreatedType.GetElementType();
         }
-        else
+        else if (CreatedType != typeof(string))
         {
-            Type[] intx = MemberType.GetInterfaces();
+            IEnumerable<Type> intx = CreatedType.GetInterfaces();
+            if (CreatedType.IsInterface)
+                intx = Enumerable.Repeat(CreatedType, 1).Concat(intx);
             bool hasTypeUnsafeEnumerable = false;
             Type? enumerableType = null;
-            for (int i = 0; i < intx.Length; ++i)
+            foreach (Type intxType in intx)
             {
-                Type intxType = intx[i];
                 if (intxType == typeof(IEnumerable))
+                {
                     hasTypeUnsafeEnumerable = true;
+                    continue;
+                }
                 else if (!intxType.IsGenericType || intxType.GetGenericTypeDefinition() != typeof(IEnumerable<>))
                     continue;
 
@@ -99,28 +105,28 @@ internal sealed class PatternVariableInfo
 
         if (ElementType != null && !IsArray)
         {
-            throw new NotSupportedException($"Arrays must be decorated with a ArrayPatternAttribute (like in {ToString()}).");
+            throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_ArrayAttributeNotSpecified, Accessor.ExceptionFormatter.Format(ownerType.Type), Variable.Format(Accessor.ExceptionFormatter)));
         }
 
         if (IsArray && (ElementType == typeof(object) || ElementType == typeof(ValueType)))
         {
-            throw new NotSupportedException($"Element type must not be a system base type (like in {ToString()}).");
+            ElementType = typeof(UnturnedUIElement);
         }
 
         if (IsArray && ElementType == null)
         {
-            throw new NotSupportedException($"Non-array variables can not be decorated with ArrayPatternAttribute (like in {ToString()}).");
+            throw new ElementPatternCreationException(string.Format(Properties.Resources.Exception_ArrayAttributeSpecifiedOnSingular, Accessor.ExceptionFormatter.Format(ownerType.Type), Variable.Format(Accessor.ExceptionFormatter)));
         }
 
-        if (!IsArray && (MemberType == typeof(object) || MemberType == typeof(ValueType)))
+        if (!IsArray && (CreatedType == typeof(object) || CreatedType == typeof(ValueType)))
         {
-            throw new NotSupportedException($"Member type must not be a system base type (like in {ToString()}).");
+            CreatedType = typeof(UnturnedUIElement);
         }
 
-        if (ElementPatterns.IsPrimitive(MemberType) || ElementType != null && ElementPatterns.IsPrimitive(ElementType))
+        if (ElementPatterns.IsPrimitive(CreatedType, out _) || ElementType != null && ElementPatterns.IsPrimitive(ElementType, out _))
             return;
 
-        Type valueType = IsArray ? ElementType! : MemberType;
+        Type valueType = IsArray ? ElementType! : CreatedType;
 
         lock (ElementPatterns.TypeInfo)
         {
@@ -170,10 +176,5 @@ internal sealed class PatternVariableInfo
         return null;
     }
 
-    public override string ToString() => Variable.Member switch
-    {
-        FieldInfo f => Accessor.ExceptionFormatter.Format(f),
-        PropertyInfo p => Accessor.ExceptionFormatter.Format(p),
-        _ => Variable.Member.Name
-    };
+    public override string ToString() => Variable.Format(Accessor.ExceptionFormatter);
 }
