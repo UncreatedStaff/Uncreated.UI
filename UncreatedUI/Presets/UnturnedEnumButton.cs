@@ -150,7 +150,7 @@ public class UnturnedEnumButton<TEnum> : IStateElement, ILabeledRightClickableBu
     public UnturnedEnumButton(TEnum[] valueSet, TEnum defaultValue, string buttonPath, string labelPath, string? statePath, string? rightClickListenerButtonPath) :
         this(valueSet, defaultValue, new UnturnedButton(buttonPath), new UnturnedLabel(UnturnedUIUtility.ResolveRelativePath(buttonPath, labelPath)),
             statePath == null ? null : new UnturnedUIElement(UnturnedUIUtility.ResolveRelativePath(buttonPath, statePath)),
-            rightClickListenerButtonPath == null ? null : new UnturnedButton(rightClickListenerButtonPath))
+            rightClickListenerButtonPath == null ? null : new UnturnedButton(UnturnedUIUtility.ResolveRelativePath(buttonPath, rightClickListenerButtonPath)))
     { }
 
     public UnturnedEnumButton(TEnum defaultValue, ILabeledButton button)
