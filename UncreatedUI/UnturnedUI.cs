@@ -1082,27 +1082,27 @@ public class UnturnedUI : IDisposable
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
             return;
 
+        if (disposing) GC.SuppressFinalize(this);
+
         IUnturnedUIDataSource? src = UnturnedUIDataSource.Instance;
 
-        if (src != null)
+        if (src is { RequiresMainThread: true } && !UnturnedUIProvider.Instance.IsValidThread())
         {
-            if (src.RequiresMainThread && !UnturnedUIProvider.Instance.IsValidThread())
+            IUnturnedUIDataSource src2 = src;
+            lock (_elements)
             {
-                IUnturnedUIDataSource src2 = src;
-                List<UnturnedUIElement> elements = Elements.ToList();
+                List<UnturnedUIElement>? elements = _elements?.ToList();
                 UnturnedUIProvider.Instance.DispatchToValidThread(() =>
                 {
                     IntlDispose(elements, src2);
                 });
             }
-            else
-            {
-                IntlDispose(Elements, src);
-            }
         }
-
-        if (disposing)
-            GC.SuppressFinalize(this);
+        else
+        {
+            // ReSharper disable once InconsistentlySynchronizedField
+            IntlDispose(_elements, src);
+        }
     }
 
     /// <summary>
@@ -1111,7 +1111,7 @@ public class UnturnedUI : IDisposable
     /// <remarks>This will always be invoked on the game thread. The base method has no implementation and doesn't need to be invoked.</remarks>
     protected virtual void OnDisposing() { }
 
-    private void IntlDispose(IReadOnlyList<UnturnedUIElement> elements, IUnturnedUIDataSource src)
+    private void IntlDispose(IReadOnlyList<UnturnedUIElement>? elements, IUnturnedUIDataSource src)
     {
         try
         {
@@ -1122,17 +1122,24 @@ public class UnturnedUI : IDisposable
             GetLogger().LogError(ex, string.Format(Properties.Resources.Log_ErrorDisposingUnturnedUI, Accessor.Formatter.Format(GetType())));
         }
 
-        if (DebugLogging)
-            GetLogger().LogInformation(Properties.Resources.Log_DeregisteringPrimitives, Name, elements.Count);
-
         src.RemoveOwner(this);
-        for (int i = 0; i < elements.Count; ++i)
+
+        if (elements == null)
+            return;
+
+        lock (elements)
         {
-            UnturnedUIElement element = elements[i];
-            src.RemoveElement(element);
-            element.DeregisterOwnerIntl();
-            if (element is IDisposable disp)
-                disp.Dispose();
+            if (DebugLogging)
+                GetLogger().LogInformation(Properties.Resources.Log_DeregisteringPrimitives, Name, elements.Count);
+
+            for (int i = 0; i < elements.Count; ++i)
+            {
+                UnturnedUIElement element = elements[i];
+                src.RemoveElement(element);
+                element.DeregisterOwnerIntl();
+                if (element is IDisposable disp)
+                    disp.Dispose();
+            }
         }
     }
     ~UnturnedUI()
