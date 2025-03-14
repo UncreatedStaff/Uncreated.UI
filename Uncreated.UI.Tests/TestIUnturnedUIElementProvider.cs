@@ -1,11 +1,12 @@
 using Uncreated.Framework.UI;
-using Uncreated.Framework.UI.Presets;
 using Uncreated.Framework.UI.Reflection;
 
 namespace Uncreated.UI.Tests;
 
 public class TestIUnturnedUIElementProvider
 {
+    private static readonly Guid TestGuid = new Guid("b3f526c6-dfd9-427f-ba91-5b76925d4236");
+
     [SetUp]
     public void Setup()
     {
@@ -36,7 +37,7 @@ public class TestIUnturnedUIElementProvider
     private class TestUI : UnturnedUI
     {
         public readonly TestUnturnedUIElementProvider Provider = new TestUnturnedUIElementProvider();
-        public TestUI() : base(12345) { }
+        public TestUI() : base(TestGuid) { }
     }
 
     public class TestUnturnedUIElementProvider : IUnturnedUIElementProvider

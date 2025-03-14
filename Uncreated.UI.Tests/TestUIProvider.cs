@@ -1,10 +1,9 @@
+using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
+using Steamworks;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
-using Steamworks;
 using Uncreated.Framework.UI;
 using Action = System.Action;
 
@@ -27,15 +26,15 @@ public class TestUIProvider : IUnturnedUIProvider
 
     public struct UIData
     {
-        public ushort Id;
+        public Guid Guid;
         public short Key;
         public bool Reliable;
         public bool Global;
         public string[] Args;
 
-        public UIData(ushort id, short key, bool reliable, params string[] args)
+        public UIData(Guid guid, short key, bool reliable, params string[] args)
         {
-            Id = id;
+            Guid = guid;
             Key = key;
             Reliable = reliable;
             Args = args;
@@ -81,10 +80,10 @@ public class TestUIProvider : IUnturnedUIProvider
             : null;
     }
 
-    public static UIData? GetUIData(ushort id)
+    public static UIData? GetUIData(Guid guid)
     {
         List<UIData> uis = ((TestUIProvider)UnturnedUIProvider.Instance)._uis;
-        int index = uis.FindIndex(x => x.Id == id);
+        int index = uis.FindIndex(x => x.Guid == guid);
         if (index == -1)
             return null;
 
@@ -130,80 +129,80 @@ public class TestUIProvider : IUnturnedUIProvider
 
     public EffectAsset? GetEffectAsset(Guid guid) => null;
 
-    public void ClearByIdGlobal(ushort id)
+    public void ClearGlobal(EffectAsset asset)
     {
-        Console.WriteLine($"~~~ CLEAR ID {id} FOR ALL PLAYERS ~~~");
-        _uis.RemoveAll(x => x.Id == id);
+        Console.WriteLine($"~~~ CLEAR ID {asset.FriendlyName} FOR ALL PLAYERS ~~~");
+        _uis.RemoveAll(x => x.Guid == asset.GUID);
     }
 
-    public void SendUIGlobal(ushort id, short key, bool isReliable)
+    public void SendUIGlobal(EffectAsset asset, short key, bool isReliable)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable) { Global = true });
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable) { Global = true });
     }
 
-    public void SendUIGlobal(ushort id, short key, bool isReliable, string arg0)
+    public void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS {{0}} = {arg0} ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable, arg0) { Global = true });
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS {{0}} = {arg0} ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable, arg0) { Global = true });
     }
 
-    public void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1)
+    public void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0, string arg1)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS {{0}} = {arg0} {{1}} = {arg1} ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable, arg0, arg1) { Global = true });
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS {{0}} = {arg0} {{1}} = {arg1} ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable, arg0, arg1) { Global = true });
     }
 
-    public void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1, string arg2)
+    public void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0, string arg1, string arg2)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS {{0}} = {arg0} {{1}} = {arg1} {{2}} = {arg2} ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable, arg0, arg1, arg2) { Global = true });
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS {{0}} = {arg0} {{1}} = {arg1} {{2}} = {arg2} ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable, arg0, arg1, arg2) { Global = true });
     }
 
-    public void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1, string arg2, string arg3)
+    public void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0, string arg1, string arg2, string arg3)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS {{0}} = {arg0} {{1}} = {arg1} {{2}} = {arg2} {{3}} = {arg3} ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable, arg0, arg1, arg2, arg3) { Global = true });
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR ALL PLAYERS {{0}} = {arg0} {{1}} = {arg1} {{2}} = {arg2} {{3}} = {arg3} ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable, arg0, arg1, arg2, arg3) { Global = true });
     }
 
-    public void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2, string arg3)
+    public void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2, string arg3)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} {{0}} = {arg0} {{1}} = {arg1} {{2}} = {arg2} {{3}} = {arg3} ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable, arg0, arg1, arg2, arg3));
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} {{0}} = {arg0} {{1}} = {arg1} {{2}} = {arg2} {{3}} = {arg3} ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable, arg0, arg1, arg2, arg3));
     }
 
-    public void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2)
+    public void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} {{0}} = {arg0} {{1}} = {arg1} {{2}} = {arg2} ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable, arg0, arg1, arg2));
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} {{0}} = {arg0} {{1}} = {arg1} {{2}} = {arg2} ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable, arg0, arg1, arg2));
     }
 
-    public void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1)
+    public void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} {{0}} = {arg0} {{1}} = {arg1} ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable, arg0, arg1));
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} {{0}} = {arg0} {{1}} = {arg1} ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable, arg0, arg1));
     }
 
-    public void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0)
+    public void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} {{0}} = {arg0} ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable, arg0));
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} {{0}} = {arg0} ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable, arg0));
     }
 
-    public void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable)
+    public void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable)
     {
-        Console.WriteLine($"~~~ SEND ID {id} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} ~~~");
-        _uis.RemoveAll(x => x.Key == key || x.Id == id);
-        _uis.Add(new UIData(id, key, isReliable));
+        Console.WriteLine($"~~~ SEND ID {asset.FriendlyName} (KEY {key}, RELIABLE: {isReliable}) FOR {connection.GetAddressString(true)} ~~~");
+        _uis.RemoveAll(x => x.Key == key || x.Guid == asset.GUID);
+        _uis.Add(new UIData(asset.GUID, key, isReliable));
     }
 
     public void SetElementImageUrl(short key, ITransportConnection connection, bool isReliable, string path, string imageUrl, bool shouldCache, bool forceRefresh)
@@ -233,10 +232,10 @@ public class TestUIProvider : IUnturnedUIProvider
         }
     }
 
-    public void ClearById(ushort id, ITransportConnection connection)
+    public void Clear(EffectAsset asset, ITransportConnection connection)
     {
-        Console.WriteLine($"~~~ CLEAR ID {id} FOR {connection.GetAddressString(true)} ~~~");
-        _uis.RemoveAll(x => x.Id == id);
+        Console.WriteLine($"~~~ CLEAR ID {asset.FriendlyName} FOR {connection.GetAddressString(true)} ~~~");
+        _uis.RemoveAll(x => x.Guid == asset.GUID);
     }
 
     private class TestTransportConnection : ITransportConnection

@@ -7,6 +7,8 @@ namespace Uncreated.UI.Tests;
 
 public class TestNestedPatterns
 {
+    private static readonly Guid TestGuid = new Guid("b3f526c6-dfd9-427f-ba91-5b76925d4236");
+
     [SetUp]
     public void Setup()
     {
@@ -87,7 +89,7 @@ public class TestNestedPatterns
     {
         public readonly ServerList[] ServerLists = ElementPatterns.CreateArray<ServerList>("ServerList_{0}/", 1, to: 10);
         
-        public ServerListUI() : base(12345) { }
+        public ServerListUI() : base(TestGuid) { }
 
         public class ServerList : PatternRoot
         {
@@ -109,7 +111,7 @@ public class TestNestedPatterns
     {
         public readonly Pattern1[] Pattern1s = ElementPatterns.CreateArray<Pattern1>("P1s/Pattern1_{0}", 1, to: 2);
 
-        public TestUI() : base(0) { }
+        public TestUI() : base(TestGuid) { }
 
         public class Pattern1 : PatternRoot
         {

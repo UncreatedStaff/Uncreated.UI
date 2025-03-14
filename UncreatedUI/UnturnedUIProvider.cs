@@ -223,28 +223,28 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
         }
     }
 
-    public virtual void ClearById(ushort id, ITransportConnection connection)
+    public virtual void Clear(EffectAsset asset, ITransportConnection connection)
     {
         if (IsGameThread())
         {
-            EffectManager.askEffectClearByID(id, connection);
+            EffectManager.ClearEffectByGuid(asset.GUID, connection);
         }
         else
         {
-            ClearByIdState s = new ClearByIdState(id, connection);
+            ClearByIdState s = new ClearByIdState(asset.GUID, connection);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void ClearByIdGlobal(ushort id)
+    public virtual void ClearGlobal(EffectAsset asset)
     {
         if (IsGameThread())
         {
-            EffectManager.ClearEffectByID_AllPlayers(id);
+            EffectManager.ClearEffectByGuid_AllPlayers(asset.GUID);
         }
         else
         {
-            ClearByIdState s = new ClearByIdState(id, null);
+            ClearByIdState s = new ClearByIdState(asset.GUID, null);
             _actions.Enqueue(s.Invoke);
         }
     }
@@ -288,132 +288,132 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
         }
     }
 
-    public virtual void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable)
+    public virtual void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, connection, isReliable);
+            EffectManager.SendUIEffect(asset, key, connection, isReliable);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, connection, isReliable);
+            SendUIState s = new SendUIState(asset, key, connection, isReliable);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0)
+    public virtual void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, connection, isReliable, arg0);
+            EffectManager.SendUIEffect(asset, key, connection, isReliable, arg0);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, connection, isReliable, arg0);
+            SendUIState s = new SendUIState(asset, key, connection, isReliable, arg0);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1)
+    public virtual void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, connection, isReliable, arg0, arg1);
+            EffectManager.SendUIEffect(asset, key, connection, isReliable, arg0, arg1);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, connection, isReliable, arg0, arg1);
+            SendUIState s = new SendUIState(asset, key, connection, isReliable, arg0, arg1);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2)
+    public virtual void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, connection, isReliable, arg0, arg1, arg2);
+            EffectManager.SendUIEffect(asset, key, connection, isReliable, arg0, arg1, arg2);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, connection, isReliable, arg0, arg1, arg2);
+            SendUIState s = new SendUIState(asset, key, connection, isReliable, arg0, arg1, arg2);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2, string arg3)
+    public virtual void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2, string arg3)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, connection, isReliable, arg0, arg1, arg2, arg3);
+            EffectManager.SendUIEffect(asset, key, connection, isReliable, arg0, arg1, arg2, arg3);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, connection, isReliable, arg0, arg1, arg2, arg3);
+            SendUIState s = new SendUIState(asset, key, connection, isReliable, arg0, arg1, arg2, arg3);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void SendUIGlobal(ushort id, short key, bool isReliable)
+    public virtual void SendUIGlobal(EffectAsset asset, short key, bool isReliable)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, isReliable);
+            EffectManager.SendUIEffect(asset, key, isReliable);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, null, isReliable);
+            SendUIState s = new SendUIState(asset, key, null, isReliable);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void SendUIGlobal(ushort id, short key, bool isReliable, string arg0)
+    public virtual void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, isReliable, arg0);
+            EffectManager.SendUIEffect(asset, key, isReliable, arg0);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, null, isReliable, arg0);
+            SendUIState s = new SendUIState(asset, key, null, isReliable, arg0);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1)
+    public virtual void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0, string arg1)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, isReliable, arg0, arg1);
+            EffectManager.SendUIEffect(asset, key, isReliable, arg0, arg1);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, null, isReliable, arg0, arg1);
+            SendUIState s = new SendUIState(asset, key, null, isReliable, arg0, arg1);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1, string arg2)
+    public virtual void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0, string arg1, string arg2)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, isReliable, arg0, arg1, arg2);
+            EffectManager.SendUIEffect(asset, key, isReliable, arg0, arg1, arg2);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, null, isReliable, arg0, arg1, arg2);
+            SendUIState s = new SendUIState(asset, key, null, isReliable, arg0, arg1, arg2);
             _actions.Enqueue(s.Invoke);
         }
     }
 
-    public virtual void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1, string arg2, string arg3)
+    public virtual void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0, string arg1, string arg2, string arg3)
     {
         if (IsGameThread())
         {
-            EffectManager.sendUIEffect(id, key, isReliable, arg0, arg1, arg2, arg3);
+            EffectManager.SendUIEffect(asset, key, isReliable, arg0, arg1, arg2, arg3);
         }
         else
         {
-            SendUIState s = new SendUIState(id, key, null, isReliable, arg0, arg1, arg2, arg3);
+            SendUIState s = new SendUIState(asset, key, null, isReliable, arg0, arg1, arg2, arg3);
             _actions.Enqueue(s.Invoke);
         }
     }
@@ -424,21 +424,21 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
 
     private class ClearByIdState
     {
-        private readonly ushort _id;
+        private readonly Guid _guid;
         private readonly ITransportConnection? _connection;
 
-        public ClearByIdState(ushort id, ITransportConnection? connection)
+        public ClearByIdState(Guid guid, ITransportConnection? connection)
         {
-            _id = id;
+            _guid = guid;
             _connection = connection;
         }
 
         public void Invoke()
         {
             if (_connection is null)
-                EffectManager.ClearEffectByID_AllPlayers(_id);
+                EffectManager.ClearEffectByGuid_AllPlayers(_guid);
             else
-                EffectManager.askEffectClearByID(_id, _connection);
+                EffectManager.ClearEffectByGuid(_guid, _connection);
         }
     }
 
@@ -522,57 +522,57 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
         private readonly string? _arg1;
         private readonly string? _arg2;
         private readonly string? _arg3;
-        private readonly ushort _id;
+        private readonly EffectAsset _asset;
         private readonly short _key;
         private readonly ITransportConnection? _connection;
         private readonly bool _isReliable;
 
-        public SendUIState(ushort id, short key, ITransportConnection? connection, bool isReliable)
+        public SendUIState(EffectAsset asset, short key, ITransportConnection? connection, bool isReliable)
         {
             _argCt = 0;
-            _id = id;
+            _asset = asset;
             _key = key;
             _connection = connection;
             _isReliable = isReliable;
         }
-        public SendUIState(ushort id, short key, ITransportConnection? connection, bool isReliable, string? arg0)
+        public SendUIState(EffectAsset asset, short key, ITransportConnection? connection, bool isReliable, string? arg0)
         {
             _argCt = 1;
             _arg0 = arg0;
-            _id = id;
+            _asset = asset;
             _key = key;
             _connection = connection;
             _isReliable = isReliable;
         }
-        public SendUIState(ushort id, short key, ITransportConnection? connection, bool isReliable, string? arg0, string? arg1)
+        public SendUIState(EffectAsset asset, short key, ITransportConnection? connection, bool isReliable, string? arg0, string? arg1)
         {
             _argCt = 2;
             _arg0 = arg0;
             _arg1 = arg1;
-            _id = id;
+            _asset = asset;
             _key = key;
             _connection = connection;
             _isReliable = isReliable;
         }
-        public SendUIState(ushort id, short key, ITransportConnection? connection, bool isReliable, string? arg0, string? arg1, string? arg2)
+        public SendUIState(EffectAsset asset, short key, ITransportConnection? connection, bool isReliable, string? arg0, string? arg1, string? arg2)
         {
             _argCt = 3;
             _arg0 = arg0;
             _arg1 = arg1;
             _arg2 = arg2;
-            _id = id;
+            _asset = asset;
             _key = key;
             _connection = connection;
             _isReliable = isReliable;
         }
-        public SendUIState(ushort id, short key, ITransportConnection? connection, bool isReliable, string? arg0, string? arg1, string? arg2, string? arg3)
+        public SendUIState(EffectAsset asset, short key, ITransportConnection? connection, bool isReliable, string? arg0, string? arg1, string? arg2, string? arg3)
         {
             _argCt = 4;
             _arg0 = arg0;
             _arg1 = arg1;
             _arg2 = arg2;
             _arg3 = arg3;
-            _id = id;
+            _asset = asset;
             _key = key;
             _connection = connection;
             _isReliable = isReliable;
@@ -585,19 +585,19 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
                 switch (_argCt)
                 {
                     case 0:
-                        EffectManager.sendUIEffect(_id, _key, _isReliable);
+                        EffectManager.SendUIEffect(_asset, _key, _isReliable);
                         break;
                     case 1:
-                        EffectManager.sendUIEffect(_id, _key, _isReliable, _arg0);
+                        EffectManager.SendUIEffect(_asset, _key, _isReliable, _arg0);
                         break;
                     case 2:
-                        EffectManager.sendUIEffect(_id, _key, _isReliable, _arg0, _arg1);
+                        EffectManager.SendUIEffect(_asset, _key, _isReliable, _arg0, _arg1);
                         break;
                     case 3:
-                        EffectManager.sendUIEffect(_id, _key, _isReliable, _arg0, _arg1, _arg2);
+                        EffectManager.SendUIEffect(_asset, _key, _isReliable, _arg0, _arg1, _arg2);
                         break;
                     case 4:
-                        EffectManager.sendUIEffect(_id, _key, _isReliable, _arg0, _arg1, _arg2, _arg3);
+                        EffectManager.SendUIEffect(_asset, _key, _isReliable, _arg0, _arg1, _arg2, _arg3);
                         break;
                 }
             }
@@ -606,19 +606,19 @@ public class UnturnedUIProvider : IUnturnedUIProvider, IDisposable
                 switch (_argCt)
                 {
                     case 0:
-                        EffectManager.sendUIEffect(_id, _key, _connection, _isReliable);
+                        EffectManager.SendUIEffect(_asset, _key, _connection, _isReliable);
                         break;
                     case 1:
-                        EffectManager.sendUIEffect(_id, _key, _connection, _isReliable, _arg0);
+                        EffectManager.SendUIEffect(_asset, _key, _connection, _isReliable, _arg0);
                         break;
                     case 2:
-                        EffectManager.sendUIEffect(_id, _key, _connection, _isReliable, _arg0, _arg1);
+                        EffectManager.SendUIEffect(_asset, _key, _connection, _isReliable, _arg0, _arg1);
                         break;
                     case 3:
-                        EffectManager.sendUIEffect(_id, _key, _connection, _isReliable, _arg0, _arg1, _arg2);
+                        EffectManager.SendUIEffect(_asset, _key, _connection, _isReliable, _arg0, _arg1, _arg2);
                         break;
                     case 4:
-                        EffectManager.sendUIEffect(_id, _key, _connection, _isReliable, _arg0, _arg1, _arg2, _arg3);
+                        EffectManager.SendUIEffect(_asset, _key, _connection, _isReliable, _arg0, _arg1, _arg2, _arg3);
                         break;
                 }
             }

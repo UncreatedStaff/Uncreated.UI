@@ -7,6 +7,8 @@ namespace Uncreated.UI.Tests;
 
 public class TestEnumerablePatternTypes
 {
+    private static readonly Guid TestGuid = new Guid("b3f526c6-dfd9-427f-ba91-5b76925d4236");
+
     [SetUp]
     public void Setup()
     {
@@ -63,7 +65,7 @@ public class TestEnumerablePatternTypes
     {
         public readonly Pattern1 Pattern = ElementPatterns.Create<Pattern1>("P1s/Pattern");
 
-        public TestUI() : base(0) { }
+        public TestUI() : base(TestGuid) { }
 
 #nullable disable
         public class Pattern1 : PatternRoot

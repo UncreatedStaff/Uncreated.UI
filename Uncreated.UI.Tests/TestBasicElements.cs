@@ -6,6 +6,8 @@ namespace Uncreated.UI.Tests;
 
 public class TestBasicElements
 {
+    private static readonly Guid TestGuid = new Guid("b3f526c6-dfd9-427f-ba91-5b76925d4236");
+
     [SetUp]
     public void Setup()
     {
@@ -115,7 +117,7 @@ public class TestBasicElements
             new UnturnedUIElement("a/b/c/2")
         ];
 
-        public TestUI() : base(12345) { }
+        public TestUI() : base(TestGuid) { }
     }
 
     [UnturnedUI(BasePath = "base/path")]
@@ -131,6 +133,6 @@ public class TestBasicElements
             new UnturnedUIElement("a/b/c/2")
         ];
 
-        public TestUIWithBasePath() : base(12345) { }
+        public TestUIWithBasePath() : base(TestGuid) { }
     }
 }

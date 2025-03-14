@@ -60,12 +60,12 @@ public interface IUnturnedUIProvider
     /// <summary>
     /// Clear an effect by it's ID for a single player.
     /// </summary>
-    void ClearById(ushort id, ITransportConnection connection);
+    void Clear(EffectAsset asset, ITransportConnection connection);
 
     /// <summary>
     /// Clear an effect by it's ID for all players.
     /// </summary>
-    void ClearByIdGlobal(ushort id);
+    void ClearGlobal(EffectAsset asset);
 
     /// <summary>
     /// Sets the visibility of an element on an effect for one player.
@@ -102,107 +102,107 @@ public interface IUnturnedUIProvider
     /// <summary>
     /// Send a new UI effect to a single player.
     /// </summary>
-    /// <param name="id">The ID of the effect.</param>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
     /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
     /// <param name="connection">The transport connection of the player to send the UI to.</param>
     /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the player.</param>
-    void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable);
+    void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable);
 
     /// <summary>
     /// Send a new UI effect to a single player.
     /// </summary>
-    /// <param name="id">The ID of the effect.</param>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
     /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
     /// <param name="connection">The transport connection of the player to send the UI to.</param>
     /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the player.</param>
     /// <param name="arg0">Text to replace {0} in all text elements.</param>
-    void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0);
+    void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0);
 
     /// <summary>
     /// Send a new UI effect to a single player.
     /// </summary>
-    /// <param name="id">The ID of the effect.</param>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
     /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
     /// <param name="connection">The transport connection of the player to send the UI to.</param>
     /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the player.</param>
     /// <param name="arg0">Text to replace {0} in all text elements.</param>
     /// <param name="arg1">Text to replace {1} in all text elements.</param>
-    void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1);
+    void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1);
 
     /// <summary>
     /// Send a new UI effect to a single player.
     /// </summary>
-    /// <param name="id">The ID of the effect.</param>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
     /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
     /// <param name="connection">The transport connection of the player to send the UI to.</param>
     /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the player.</param>
     /// <param name="arg0">Text to replace {0} in all text elements.</param>
     /// <param name="arg1">Text to replace {1} in all text elements.</param>
     /// <param name="arg2">Text to replace {2} in all text elements.</param>
-    void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2);
+    void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2);
 
     /// <summary>
     /// Send a new UI effect to a single player.
     /// </summary>
-    /// <param name="id">The ID of the effect.</param>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
     /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
     /// <param name="connection">The transport connection of the player to send the UI to.</param>
     /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the player.</param>
-    /// <param name="arg0">Text to replace {0} in all text elements.</param>
-    /// <param name="arg1">Text to replace {1} in all text elements.</param>
-    /// <param name="arg2">Text to replace {2} in all text elements.</param>
-    /// <param name="arg3">Text to replace {3} in all text elements.</param>
-    void SendUI(ushort id, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2, string arg3);
-
-    /// <summary>
-    /// Send a new UI effect to all players.
-    /// </summary>
-    /// <param name="id">The ID of the effect.</param>
-    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
-    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
-    void SendUIGlobal(ushort id, short key, bool isReliable);
-
-    /// <summary>
-    /// Send a new UI effect to all players.
-    /// </summary>
-    /// <param name="id">The ID of the effect.</param>
-    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
-    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
-    /// <param name="arg0">Text to replace {0} in all text elements.</param>
-    void SendUIGlobal(ushort id, short key, bool isReliable, string arg0);
-
-    /// <summary>
-    /// Send a new UI effect to all players.
-    /// </summary>
-    /// <param name="id">The ID of the effect.</param>
-    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
-    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
-    /// <param name="arg0">Text to replace {0} in all text elements.</param>
-    /// <param name="arg1">Text to replace {1} in all text elements.</param>
-    void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1);
-
-    /// <summary>
-    /// Send a new UI effect to all players.
-    /// </summary>
-    /// <param name="id">The ID of the effect.</param>
-    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
-    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
-    /// <param name="arg0">Text to replace {0} in all text elements.</param>
-    /// <param name="arg1">Text to replace {1} in all text elements.</param>
-    /// <param name="arg2">Text to replace {2} in all text elements.</param>
-    void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1, string arg2);
-
-    /// <summary>
-    /// Send a new UI effect to all players.
-    /// </summary>
-    /// <param name="id">The ID of the effect.</param>
-    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
-    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
     /// <param name="arg0">Text to replace {0} in all text elements.</param>
     /// <param name="arg1">Text to replace {1} in all text elements.</param>
     /// <param name="arg2">Text to replace {2} in all text elements.</param>
     /// <param name="arg3">Text to replace {3} in all text elements.</param>
-    void SendUIGlobal(ushort id, short key, bool isReliable, string arg0, string arg1, string arg2, string arg3);
+    void SendUI(EffectAsset asset, short key, ITransportConnection connection, bool isReliable, string arg0, string arg1, string arg2, string arg3);
+
+    /// <summary>
+    /// Send a new UI effect to all players.
+    /// </summary>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
+    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
+    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
+    void SendUIGlobal(EffectAsset asset, short key, bool isReliable);
+
+    /// <summary>
+    /// Send a new UI effect to all players.
+    /// </summary>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
+    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
+    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
+    /// <param name="arg0">Text to replace {0} in all text elements.</param>
+    void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0);
+
+    /// <summary>
+    /// Send a new UI effect to all players.
+    /// </summary>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
+    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
+    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
+    /// <param name="arg0">Text to replace {0} in all text elements.</param>
+    /// <param name="arg1">Text to replace {1} in all text elements.</param>
+    void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0, string arg1);
+
+    /// <summary>
+    /// Send a new UI effect to all players.
+    /// </summary>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
+    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
+    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
+    /// <param name="arg0">Text to replace {0} in all text elements.</param>
+    /// <param name="arg1">Text to replace {1} in all text elements.</param>
+    /// <param name="arg2">Text to replace {2} in all text elements.</param>
+    void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0, string arg1, string arg2);
+
+    /// <summary>
+    /// Send a new UI effect to all players.
+    /// </summary>
+    /// <param name="asset">The <see cref="EffectAsset"/> of the effect.</param>
+    /// <param name="key">A unique key used to reference the effect later on. Must not be -1.</param>
+    /// <param name="isReliable">If it should be set over the reliable buffer, guaranteeing that it makes it to the players.</param>
+    /// <param name="arg0">Text to replace {0} in all text elements.</param>
+    /// <param name="arg1">Text to replace {1} in all text elements.</param>
+    /// <param name="arg2">Text to replace {2} in all text elements.</param>
+    /// <param name="arg3">Text to replace {3} in all text elements.</param>
+    void SendUIGlobal(EffectAsset asset, short key, bool isReliable, string arg0, string arg1, string arg2, string arg3);
 
     /// <summary>
     /// Finds the <see cref="EffectAsset"/> for a given short ID.

@@ -19,7 +19,6 @@ public class KeyPoolTests
     [Test]
     public void TestNegativeOneIsntIncluded()
     {
-        HashSet<short> keys = new HashSet<short>();
         for (int i = 0; i < ushort.MaxValue; ++i)
         {
             short key = UnturnedUIKeyPool.Claim();

@@ -56,7 +56,13 @@ public class UnturnedUI : IDisposable
     /// <summary>
     /// If the current configuration includes a valid asset or 16-bit Id.
     /// </summary>
+    [Obsolete("IDs are no longer used to send UIs.")]
     public bool HasAssetOrId { get; private set; }
+
+    /// <summary>
+    /// If the current configuration includes a valid asset.
+    /// </summary>
+    public bool HasAsset => Asset != null;
 
     /// <summary>
     /// The current asset's Id, or 0.
@@ -186,26 +192,36 @@ public class UnturnedUI : IDisposable
         }
     }
 
+    [Obsolete("Use GUIDs over IDs.")]
     public UnturnedUI(ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
         : this(GlobalLogger.Instance, defaultId, hasElements, keyless, reliable, debugLogging, staticKey) { }
+
+    [Obsolete("Use GUIDs over IDs.")]
     public UnturnedUI(ILogger logger, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
         : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(defaultId);
     }
+
+    [Obsolete("Use GUIDs over IDs.")]
     public UnturnedUI(ILoggerFactory factory, ushort defaultId, bool hasElements = true, bool keyless = false, bool reliable = true, bool debugLogging = false, bool staticKey = false)
         : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, staticKey)
     {
         LoadFromConfig(defaultId);
     }
 
+    [Obsolete("Use GUIDs over IDs.")]
     public UnturnedUI(ushort defaultId, UnturnedUIOptions options)
         : this(GlobalLogger.Instance, defaultId, options) { }
+
+    [Obsolete("Use GUIDs over IDs.")]
     public UnturnedUI(ILogger logger, ushort defaultId, UnturnedUIOptions options)
         : this(logger ?? throw new ArgumentNullException(nameof(logger)), options)
     {
         LoadFromConfig(defaultId);
     }
+
+    [Obsolete("Use GUIDs over IDs.")]
     public UnturnedUI(ILoggerFactory factory, ushort defaultId, UnturnedUIOptions options)
         : this(factory ?? throw new ArgumentNullException(nameof(factory)), options)
     {
@@ -252,10 +268,12 @@ public class UnturnedUI : IDisposable
     }
 
     [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("Use GUIDs over IDs.")]
     public UnturnedUI(ushort defaultId, bool hasElements, bool keyless, bool reliable, bool debugLogging)
         : this(GlobalLogger.Instance, defaultId, hasElements, keyless, reliable, debugLogging, false) { }
 
     [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("Use GUIDs over IDs.")]
     public UnturnedUI(ILogger logger, ushort defaultId, bool hasElements, bool keyless, bool reliable, bool debugLogging)
         : this(logger ?? throw new ArgumentNullException(nameof(logger)), hasElements, keyless, reliable, debugLogging, false)
     {
@@ -263,6 +281,7 @@ public class UnturnedUI : IDisposable
     }
 
     [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("Use GUIDs over IDs.")]
     public UnturnedUI(ILoggerFactory factory, ushort defaultId, bool hasElements, bool keyless, bool reliable, bool debugLogging)
         : this(factory ?? throw new ArgumentNullException(nameof(factory)), hasElements, keyless, reliable, debugLogging, false)
     {
@@ -385,6 +404,7 @@ public class UnturnedUI : IDisposable
     /// <summary>
     /// Set the asset's ID to <paramref name="id"/>.
     /// </summary>
+    [Obsolete("Use GUIDs over IDs.")]
     public void LoadFromConfig(ushort id)
     {
         if (UnturnedUIProvider.Instance.IsValidThread())
@@ -577,6 +597,7 @@ public class UnturnedUI : IDisposable
             element.Path = UnturnedUIUtility.ResolveRelativePath(default, pathSpan);
         }
     }
+
     private void LoadFromConfigIntl(bool assetsJustLoaded)
     {
         if (_container != null)
@@ -615,7 +636,9 @@ public class UnturnedUI : IDisposable
             if (HasDefaultName)
                 _name = Guid.ToString("N");
 
+#pragma warning disable CS0618 // Type or member is obsolete
             HasAssetOrId = false;
+#pragma warning restore CS0618
             if (!assetsJustLoaded && UnturnedUIProvider.Instance.AreAssetsStillLoading)
             {
                 SubLevelLoaded();
@@ -628,13 +651,18 @@ public class UnturnedUI : IDisposable
         }
         else
         {
+#pragma warning disable CS0618
             HasAssetOrId = false;
+#pragma warning restore CS0618
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
+#pragma warning disable CS0618
         HasAssetOrId = true;
+#pragma warning restore CS0618
     }
+
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private void SubLevelLoaded()
@@ -890,13 +918,13 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public virtual void SendToAllPlayers()
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable);
+        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_0, Name);
@@ -907,13 +935,13 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public virtual void SendToAllPlayers(string arg0)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0);
+        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_1, Name, arg0);
@@ -924,13 +952,13 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public virtual void SendToAllPlayers(string arg0, string arg1)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0, arg1);
+        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0, arg1);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_2, Name, arg0, arg1);
@@ -941,13 +969,13 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public virtual void SendToAllPlayers(string arg0, string arg1, string arg2)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0, arg1, arg2);
+        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0, arg1, arg2);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_3, Name, arg0, arg1, arg2);
@@ -958,13 +986,13 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public virtual void SendToAllPlayers(string arg0, string arg1, string arg2, string arg3)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Id, Key, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
+        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_4, Name, arg0, arg1, arg2, arg3);
@@ -975,13 +1003,13 @@ public class UnturnedUI : IDisposable
     /// </summary>
     public virtual void ClearFromAllPlayers()
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.ClearByIdGlobal(Id);
+        UnturnedUIProvider.Instance.ClearGlobal(Asset!);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_ClearFromAllPlayers, Name);
@@ -989,13 +1017,13 @@ public class UnturnedUI : IDisposable
 
     private void SendToPlayerIntl(ITransportConnection connection)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable);
+        UnturnedUIProvider.Instance.SendUI(Asset!, Key, connection, IsReliable || IsSendReliable);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_0, Name, connection.GetAddressString(true));
@@ -1003,13 +1031,13 @@ public class UnturnedUI : IDisposable
 
     private void SendToPlayerIntl(ITransportConnection connection, string arg0)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0);
+        UnturnedUIProvider.Instance.SendUI(Asset!, Key, connection, IsReliable || IsSendReliable, arg0);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_1, Name, connection.GetAddressString(true), arg0);
@@ -1017,13 +1045,13 @@ public class UnturnedUI : IDisposable
 
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1);
+        UnturnedUIProvider.Instance.SendUI(Asset!, Key, connection, IsReliable || IsSendReliable, arg0, arg1);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_2, Name, connection.GetAddressString(true), arg0, arg1);
@@ -1031,13 +1059,13 @@ public class UnturnedUI : IDisposable
 
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2);
+        UnturnedUIProvider.Instance.SendUI(Asset!, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_3, Name, connection.GetAddressString(true), arg0, arg1, arg2);
@@ -1045,13 +1073,13 @@ public class UnturnedUI : IDisposable
 
     private void SendToPlayerIntl(ITransportConnection connection, string arg0, string arg1, string arg2, string arg3)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUI(Id, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
+        UnturnedUIProvider.Instance.SendUI(Asset!, Key, connection, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_SendToPlayer_4, Name, connection.GetAddressString(true), arg0, arg1, arg2, arg3);
@@ -1059,13 +1087,13 @@ public class UnturnedUI : IDisposable
 
     private void ClearFromPlayerIntl(ITransportConnection connection)
     {
-        if (!HasAssetOrId)
+        if (!HasAsset)
         {
             GetLogger().LogWarning(Properties.Resources.Log_NoAssetSupplied, Name);
             return;
         }
 
-        UnturnedUIProvider.Instance.ClearById(Id, connection);
+        UnturnedUIProvider.Instance.Clear(Asset!, connection);
 
         if (DebugLogging)
             GetLogger().LogInformation(Properties.Resources.Log_ClearFromPlayer, Name, connection.GetAddressString(true));
@@ -1084,7 +1112,7 @@ public class UnturnedUI : IDisposable
 
         if (disposing) GC.SuppressFinalize(this);
 
-        IUnturnedUIDataSource? src = UnturnedUIDataSource.Instance;
+        IUnturnedUIDataSource src = UnturnedUIDataSource.Instance;
 
         if (src is { RequiresMainThread: true } && !UnturnedUIProvider.Instance.IsValidThread())
         {
@@ -1106,7 +1134,7 @@ public class UnturnedUI : IDisposable
     }
 
     /// <summary>
-    /// This function is invoked after <see cref="Dispose"/> is called before elements get cleaned up.
+    /// This function is invoked after <see cref="Dispose()"/> is called before elements get cleaned up.
     /// </summary>
     /// <remarks>This will always be invoked on the game thread. The base method has no implementation and doesn't need to be invoked.</remarks>
     protected virtual void OnDisposing() { }

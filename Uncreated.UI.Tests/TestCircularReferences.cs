@@ -5,6 +5,8 @@ namespace Uncreated.UI.Tests;
 
 public class TestCircularReferences
 {
+    private static readonly Guid TestGuid = new Guid("b3f526c6-dfd9-427f-ba91-5b76925d4236");
+
     [SetUp]
     public void Setup()
     {
@@ -34,7 +36,7 @@ public class TestCircularReferences
     {
         public CircularReferencePatterns1[] Refs = ElementPatterns.CreateArray<CircularReferencePatterns1>("a/b/c", 0, to: 1);
 
-        public TestCircularPatternUI() : base(12345)
+        public TestCircularPatternUI() : base(TestGuid)
         {
             
         }
@@ -45,7 +47,7 @@ public class TestCircularReferences
     {
         public CircularReferenceExplicit1 Refs = new CircularReferenceExplicit1();
 
-        public TestCircularExplicitUI() : base(12345)
+        public TestCircularExplicitUI() : base(TestGuid)
         {
             
         }

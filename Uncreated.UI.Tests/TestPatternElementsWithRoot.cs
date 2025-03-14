@@ -1,12 +1,12 @@
 using Uncreated.Framework.UI;
 using Uncreated.Framework.UI.Patterns;
-using Uncreated.Framework.UI.Presets;
-using Uncreated.Framework.UI.Reflection;
 
 namespace Uncreated.UI.Tests;
 
 public class TestPatternElementsWithRoot
 {
+    private static readonly Guid TestGuid = new Guid("b3f526c6-dfd9-427f-ba91-5b76925d4236");
+
     [SetUp]
     public void Setup()
     {
@@ -229,12 +229,12 @@ public class TestPatternElementsWithRoot
     {
         public readonly TestPattern Pattern = ElementPatterns.Create<TestPattern>("a/b/c/");
 
-        public TestUI() : base(12345, debugLogging: true) { }
+        public TestUI() : base(TestGuid, debugLogging: true) { }
     }
     private class TestArrayUI : UnturnedUI
     {
         public readonly TestPattern[] Patterns = ElementPatterns.CreateArray<TestPattern>("a/b/c_{0}/", 1, to: 10);
 
-        public TestArrayUI() : base(12345, debugLogging: true) { }
+        public TestArrayUI() : base(TestGuid, debugLogging: true) { }
     }
 }
