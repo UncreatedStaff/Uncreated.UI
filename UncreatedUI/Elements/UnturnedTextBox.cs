@@ -2,6 +2,7 @@ using DanielWillett.ReflectionTools;
 using Microsoft.Extensions.Logging;
 using SDG.NetTransport;
 using SDG.Unturned;
+using Steamworks;
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -254,26 +255,15 @@ public class UnturnedTextBox : UnturnedLabel, IDisposable, ITextBox
     private void SetTextIntl(ITransportConnection connection, string text)
     {
         base.SetText(connection, text);
-        if (Provider.clients == null)
+        if (!connection.TryGetSteamId(out ulong steam64))
             return;
 
-        SteamPlayer? sp = null;
-        for (int i = 0; i < Provider.clients.Count; ++i)
-        {
-            if (!Equals(Provider.clients[i].transportConnection, connection))
-                continue;
+        CSteamID steamId = new CSteamID(steam64);
 
-            sp = Provider.clients[i];
-            break;
-        }
-
-        if (sp == null)
-            return;
-
-        UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(sp.playerID.steamID, this);
+        UnturnedTextBoxData? data = UnturnedUIDataSource.GetData<UnturnedTextBoxData>(steamId, this);
         if (data == null)
         {
-            UnturnedUIDataSource.AddData(new UnturnedTextBoxData(sp.playerID.steamID, this, text));
+            UnturnedUIDataSource.AddData(new UnturnedTextBoxData(steamId, this, text));
         }
         else
         {

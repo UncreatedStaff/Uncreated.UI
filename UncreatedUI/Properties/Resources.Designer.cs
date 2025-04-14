@@ -547,6 +547,15 @@ namespace Uncreated.Framework.UI.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exception thrown while performing a UI action, player has likely disconnected..
+        /// </summary>
+        internal static string Log_ErrorPlayerOffline {
+            get {
+                return ResourceManager.GetString("Log_ErrorPlayerOffline", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [{0}] [{1}] Error invoking {2}..
         /// </summary>
         internal static string Log_EventError {

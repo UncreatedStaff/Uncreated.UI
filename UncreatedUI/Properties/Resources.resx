@@ -366,4 +366,7 @@
   <data name="Exception_ErrorRunningPrimitiveConstructor" xml:space="preserve">
     <value>The constructor on primitive type {0} threw an exception, or was unable to create the primitive for some reason.</value>
   </data>
+  <data name="Log_ErrorPlayerOffline" xml:space="preserve">
+    <value>Exception thrown while performing a UI action, player has likely disconnected.</value>
+  </data>
 </root>

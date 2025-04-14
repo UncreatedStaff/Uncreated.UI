@@ -142,8 +142,16 @@ public class UnturnedUIElement : IElement
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.player.isActiveAndEnabled)
-            SetVisibilityIntl(player.transportConnection, isEnabled);
+        try
+        {
+            if (player.player.isActiveAndEnabled)
+                SetVisibilityIntl(player.transportConnection, isEnabled);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -157,8 +165,16 @@ public class UnturnedUIElement : IElement
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.isActiveAndEnabled)
-            SetVisibilityIntl(player.channel.owner.transportConnection, isEnabled);
+        try
+        {
+            if (player.isActiveAndEnabled)
+                SetVisibilityIntl(player.channel.owner.transportConnection, isEnabled);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -172,7 +188,15 @@ public class UnturnedUIElement : IElement
         if (connection == null)
             throw new ArgumentNullException(nameof(connection));
 
-        SetVisibilityIntl(connection, isEnabled);
+        try
+        {
+            SetVisibilityIntl(connection, isEnabled);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     private void SetVisibilityIntl(ITransportConnection connection, bool isEnabled)

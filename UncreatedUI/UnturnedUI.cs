@@ -8,6 +8,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -694,8 +695,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.player.isActiveAndEnabled)
-            SendToPlayerIntl(player.transportConnection);
+        try
+        {
+            if (player.player.isActiveAndEnabled)
+                SendToPlayerIntl(player.transportConnection);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -707,8 +716,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.isActiveAndEnabled)
-            SendToPlayerIntl(player.channel.owner.transportConnection);
+        try
+        {
+            if (player.isActiveAndEnabled)
+                SendToPlayerIntl(player.channel.owner.transportConnection);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -720,7 +737,15 @@ public class UnturnedUI : IDisposable
         if (connection == null)
             throw new ArgumentNullException(nameof(connection));
 
-        SendToPlayerIntl(connection);
+        try
+        {
+            SendToPlayerIntl(connection);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -732,8 +757,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.player.isActiveAndEnabled)
-            SendToPlayerIntl(player.transportConnection, arg0);
+        try
+        {
+            if (player.player.isActiveAndEnabled)
+                SendToPlayerIntl(player.transportConnection, arg0);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -745,8 +778,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.isActiveAndEnabled)
-            SendToPlayerIntl(player.channel.owner.transportConnection, arg0);
+        try
+        {
+            if (player.isActiveAndEnabled)
+                SendToPlayerIntl(player.channel.owner.transportConnection, arg0);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -758,7 +799,15 @@ public class UnturnedUI : IDisposable
         if (connection == null)
             throw new ArgumentNullException(nameof(connection));
 
-        SendToPlayerIntl(connection, arg0);
+        try
+        {
+            SendToPlayerIntl(connection, arg0);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -770,8 +819,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.player.isActiveAndEnabled)
-            SendToPlayerIntl(player.transportConnection, arg0, arg1);
+        try
+        {
+            if (player.player.isActiveAndEnabled)
+                SendToPlayerIntl(player.transportConnection, arg0, arg1);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -783,8 +840,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.isActiveAndEnabled)
-            SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1);
+        try
+        {
+            if (player.isActiveAndEnabled)
+                SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -796,7 +861,15 @@ public class UnturnedUI : IDisposable
         if (connection == null)
             throw new ArgumentNullException(nameof(connection));
 
-        SendToPlayerIntl(connection, arg0, arg1);
+        try
+        {
+            SendToPlayerIntl(connection, arg0, arg1);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -808,8 +881,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.player.isActiveAndEnabled)
-            SendToPlayerIntl(player.transportConnection, arg0, arg1, arg2);
+        try
+        {
+            if (player.player.isActiveAndEnabled)
+                SendToPlayerIntl(player.transportConnection, arg0, arg1, arg2);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -821,8 +902,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.isActiveAndEnabled)
-            SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1, arg2);
+        try
+        {
+            if (player.isActiveAndEnabled)
+                SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1, arg2);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -834,7 +923,15 @@ public class UnturnedUI : IDisposable
         if (connection == null)
             throw new ArgumentNullException(nameof(connection));
 
-        SendToPlayerIntl(connection, arg0, arg1, arg2);
+        try
+        {
+            SendToPlayerIntl(connection, arg0, arg1, arg2);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -846,8 +943,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.player.isActiveAndEnabled)
-            SendToPlayerIntl(player.transportConnection, arg0, arg1, arg2, arg3);
+        try
+        {
+            if (player.player.isActiveAndEnabled)
+                SendToPlayerIntl(player.transportConnection, arg0, arg1, arg2, arg3);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -859,8 +964,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.isActiveAndEnabled)
-            SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1, arg2, arg3);
+        try
+        {
+            if (player.isActiveAndEnabled)
+                SendToPlayerIntl(player.channel.owner.transportConnection, arg0, arg1, arg2, arg3);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -872,7 +985,15 @@ public class UnturnedUI : IDisposable
         if (connection == null)
             throw new ArgumentNullException(nameof(connection));
 
-        SendToPlayerIntl(connection, arg0, arg1, arg2, arg3);
+        try
+        {
+            SendToPlayerIntl(connection, arg0, arg1, arg2, arg3);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -884,8 +1005,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.player.isActiveAndEnabled)
-            ClearFromPlayerIntl(player.transportConnection);
+        try
+        {
+            if (player.player.isActiveAndEnabled)
+                ClearFromPlayerIntl(player.transportConnection);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -897,8 +1026,16 @@ public class UnturnedUI : IDisposable
         if (player is null)
             throw new ArgumentNullException(nameof(player));
 
-        if (player.isActiveAndEnabled)
-            ClearFromPlayerIntl(player.channel.owner.transportConnection);
+        try
+        {
+            if (player.isActiveAndEnabled)
+                ClearFromPlayerIntl(player.channel.owner.transportConnection);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -910,7 +1047,15 @@ public class UnturnedUI : IDisposable
         if (connection == null)
             throw new ArgumentNullException(nameof(connection));
 
-        ClearFromPlayerIntl(connection);
+        try
+        {
+            ClearFromPlayerIntl(connection);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -924,10 +1069,18 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable);
+        try
+        {
+            UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable);
 
-        if (DebugLogging)
-            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_0, Name);
+            if (DebugLogging)
+                GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_0, Name);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -941,10 +1094,18 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0);
+        try
+        {
+            UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0);
 
-        if (DebugLogging)
-            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_1, Name, arg0);
+            if (DebugLogging)
+                GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_1, Name, arg0);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -958,10 +1119,18 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0, arg1);
+        try
+        {
+            UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0, arg1);
 
-        if (DebugLogging)
-            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_2, Name, arg0, arg1);
+            if (DebugLogging)
+                GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_2, Name, arg0, arg1);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -975,10 +1144,18 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0, arg1, arg2);
+        try
+        {
+            UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0, arg1, arg2);
 
-        if (DebugLogging)
-            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_3, Name, arg0, arg1, arg2);
+            if (DebugLogging)
+                GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_3, Name, arg0, arg1, arg2);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -992,10 +1169,18 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
+        try
+        {
+            UnturnedUIProvider.Instance.SendUIGlobal(Asset!, Key, IsReliable || IsSendReliable, arg0, arg1, arg2, arg3);
 
-        if (DebugLogging)
-            GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_4, Name, arg0, arg1, arg2, arg3);
+            if (DebugLogging)
+                GetLogger().LogInformation(Properties.Resources.Log_SendToAllPlayers_4, Name, arg0, arg1, arg2, arg3);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -1009,10 +1194,18 @@ public class UnturnedUI : IDisposable
             return;
         }
 
-        UnturnedUIProvider.Instance.ClearGlobal(Asset!);
+        try
+        {
+            UnturnedUIProvider.Instance.ClearGlobal(Asset!);
 
-        if (DebugLogging)
-            GetLogger().LogInformation(Properties.Resources.Log_ClearFromAllPlayers, Name);
+            if (DebugLogging)
+                GetLogger().LogInformation(Properties.Resources.Log_ClearFromAllPlayers, Name);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     private void SendToPlayerIntl(ITransportConnection connection)

@@ -30,8 +30,16 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
             throw new ArgumentNullException(nameof(player));
 
         text ??= string.Empty;
-        if (player.player.isActiveAndEnabled)
-            SetTextIntl(player.transportConnection, text);
+        try
+        {
+            if (player.player.isActiveAndEnabled)
+                SetTextIntl(player.transportConnection, text);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -46,8 +54,16 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
             throw new ArgumentNullException(nameof(player));
 
         text ??= string.Empty;
-        if (player.isActiveAndEnabled)
-            SetTextIntl(player.channel.owner.transportConnection, text);
+        try
+        {
+            if (player.isActiveAndEnabled)
+                SetTextIntl(player.channel.owner.transportConnection, text);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -62,7 +78,15 @@ public class UnturnedLabel : UnturnedUIElement, ILabel
             throw new ArgumentNullException(nameof(connection));
 
         text ??= string.Empty;
-        SetTextIntl(connection, text);
+        try
+        {
+            SetTextIntl(connection, text);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
     private void SetTextIntl(ITransportConnection connection, string text)
     {

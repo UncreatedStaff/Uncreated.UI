@@ -37,8 +37,16 @@ public class UnturnedImage : UnturnedUIElement, IImage
             throw new ArgumentNullException(nameof(player));
 
         url ??= string.Empty;
-        if (player.player.isActiveAndEnabled)
-            SetImageIntl(player.transportConnection, url, forceRefresh);
+        try
+        {
+            if (player.player.isActiveAndEnabled)
+                SetImageIntl(player.transportConnection, url, forceRefresh);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -54,8 +62,16 @@ public class UnturnedImage : UnturnedUIElement, IImage
             throw new ArgumentNullException(nameof(player));
 
         url ??= string.Empty;
-        if (player.isActiveAndEnabled)
-            SetImageIntl(player.channel.owner.transportConnection, url, forceRefresh);
+        try
+        {
+            if (player.isActiveAndEnabled)
+                SetImageIntl(player.channel.owner.transportConnection, url, forceRefresh);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
 
     /// <summary>
@@ -71,7 +87,15 @@ public class UnturnedImage : UnturnedUIElement, IImage
             throw new ArgumentNullException(nameof(connection));
 
         url ??= string.Empty;
-        SetImageIntl(connection, url, forceRefresh);
+        try
+        {
+            SetImageIntl(connection, url, forceRefresh);
+        }
+        catch (Exception ex)
+        {
+            GetLogger().LogWarning(ex, Properties.Resources.Log_ErrorPlayerOffline);
+            GetLogger().LogDebug(new StackTrace().ToString());
+        }
     }
     private void SetImageIntl(ITransportConnection connection, string url, bool forceRefresh)
     {
