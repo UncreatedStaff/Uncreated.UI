@@ -5,11 +5,17 @@ Releases are available from the [NuGet package](https://www.nuget.org/packages/U
 # Uncreated.UI
 Object oriented abstraction for Unturned's server-side UI API (EffectManager).
 
-This library was built for [Uncreated Warfare](https://github.com/UncreatedStaff/UncreatedWarfare/) but can be used for any projects in correspondence with the GPL-3.0 license.
+This library was built for [Uncreated Warfare](https://github.com/UncreatedStaff/UncreatedWarfare/) but can be used for any projects in correspondence with the LGPL-3.0 (or later) license.
 
 You must be targeting .NET Standard 2.1 to use this library.
-This means the [netstandard.dll](https://github.com/UncreatedStaff/Uncreated.UI/raw/refs/heads/master/Libraries/netstandard.dll) library must be included in your Libraries folder from the correct Unity installation.
-This library references [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions/3.1.0) 3.1.0 (netstandard2.0) and [DanielWillett.ReflectionTools](https://www.nuget.org/packages/DanielWillett.ReflectionTools/3.1.0) 3.1.0 (netstandard2.1) which can be downloaded from NuGet.
+
+## Required Dependencies
+
+| Library                                                                                                               | Minimum Version | Recommended Target Framework |
+| --------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------- |
+| [Microsoft.Extensions.Logging.Abstractions](https://www.nuget.org/packages/Microsoft.Extensions.Logging.Abstractions) | 3.1.0           | `netstandard2.0`             |
+| [DanielWillett.ReflectionTools](https://www.nuget.org/packages/DanielWillett.ReflectionTools)                         | 3.0.0           | `netstandard2.1`             |
+
 
 # Creating a simple UI
 Simple UIs that use only formatting arguments can be defined without creating a new class.
@@ -399,3 +405,7 @@ All elements and most presets also implement interfaces so you can create your o
 | IImage                       | Includes an element for sending a web image URL.                                                                  |
 | ITextBox                     | Includes an element for listening for text input.                                                                 |
 | IPlaceholderTextBox          | Includes an element for listening for text input with a placeholder text label.                                   |
+
+
+# Legal
+Uncreated.UI is licensed under the **GNU Lesser General Public License v3.0 or later** (`LGPL-3.0-or-later`).

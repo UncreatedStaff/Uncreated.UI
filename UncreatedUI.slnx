@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="icon.png" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Uncreated.UI.Tests/Uncreated.UI.Tests.csproj" />
+  <Project Path="UncreatedUI/Uncreated.UI.csproj" />
+</Solution>

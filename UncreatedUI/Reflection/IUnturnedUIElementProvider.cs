@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Uncreated.Framework.UI.Reflection;
 
 /// <summary>
-/// Values implementing this interface will act similar to <see cref="IEnumerable{T}"/>'s of elements during element discovery.
+/// Values implementing this interface will act similar to <see cref="IEnumerable{T}"/>'s enumeration of elements during element discovery.
 /// </summary>
 /// <remarks>Fields and properties of objects implementing this interface will not be searched for elements.</remarks>
 public interface IUnturnedUIElementProvider

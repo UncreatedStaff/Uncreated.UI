@@ -104,6 +104,27 @@ public class TestBasicElements
         Assert.That(ui.EnumerableElements[1].Name.ToString(), Is.EqualTo("2"));
     }
 
+    [Test]
+    public void NullValues()
+    {
+        TestNullObjectsUI ui = new TestNullObjectsUI();
+
+        Assert.That(ui.Element, Is.Null);
+        Assert.That(ui.Object, Is.Null);
+        Assert.That(ui.NullableValue, Is.Null);
+    }
+
+    private class TestNullObjectsUI : UnturnedUI
+    {
+        public readonly UnturnedUIElement? Element = null;
+        public readonly TestNullObject? Object = null;
+        public readonly int? NullableValue = null;
+
+        public TestNullObjectsUI() : base(TestGuid) { }
+
+        public class TestNullObject { }
+    }
+
     private class TestUI : UnturnedUI
     {
         public readonly UnturnedUIElement Element = new UnturnedUIElement("a/b/c");

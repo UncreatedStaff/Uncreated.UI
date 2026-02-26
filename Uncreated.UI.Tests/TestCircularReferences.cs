@@ -31,6 +31,28 @@ public class TestCircularReferences
         Assert.That(ui.Refs.Circ.Test2.Owner, Is.EqualTo(ui));
         Assert.That(ui.Refs.Circ.Circ.Test1, Is.EqualTo(ui.Refs.Test1));
     }
+
+    [Test]
+    public void CircularValuesIgnored()
+    {
+        // will stack overflow eventually
+        _ = new TestCircularObjectUI();
+    }
+    
+    public class TestCircularObjectUI : UnturnedUI
+    {
+        /// <summary>
+        /// <see cref="System.DateTime"/> has circular references through the <see cref="System.DateTime.Date"/> property.
+        /// </summary>
+        public DateTime DateTime;
+
+        public int? Test;
+
+        public TestCircularObjectUI() : base(TestGuid)
+        {
+            
+        }
+    }
     
     public class TestCircularPatternUI : UnturnedUI
     {

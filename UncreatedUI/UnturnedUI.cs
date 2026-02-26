@@ -33,15 +33,22 @@ public class UnturnedUI : IDisposable
     private int _disposed;
     private bool _waitingOnAssetLoad;
 
+    /// <summary>
+    /// The concrete <see cref="ILogger"/> specified for this UI. Use <see cref="GetLogger"/> instead to get a logger.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Advanced)]
     protected internal ILogger? Logger;
+
+    [EditorBrowsable(EditorBrowsableState.Advanced)]
     protected internal readonly ILoggerFactory? LoggerFactory;
 
     private readonly List<UnturnedUIElement> _elements;
     private readonly string? _basePath;
 
     /// <summary>
-    /// Get a lazily cached <see cref="ILogger"/> object for this element. Will never be <see langword="null"/>.
+    /// Get a lazily cached <see cref="ILogger"/> object for this element. Will never be <see langword="null"/>, but may be a <see cref="NullLogger"/>.
     /// </summary>
+    /// <remarks>Based on the values of <see cref="Logger"/> and <see cref="LoggerFactory"/>.</remarks>
     protected internal ILogger GetLogger()
     {
         if (Logger != null)
@@ -139,8 +146,12 @@ public class UnturnedUI : IDisposable
     }
 
     private UnturnedUI(object? logger, bool hasElements, bool keyless, bool reliable, bool debugLogging, bool staticKey)
+        : this(logger, hasElements, null, keyless, reliable, debugLogging, staticKey)
     {
-        staticKey &= !keyless;
+
+    }
+    private UnturnedUI(object? logger, bool hasElements, short? key, bool keyless, bool reliable, bool debugLogging, bool staticKey)
+    {
         Type type = GetType();
 
         bool isUnturnedUIObject = type == typeof(UnturnedUI);
@@ -149,7 +160,14 @@ public class UnturnedUI : IDisposable
         List<UnturnedUIElement> elements = new List<UnturnedUIElement>(hasElements ? 16 : 0);
         Elements = elements.AsReadOnly();
         _elements = elements;
-        Key = keyless ? (short)-1 : (staticKey ? ClaimStaticKey(GetType()) : UnturnedUIKeyPool.Claim());
+        if (key.HasValue)
+        {
+            Key = key.Value;
+        }
+        else
+        {
+            Key = keyless ? (short)-1 : (staticKey ? ClaimStaticKey(GetType()) : UnturnedUIKeyPool.Claim());
+        }
         IsReliable = reliable;
         IsSendReliable = reliable;
 
@@ -184,7 +202,7 @@ public class UnturnedUI : IDisposable
         if (!HasElements)
             return;
 
-        List<object> circularReferenceStack = new List<object>(3);
+        Stack<object> circularReferenceStack = new Stack<object>(3);
         UIElementDiscovery.LinkAllElements(this, elements, circularReferenceStack);
 
         for (int i = 0; i < elements.Count; ++i)
@@ -574,7 +592,7 @@ public class UnturnedUI : IDisposable
         lock (_elements)
         {
             int pos = _elements.Count;
-            List<object> circularReferenceStack = new List<object>(2);
+            Stack<object> circularReferenceStack = new Stack<object>(2);
             UIElementDiscovery.DiscoverElements(GetLogger(), obj, _elements, ref depth, DebugLogging, this, circularReferenceStack);
             for (int i = pos; i < _elements.Count; ++i)
             {

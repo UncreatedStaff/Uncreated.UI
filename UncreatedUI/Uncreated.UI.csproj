@@ -3,10 +3,10 @@
   <!-- Publish Settings -->
   <PropertyGroup>
 
-    <VersionPrefix>1.3.5</VersionPrefix>
+    <VersionPrefix>1.4.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
 
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>Relicensed to LGPL-3.0-or-later, changed to use UnturnedLog as default logger. Fixed a few bugs with circular references and null values in UI fields.</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
 
@@ -23,7 +23,7 @@
     <Company>Uncreated</Company>
     <Authors>DanielWillett</Authors>
 
-    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <PackageLicenseExpression>LGPL-3.0-or-later</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/UncreatedStaff/Uncreated.UI</PackageProjectUrl>
     <RepositoryUrl>$(PackageProjectUrl).git</RepositoryUrl>
 

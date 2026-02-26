@@ -16,7 +16,13 @@ public class Sandbox
     [Test]
     public void SandboxTest()
     {
+        SomeUI ui = new SomeUI();
         Console.WriteLine("hello");
     }
     // put your UI here
+
+    public class SomeUI() : UnturnedUI(Guid.Empty)
+    {
+
+    }
 }
