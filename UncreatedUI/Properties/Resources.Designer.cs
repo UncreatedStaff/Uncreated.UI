@@ -19,7 +19,7 @@ namespace Uncreated.Framework.UI.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -750,15 +750,6 @@ namespace Uncreated.Framework.UI.Properties {
         internal static string Log_UnableToFindAssetFromId {
             get {
                 return ResourceManager.GetString("Log_UnableToFindAssetFromId", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [{0}] Effect asset {1} does not have a valid numeric ID..
-        /// </summary>
-        internal static string Log_UnableToFindIdFromAsset {
-            get {
-                return ResourceManager.GetString("Log_UnableToFindIdFromAsset", resourceCulture);
             }
         }
         

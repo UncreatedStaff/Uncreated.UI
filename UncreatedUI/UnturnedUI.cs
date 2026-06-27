@@ -632,10 +632,6 @@ public class UnturnedUI : IDisposable
                 _name = Asset.FriendlyName;
             Id = Asset.id;
             Guid = Asset.GUID;
-            if (Id == 0)
-            {
-                GetLogger().LogWarning(Properties.Resources.Log_UnableToFindIdFromAsset, Name, Asset.FriendlyName);
-            }
         }
         else if (Id != 0)
         {

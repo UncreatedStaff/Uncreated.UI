@@ -273,9 +273,6 @@
   <data name="Log_LateRegisteredOther" xml:space="preserve">
     <value>[{0}] Late-registered object containing the previous {1} element(s): {2}.</value>
   </data>
-  <data name="Log_UnableToFindIdFromAsset" xml:space="preserve">
-    <value>[{0}] Effect asset {1} does not have a valid numeric ID.</value>
-  </data>
   <data name="Log_UnableToFindAssetFromId" xml:space="preserve">
     <value>[{0}] Unable to find an effect asset with ID {1}.</value>
   </data>

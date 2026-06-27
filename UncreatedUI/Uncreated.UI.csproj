@@ -3,10 +3,10 @@
   <!-- Publish Settings -->
   <PropertyGroup>
 
-    <VersionPrefix>1.4.0</VersionPrefix>
+    <VersionPrefix>1.4.1</VersionPrefix>
     <VersionSuffix></VersionSuffix>
 
-    <PackageReleaseNotes>Relicensed to LGPL-3.0-or-later, changed to use UnturnedLog as default logger. Fixed a few bugs with circular references and null values in UI fields.</PackageReleaseNotes>
+    <PackageReleaseNotes>Removed warning log message about assets missing IDs, which no longer applies.</PackageReleaseNotes>
 
     <TargetFramework>netstandard2.1</TargetFramework>
 
