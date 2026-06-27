@@ -16,20 +16,24 @@ on:
         required: true
         type: string
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         ref: 'master'
         
     - name: SetupDotNet
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '9.x.x'
+        dotnet-version: '10'
         
     - name: Build
       run: dotnet build "./UncreatedUI/Uncreated.UI.csproj" --configuration Release "/p:VersionPrefix=${{ inputs.version_prefix }};VersionSuffix=${{ inputs.version_suffix }};PackageReleaseNotes=${{ inputs.change_notes }};IsInGitHubActions=True"
@@ -40,10 +44,16 @@ jobs:
     - name: Pack
       run: dotnet pack "./UncreatedUI/Uncreated.UI.csproj" --configuration Release "/p:VersionPrefix=${{ inputs.version_prefix }};VersionSuffix=${{ inputs.version_suffix }};PackageReleaseNotes=${{ inputs.change_notes }};IsInGitHubActions=True" --no-build --output .
     
-    - name: Push Packages
+    - name: Login to NuGet
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{ secrets.NUGET_TP_USER }}
+
+    - name: Push NuGet Package
       run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key ${NUGET_TOKEN}
       env:
-        NUGET_TOKEN: ${{ secrets.UNCREATED_ORG_NUGET }}
+        NUGET_TOKEN: ${{ steps.login.outputs.NUGET_API_KEY }}
         
   create_tag:
     runs-on: ubuntu-latest
@@ -53,7 +63,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: 'master'
           fetch-depth: 0
